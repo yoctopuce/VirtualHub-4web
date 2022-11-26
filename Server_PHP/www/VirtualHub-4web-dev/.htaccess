@@ -1,0 +1,9 @@
+# PHP settings for VirtualHub-4web
+php_value post_max_size             "4M"
+php_value upload_max_filesize       "4M"
+php_value enable_post_data_reading  0
+# this one is not supposed to work per-dir, but sometimes it does...
+php_value allow_url_fopen           1
+# Redirect all URLs to index.php for VirtualHub-4web processing
+RewriteEngine on
+RewriteRule ^.*$ index.php?node=$0 [QSA,END]
