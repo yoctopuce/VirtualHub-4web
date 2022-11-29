@@ -1,6 +1,6 @@
-<?php /* VirtualHub-4web (version 1.10.51774) - www.yoctopuce.com */
+<?php /* VirtualHub-4web (version 1.10.51840) - www.yoctopuce.com */
 declare(strict_types=1);
-const VERSION = "1.10.51774";
+const VERSION = "1.10.51840";
 function check_php_conf(bool $checkDataFolder = false): array{    $res = [];    if(PHP_MAJOR_VERSION < 7) {        $res[] = [            'error' => 'PHP_MAJOR_VERSION',            'msg' => 'This software requires PHP version version 7.x or 8.x.',            'cause' => 'This server is running PHP version '.phpversion().', which is out of support for several years. '.                'You should seriously consider tp upgrade your server.'        ];    }    if(PHP_INT_MAX < 0x100000000) {        $res[] = [            'error' => 'PHP_INT_MAX',            'msg' => 'This software requires 64-bit integers.',            'cause' => 'On this server, <b>PHP_INT_MAX</b> = 0x'.dechex(PHP_INT_MAX).', which is less than 64 bit. '.                'This is not enough for this software to work properly.'        ];    }    $url_fopen = ini_get('allow_url_fopen');    if ($url_fopen !== 'On' && $url_fopen !== '1') {        $res[] = [            'error' => 'allow_url_fopen',            'msg' => 'This software requires <b>allow_url_fopen</b> to be enabled.',            'cause' => '<b>allow_url_fopen</b> is currenlty set to '.$url_fopen.'. '.                'Depending on your server setup, this can be fixed by adding a line in the directory-specific '.                'configuration files .user.ini or .htaccess, or might require a change to the global server configuration.',            '.user.ini' => 'allow_url_fopen="1"',            '.htaccess' => 'php_value allow_url_fopen 1'        ];    }    $post_reading = ini_get('enable_post_data_reading');    if ($post_reading !== '0') {        $res[] = [            'error' => 'enable_post_data_reading',            'msg' => 'This software requires <b>enable_post_data_reading</b> to be set to 0.',            'cause' => '<b>enable_post_data_reading</b> is currenlty set to '.$post_reading.'. '.                'Depending on your server setup, this can be fixed by adding a line in the directory-specific '.                'configuration files .user.ini or .htaccess, or might require a change to the global server configuration.',            '.user.ini' => 'enable_post_data_reading="0"',            '.htaccess' => 'php_value enable_post_data_reading 0'        ];    }    $max_post = ini_get('post_max_size');    $max_post_kb = intval(str_replace(['K', 'M', 'G'], ['', '000', '000000'], $max_post));    if ($max_post_kb < 2000) {        $res[] = [            'error' => 'post_max_size',            'msg' => 'This software requires <b>post_max_size</b> to be at least 2 MB (ideally at least 4 MB).',            'cause' => '<b>post_max_size</b> is currenlty set to '.$max_post.'. '.                'Depending on your server setup, this can be fixed by adding a line in the directory-specific '.                'configuration files .user.ini or .htaccess, or might require a change to the global server configuration.',            '.user.ini' => 'post_max_size="4M"',            '.htaccess' => 'php_value post_max_size 4M'        ];    }    $max_upload = ini_get('upload_max_filesize');    $max_upload_kb = intval(str_replace(['K', 'M', 'G'], ['', '000', '000000'], $max_upload));    if ($max_upload_kb < 2000) {        $res[] = [            'error' => 'upload_max_filesize',            'msg' => 'This software requires <b>upload_max_filesize</b> to be at least 2 MB (ideally at least 4 MB).',            'cause' => '<b>upload_max_filesize</b> is currenlty set to '.$max_upload.'. '.                'Depending on your server setup, this can be fixed by adding a line in the directory-specific '.                'configuration files .user.ini or .htaccess, or might require a change to the global server configuration.',            '.user.ini' => 'upload_max_filesize="4M"',            '.htaccess' => 'php_value upload_max_filesize 4M'        ];    }    if($checkDataFolder) {        // make sure the caller has defined a VHUB4WEB_DATA        if (!defined('VHUB4WEB_DATA')) {            $res[] = [                'error' => 'VHUB4WEB_DATA-undefined',                'msg' => 'This software requires a constant VHUB4WEB_DATA pointing to the directory where data should be stored.',                'cause' => 'The entry point (currently set to '.$_SERVER['SCRIPT_NAME'].') should be a simple script that '.                    'defines VHUB4WEB_DATA before including <b>vhub4web-init.php</b>. '.                    'This looks like an installation error, check the documentation or re-run the easy installer process.'            ];            return $res;        }        // check for data subfolder and server configuration        if (!file_exists(VHUB4WEB_DATA) || !is_dir(VHUB4WEB_DATA)) {            $res[] = [                'error' => 'VHUB4WEB_DATA-missing',                'msg' => 'This software was configured to store data in directory <b>'.VHUB4WEB_DATA.'</b>, which cannot be found.',                'cause' => 'Folder <b>'.VHUB4WEB_DATA.'</b> does not seems to be a valid path this server. '.                    'This looks like an installation error, check the documentation or re-run the easy installer process.'            ];            return $res;        }        if (!is_writable(VHUB4WEB_DATA)) {            $res[] = [                'error' => 'VHUB4WEB_DATA-readonly',                'msg' => 'This software was configured to store data in directory <b>'.VHUB4WEB_DATA.'</b>, which is write-protected.',                'cause' => 'Folder <b>'.VHUB4WEB_DATA.'</b> does not seems to be a writable for this PHP script. '.                    'This looks like an installation error, check the documentation or re-run the easy installer process.'            ];            return $res;        }    }    return $res;}
 //--- (generated code: YFunction definitions)
 // Yoctopuce error codes, also used by default as function return value
@@ -187,7 +187,9 @@ class YTcpHub
     // attributes
     public $rooturl;                    // root url of the hub (without auth parameters)
     public $streamaddr;                 // stream address of the hub ("tcp://addr:port")
+    public $url_info;                   // $url parsed
     public $notifurl;                   // notification file used by this hub
+    public $use_pure_http;              // boolean that is true if the hub is VirtualHub-4web
     public $notifReq;                   // notification request, or null if not open
     public $notifPos;                   // absolute position in notification stream
     public $isNotifWorking;            // boolean that is true when we receive ping notification
@@ -208,17 +210,19 @@ class YTcpHub
     protected $opaque;                  // last received opaque
     protected $ha1;                     // our authentication ha1 string
     protected $nc;                      // nounce usage count
-    function __construct($rooturl, $auth)
+    function __construct($url_info)
     {
-        $this->rooturl = $rooturl;
-        $this->streamaddr = str_replace('http://', 'tcp://', $rooturl);
-        $colon = strpos($auth, ':');
+        $this->rooturl = $url_info['rooturl'];
+        $this->url_info = $url_info;
+        $this->streamaddr = str_replace('http://', 'tcp://', $this->rooturl);
+        $this->streamaddr = str_replace('https://', 'tls://', $this->streamaddr);
+        $colon = strpos( $url_info['auth'], ':');
         if ($colon === false) {
-            $this->user = $auth;
+            $this->user = $url_info['auth'];
             $this->pwd = '';
         } else {
-            $this->user = substr($auth, 0, $colon);
-            $this->pwd = substr($auth, $colon + 1);
+            $this->user = substr($url_info['auth'], 0, $colon);
+            $this->pwd = substr($url_info['auth'], $colon + 1);
         }
         $this->notifurl = 'not.byn';
         $this->notifHandle = null;
@@ -229,6 +233,7 @@ class YTcpHub
         $this->retryDelay = 15;
         $this->retryExpires = 0;
         $this->writeProtected = false;
+        $this->use_pure_http = false;
     }
     static function decodeJZONReq($jzon, $ref)
     {
@@ -292,7 +297,7 @@ class YTcpHub
     }
     function verfiyStreamAddr($fullTest = true, &$errmsg = '')
     {
-        if ($this->streamaddr == 'tcp://CALLBACK/') {
+        if ($this->streamaddr == 'tcp://CALLBACK') {
             if (!isset($_SERVER['REQUEST_METHOD']) || $_SERVER['REQUEST_METHOD'] != 'POST') {
                 $errmsg = "invalid request method";
                 $this->callbackCache = Array();
@@ -440,6 +445,12 @@ class YTcpHub
                 }
             }
         } else {
+            $info_json_url = $this->rooturl.$this->url_info['subdomain'].'/info.json';
+            $info_json = file_get_contents($info_json_url);
+            $jsonData = json_decode($info_json, true);
+            if ($jsonData != null &&array_key_exists('protocol', $jsonData) && $jsonData['protocol'] =='HTTP/1.1') {
+                $this->use_pure_http = true;
+            }
             $this->callbackCache = NULL;
         }
         return 0;
@@ -626,6 +637,19 @@ class YTcpReq
         }
         if ($this->meta != '' && $this->errorType == YAPI_SUCCESS) {
             // connection was done and ended successfully
+            // check we need to unchunk the response
+            $t_ofs = strpos($this->meta,"Transfer-Encoding");
+            if ($t_ofs > 0) {
+                $t_ofs += 17;
+                $t_endl = strpos($this->meta,"\r\n", $t_ofs);
+                $t_chunk = strpos($this->meta,"chunked", $t_ofs);
+                if ($t_chunk!==false  && $t_endl!==false && $t_chunk < $t_endl) {
+                    // chuck encoded
+                    $new = $this->http_chunked_decode($this->reply);
+                    $this->reply = $new;
+                    $this->meta= substr($this->meta, 0 , $t_ofs). substr($this->meta,$t_endl+2);
+                }
+            }
             return true;
         }
         if ($this->retryCount > 3) {
@@ -634,6 +658,31 @@ class YTcpReq
         }
         // connection is expected to be reopened
         return false;
+    }
+    function http_chunked_decode($data) {
+        $data_length = strlen($data);
+        $dechunk = '';
+        $ofs = 0;
+        do {
+            $hexstr = '';
+            while ($ofs < $data_length && ($c = $data[$ofs]) != "\n") {
+                if (($c >= '0' && $c <= '9') || ($c >= 'A' && $c <= 'F') || ($c >= 'a' && $c <= 'f')) {
+                    $hexstr.=$c;
+                }
+                $ofs++;
+            }
+            if ($ofs < $data_length){
+                $len = hexdec($hexstr);
+                if ($ofs + 3 + $len < $data_length) {
+                    $ofs++;
+                    $dechunk .= substr($data,$ofs, $len);
+                    $ofs+=2;
+                } else{
+                    $ofs+=1;
+                }
+            }
+        } while($ofs < $data_length);
+        return $dechunk;
     }
     function newsocket(&$errno, &$errstr, $mstimeout)
     {
@@ -700,16 +749,7 @@ class YTcpReq
                     }
                 }
                 stream_set_blocking($skt, false);
-                $request = $this->request . " \r\n" . // no HTTP/1.1 suffix for light queries
-                    $this->hub->getAuthorization($this->request);
-                if ($this->boundary != '') {
-                    $request .= "Content-Type: multipart/form-data; boundary={$this->boundary}\r\n";
-                }
-                if (substr($this->request, -2) == "&.") {
-                    $request .= "\r\n";
-                } else {
-                    $request .= "Connection: close\r\n\r\n";
-                }
+                $request = $this->format_request();
                 $reqlen = strlen($request);
                 if (fwrite($skt, $request, $reqlen) != $reqlen) {
                     fclose($skt);
@@ -787,6 +827,32 @@ class YTcpReq
             }
         }
         return YAPI_SUCCESS;
+    }
+    function  format_request()
+    {
+        $parts = explode(' ', $this->request);
+        if (sizeof($parts)==2) {
+            $req = $parts[0] . ' ' . $this->hub->url_info['subdomain'] . $parts[1];
+        }else{
+            $req = $this->request;
+        }
+        if ($this->hub->use_pure_http) {
+            $request = $req . " HTTP/1.1\r\n";
+            $host = $this->hub->url_info['host'];
+            $request .= "Host: " . $host . "\r\n";
+        }else {
+            $request = $req. " \r\n"; // no HTTP/1.1 suffix for light queries
+        }
+        $request.=$this->hub->getAuthorization($req);
+        if ($this->boundary != '') {
+            $request .= "Content-Type: multipart/form-data; boundary={$this->boundary}\r\n";
+        }
+        if (substr($this->request, -2) == "&." && !$this->hub->use_pure_http) {
+            $request .= "\r\n";
+        } else {
+            $request .= "Connection: close\r\n\r\n";
+        }
+        return $request;
     }
     function close()
     {
@@ -1721,7 +1787,7 @@ class YAPI
                     $serial = $devinfo['serialNumber'];
                     $rooturl = substr($devinfo['networkUrl'], 0, -3);
                     if ($rooturl[0] == '/')
-                        $rooturl = $hub->rooturl . substr($rooturl, 1);
+                        $rooturl = $hub->rooturl . $rooturl;
                     $currdev = null;
                     if (isset(self::$_devs[$serial])) {
                         $currdev = self::$_devs[$serial];
@@ -1824,7 +1890,7 @@ class YAPI
             $req = $hub->notifReq;
             if ($req) {
                 if ($req->eof()) {
-                    Printf("Event channel at eof, reopen\n");
+                    //Printf("Event channel at eof, reopen\n");
                     $something_done = true;
                     $hub->notifReq = $req = null;
                     self::monitorEvents($hub);
@@ -2458,7 +2524,7 @@ class YAPI
         } else {
             $devUrl = "/$devUrl";
         }
-        $rooturl = "http://$baseUrl/";
+        $rooturl = "http://$baseUrl";
         if (!isset(self::$_hubs[$rooturl])) {
             return new YAPI_YReq("", YAPI_DEVICE_NOT_FOUND, 'No hub registered on ' . $baseUrl, null);
         }
@@ -2535,7 +2601,8 @@ class YAPI
                     $tcpreq->reply);
             }
             $matches = null;
-            if (!preg_match('/^HTTP[^ ]* (?P<status>\d+) (?P<statusmsg>.)+$/', $tcpreq->meta, $matches)) {
+            $preg_match = preg_match('/^HTTP[^ ]* (?P<status>\d+) (?P<statusmsg>.)+\r\n/', $tcpreq->meta, $matches);
+            if (!$preg_match) {
                 return new YAPI_YReq("", YAPI_IO_ERROR,
                     'Unexpected HTTP response header: ' . $tcpreq->meta,
                     null);
@@ -2733,7 +2800,7 @@ class YAPI
    #--- (end of generated code: YAPIContext yapiwrapper)
     public static function GetAPIVersion()
     {
-        return "1.10.51774";
+        return "1.10.51840";
     }
     public static function SetHTTPCallbackCacheDir($str_directory)
     {
@@ -2795,42 +2862,57 @@ class YAPI
         if (is_null(self::$_hubs)) self::_init();
         self::$exceptionsDisabled = false;
     }
-    private static function _parseRegisteredURL($str_url, &$rooturl, &$auth)
+    private static function _parseRegisteredURL($str_url)
     {
-        $proto = 'http';
+        $res = [];
+        $res['proto'] = 'http';
         if (substr($str_url, 0, 7) == 'http://') {
             $str_url = substr($str_url, 7);
+        } else if (substr($str_url, 0, 8) == 'https://') {
+            $str_url = substr($str_url, 8);
+            $res['proto'] = "https";
         } else if (substr($str_url, 0, 5) == 'ws://') {
             $str_url = substr($str_url, 5);
-            $proto = "ws";
+            $res['proto'] = "ws";
         }
-        while (substr($str_url, -1) == '/') {
-            $str_url = substr($str_url, 0, -1);
+        $subdompos = strpos($str_url, '/');
+        if ($subdompos===false){
+            $res['subdomain']='';
+        } else {
+            $res['subdomain'] = substr($str_url,$subdompos);
+            while (substr($res['subdomain'], -1) == '/') {
+                $res['subdomain'] = substr($res['subdomain'], 0, -1);
+            }
+            $str_url = substr($str_url, 0, $subdompos);
         }
         $authpos = strpos($str_url, '@');
         if ($authpos === false) {
-            $auth = '';
+            $res['auth'] = '';
         } else {
-            $auth = substr($str_url, 0, $authpos);
+            $res['auth'] = substr($str_url, 0, $authpos);
             $str_url = substr($str_url, $authpos + 1);
         }
-        if (strcasecmp(substr($str_url, 0, 8), "callback") == 0) {
-            $rooturl = "http://" . strtoupper($str_url) . "/";
+        $res['port'] = 4444;
+        $p_ofs = strpos($str_url, ':');
+        if ($p_ofs !== false) {
+            $res['host'] = substr($str_url,0,$p_ofs);
+            $res['port'] = (int)substr($str_url,$p_ofs+1);
         } else {
-            if (strpos($str_url, ':') === false) {
-                $str_url .= ':4444';
-            }
-            $rooturl = "{$proto}://{$str_url}/";
+            $res['host'] = $str_url;
         }
+        if (strcasecmp(substr($str_url, 0, 8), "callback") == 0) {
+            $res['rooturl'] = "http://" . strtoupper($str_url) ;
+        } else {
+            $res['rooturl'] = "{$res['proto']}://{$res['host']}:{$res['port']}";
+        }
+        return $res;
     }
     public static function RegisterHub($url, &$errmsg = '')
     {
         if (is_null(self::$_hubs)) self::_init();
-        $rooturl = $url;
-        $auth = '';
-        self::_parseRegisteredURL($url, $rooturl, $auth);
+        $url_detail = self::_parseRegisteredURL($url);
         // Test hub
-        $tcphub = new YTcpHub($rooturl, $auth);
+        $tcphub = new YTcpHub($url_detail);
         $res = $tcphub->verfiyStreamAddr(true, $errmsg);
         if ($res < 0) {
             return self::_throw(YAPI_IO_ERROR, $errmsg, YAPI_IO_ERROR);
@@ -2857,8 +2939,8 @@ class YAPI
             return self::_throw($tcpreq->errorType, $errmsg, $tcpreq->errorType);
         }
         // Add hub to known list
-        if (!isset(self::$_hubs[$rooturl])) {
-            self::$_hubs[$rooturl] = $tcphub;
+        if (!isset(self::$_hubs[$url_detail['rooturl']])) {
+            self::$_hubs[$url_detail['rooturl']] = $tcphub;
         }
         // Register device list
         $yreq = self::_updateDeviceList_internal(true, false);
@@ -2871,13 +2953,11 @@ class YAPI
     public static function PreregisterHub($url, &$errmsg = '')
     {
         if (is_null(self::$_hubs)) self::_init();
-        $rooturl = $url;
-        $auth = '';
-        self::_parseRegisteredURL($url, $rooturl, $auth);
+        $url_detail = self::_parseRegisteredURL($url);
         // Add hub to known list
-        if (!isset(self::$_hubs[$rooturl])) {
-            self::$_hubs[$rooturl] = new YTcpHub($rooturl, $auth);
-            if (self::$_hubs[$rooturl]->verfiyStreamAddr(true, $errmsg) < 0) {
+        if (!isset(self::$_hubs[$url_detail['rooturl']])) {
+            self::$_hubs[$url_detail['rooturl']] = new YTcpHub($url_detail);
+            if (self::$_hubs[$url_detail['rooturl']]->verfiyStreamAddr(true, $errmsg) < 0) {
                 return self::_throw(YAPI_IO_ERROR, $errmsg, YAPI_IO_ERROR);
             }
         }
@@ -2887,12 +2967,10 @@ class YAPI
     {
         if (is_null(self::$_hubs))
             return;
-        $rooturl = $url;
-        $auth = '';
-        self::_parseRegisteredURL($url, $str_url, $auth);
+        $url_detail = self::_parseRegisteredURL($url);
         $new_hubs = array();
         foreach (self::$_hubs as $hub_url => $hubst) {
-            if ($hub_url == $str_url) {
+            if ($hub_url == $url_detail['rooturl']) {
                 // leave max 10 second to finish pending requests
                 $timeout = YAPI::GetTickCount() + 10000;
                 foreach (self::$_pendingRequests as $tcpreq) {
@@ -2912,6 +2990,12 @@ class YAPI
                 }
                 if ($hubst->notifReq) {
                     $hubst->notifReq->close();
+                    for ($idx = 0; $idx < sizeof(self::$_pendingRequests); $idx++) {
+                        $req = self::$_pendingRequests[$idx];
+                        if ($req == $hubst->notifReq) {
+                            array_splice(self::$_pendingRequests, $idx, 1);
+                        }
+                    }
                 }
             } else {
                 $new_hubs[$hub_url] = self::$_hubs[$hub_url];
@@ -2922,16 +3006,14 @@ class YAPI
     public static function TestHub($url, $mstimeout, &$errmsg = '')
     {
         if (is_null(self::$_hubs)) self::_init();
-        $rooturl = $url;
-        $auth = '';
-        self::_parseRegisteredURL($url, $rooturl, $auth);
+        $url_detail = self::_parseRegisteredURL($url);
         // Test hub
-        $tcphub = new YTcpHub($rooturl, $auth);
+        $tcphub = new YTcpHub($url_detail);
         $res = $tcphub->verfiyStreamAddr(false, $errmsg);
         if ($res < 0) {
             return YAPI_IO_ERROR;
         }
-        if ($tcphub->streamaddr == 'tcp://CALLBACK/') {
+        if ($tcphub->streamaddr == 'tcp://CALLBACK') {
             return YAPI_SUCCESS;
         }
         $tcpreq = new YTcpReq($tcphub, "GET /api/module.json", false, '', $mstimeout);
@@ -3091,10 +3173,9 @@ class YAPI
     public static function ForwardHTTPCallback($url, &$errmsg = "")
     {
         $rooturl = 'callback';
-        $auth = '';
-        self::_parseRegisteredURL('callback', $rooturl, $auth);
-        if (isset(self::$_hubs[$rooturl])) {
-            $cb_hub = self::$_hubs[$rooturl];
+        $url_detail = self::_parseRegisteredURL('callback');
+        if (isset(self::$_hubs[$url_detail['rooturl']])) {
+            $cb_hub = self::$_hubs[$url_detail['rooturl']];
             // data to post is found in $cb_hub->callbackData
             $url = str_replace('http://', '', $url);
             $pos = strpos($url, '/');

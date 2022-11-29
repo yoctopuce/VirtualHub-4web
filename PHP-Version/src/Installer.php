@@ -84,7 +84,7 @@ function downgradePHP(string $code): string
 /*
  * Install function: read and decompress runtime files for VirtualHub-4web
  */
-function installFiles(string $destDir): bool
+function installFiles(string $destDir, array $prevConfig = []): bool
 {
     global $phpCode, $initCode, $yfsImage;
     $php8 = '';
@@ -93,10 +93,28 @@ function installFiles(string $destDir): bool
         $php8 .= gzread($zp, 16384);
     }
     gzclose($zp);
-    $res = file_put_contents("{$destDir}/vhub4web-php7.php", normalizeLineEndings(downgradePHP($php8)));
-    $res = $res || file_put_contents("{$destDir}/vhub4web-php8.php", normalizeLineEndings($php8));
-    $res = $res || file_put_contents("{$destDir}/vhub4web-init.php", normalizeLineEndings(file_get_contents($initCode)));
-    $res = $res || file_put_contents("{$destDir}/YFSImg.yfs", file_get_contents($yfsImage));
+    $newInitCode = file_get_contents($initCode);
+    if(isset($prevConfig['definedSymbols']) && isset($prevConfig['codedir'])) {
+        $prevInitPath = $prevConfig['codedir'].'/vhub4web-init.php';
+        if(file_exists($prevInitPath)) {
+            $prevInitCode = file_get_contents($prevInitPath);
+            $markerPos = strpos($prevInitCode, '////-- MARKER: New constants');
+            if($markerPos !== false &&
+                preg_match_all('/const\s+(\w+)\s*=\s*([^\r\n]+)/', $newInitCode, $defines, PREG_SET_ORDER)) {
+                $addConfig = '';
+                foreach($defines as $def) {
+                    if(!in_array($def[1], $prevConfig['definedSymbols'])) {
+                        $addConfig .= "const $def[1] = $def[2]\n";
+                    }
+                }
+                $newInitCode = substr($prevInitCode, 0, $markerPos).$addConfig.substr($prevInitCode, $markerPos);
+            }
+        }
+    }
+    $res = file_put_contents("{$destDir}/vhub4web-init.php", normalizeLineEndings($newInitCode));
+    $res = $res && file_put_contents("{$destDir}/vhub4web-php8.php", normalizeLineEndings($php8));
+    $res = $res && file_put_contents("{$destDir}/vhub4web-php7.php", normalizeLineEndings(downgradePHP($php8)));
+    $res = $res && file_put_contents("{$destDir}/YFSImg.yfs", file_get_contents($yfsImage));
     return $res;
 }
 
@@ -511,7 +529,7 @@ function processInstall(string $func): array
         case 'install':
             $basicInstall = (isset($_GET['installType']) && $_GET['installType'] == 'basic');
             $instances = (isset($_GET['instances']) ? json_decode($_GET['instances']) : []);
-            if(!$instances || sizeof($instances) == 0) {
+            if(!$instances || !preg_match('~^[\w-]+$~', implode('', $instances))) {
                 $errors[] = [
                     'error' => 'noInstance',
                     'msg' => 'Invalid instance names specified',
@@ -609,7 +627,7 @@ function processInstall(string $func): array
             break;
         case 'updateInstances':
             $instances = (isset($_GET['instances']) ? json_decode($_GET['instances']) : []);
-            if(!$instances || sizeof($instances) == 0) {
+            if(!$instances || !preg_match('~^[\w-]+$~', implode('', $instances))) {
                 $errors[] = [
                     'error' => 'noInstance',
                     'msg' => 'Invalid instance names specified',
@@ -619,7 +637,9 @@ function processInstall(string $func): array
                 break;
             }
             $updatedCodeDirs = [];
+            $updatedInstances = [];
             foreach($instances as $instance) {
+                $updatedInstances[$instance] = false;
                 $entryPoint = __DIR__.'/'.$instance.'/index.php';
                 $instanceData = getVhub4webConfig($entryPoint);
                 if(isset($instanceData['errmsg'])) {
@@ -647,25 +667,29 @@ function processInstall(string $func): array
                                     continue;
                                 }
                             }
-                            installFiles($codeDir);
+                            if(installFiles($codeDir, $instanceData)) {
+                                $updatedCodeDirs[$codeDir] = true;
+                            }
                         }
-                        if(!$updatedCodeDirs[$codeDir]) {
+                        if(!isset($updatedCodeDirs[$codeDir])) {
                             continue;
                         }
                         // now patch the index file to point to new version
                         $matchExpr = '~([^0-9])'.preg_quote($currVersion).'([^0-9])~';
                         $currIndex = file_get_contents($entryPoint);
-                        $newIndex = preg_replace($matchExpr, '$1'.VERSION.'$2', $currIndex);
+                        $newIndex = preg_replace($matchExpr, '${1}'.VERSION.'${2}', $currIndex);
                         file_put_contents($entryPoint, normalizeLineEndings(downgradePHP($newIndex)));
+                        $updatedInstances[$instance] = true;
                     } else {
                         // simply replace files of existing install
                         $codeDir = $currCodeDir;
-                        installFiles($codeDir);
+                        installFiles($codeDir, $instanceData);
                     }
                     $updatedCodeDirs[$codeDir] = true;
                 }
             }
             $properties['updatedCodeDirs'] = $updatedCodeDirs;
+            $properties['updatedInstances'] = $updatedInstances;
             break;
         case 'removeInstaller':
             if(!@unlink(__FILE__)) {
@@ -961,23 +985,27 @@ if(isset($_GET['func'])) {
 
     function selectUpdateWizPage(wizPage)
     {
+        let callback = null;
         if(wizPage === 8) {
             shtml('updateButton', 'Update!');
+            callback = fullUpdate
         } else {
             shtml('updateButton', 'Next >');
         }
-        wdg('updateButton').onclick = () => { wizNext(1,wizPage); };
+        wdg('updateButton').onclick = () => { wizNext(1,wizPage,callback); };
         wdg('updateButton').disabled = false;
     }
 
     /*
      * Code for wizard page 2 (instance names)
      */
-    function addInstance()
+    function addInstance(listName)
     {
-        let list = wdg('instanceList');
+        let list = wdg(listName);
         let nChildren = list.childElementCount;
-        let placeHolders = [ 'sensorHub', 'plant42', 'relayController', 'allFridges', 'experimentControl' ];
+        let placeHolders = (listName.slice(0,3) !== 'add' ?
+            [ 'sensorHub', 'plant42', 'relayController', 'allFridges', 'experimentControl' ] :
+            [ 'oneMoreHub', 'plant43', 'rocketLauncher', 'coffeeMachine' ]);
         let li = document.createElement('li');
         let span = document.createElement('span');
         let input = document.createElement('input');
@@ -998,7 +1026,6 @@ if(isset($_GET['func'])) {
     function keyupTimer(event = null)
     {
         if(!event) event = window.event;
-        console.log(event);
         let callback = event.target.onchange;
         if(globalTimeout) {
             clearTimeout(globalTimeout);
@@ -1062,6 +1089,32 @@ if(isset($_GET['func'])) {
     /*
      * Code for wizard page 4 (install)
      */
+    async function testInstall(hostPath, pwd)
+    {
+        console.log('Testing '+hostPath);
+        let url = window.location.protocol + '//' + window.location.host + hostPath + '/api/network.json';
+        let response = await fetch(url);
+        let responseText = await response.text()
+        let network = null;
+        if(response.ok) try {
+            network = JSON.parse(responseText);
+        } catch (e) {}
+        if(!response.ok || !network) {
+            let errmsg = 'New VirtualHub-4web instance appears not to work properly';
+            let status = 'HTTP '+response.status+' '+response.statusText;
+            let details = 'Full response was:<br>' + responseText;
+            if(response.status !== 200) {
+                details = hostPath+' returned '+status+'<br>'+details;
+            }
+            console.log('Testing '+hostPath+': '+status);
+            return `<li>${errmsg} <a href='javascript:show(\"${hostPath}TestInstallDetails\")'>tell me more</a><div class='more' id='${hostPath}TestInstallDetails'>${details}</div></li>`;
+        }
+        if(pwd) {
+            await fetch(url+'?userPassword='+pwd);
+        }
+        return '';
+    }
+
     async function freshInstall()
     {
         // trigger install
@@ -1085,31 +1138,13 @@ if(isset($_GET['func'])) {
         }
 
         // test install, setup password
-        let errmsg = 'New VirtualHub-4web instance appears not to work properly';
         let pwd = wdg('pwd').value;
         for(let hostPath of install.props.urls) {
-            console.log('Testing '+hostPath);
-            let url = window.location.protocol + '//' + window.location.host + hostPath + '/api/network.json';
-            let response = await fetch(url);
-            let responseText = await response.text()
-            let network = null;
-            if(response.ok) try {
-                network = JSON.parse(responseText);
-            } catch (e) {}
-            if(!response.ok || !network) {
-                let status = 'HTTP '+response.status+' '+response.statusText;
-                let details = 'Full response was:<br>' + responseText;
-                if(response.status !== 200) {
-                    details = hostPath+' returned '+status+'<br>'+details;
-                }
-                console.log('Testing '+hostPath+': '+status);
-                wdg('installErrorList').innerHTML +=
-                    `<li>${errmsg} <a href='javascript:show(\"${hostPath}InstDetails\")'>tell me more</a><div class='more' id='${hostPath}InstDetails'>${details}</div></li>`;
+            let res = await testInstall(hostPath, pwd);
+            if(res !== '') {
+                wdg('installErrorList').innerHTML += res;
                 wdg('installErrors').style.display = 'block';
                 return;
-            }
-            if(pwd) {
-                await fetch(url+'?userPassword='+pwd);
             }
         }
 
@@ -1176,6 +1211,100 @@ if(isset($_GET['func'])) {
         }
         // report success
         wdg('updateSuccess').style.display = 'block';
+    }
+
+    /*
+     * Code for wizard page 9 (adding instances)
+     */
+    function updateWiz9next()
+    {
+        if(globalTimeout) {
+            clearTimeout(globalTimeout);
+        }
+
+        let wiz9nextBtn = wdg('wiz9next');
+        wiz9nextBtn.disabled = true;
+        for(let el of document.getElementsByClassName('instanceName')) {
+            let name = el.value.replace(/[^\w\-]/g, '');
+            if(el.value !== name) {
+                el.value = name;
+            }
+            if(name !== '') {
+                wiz9nextBtn.disabled = false;
+            }
+        }
+    }
+
+    /*
+     * Code for wizard page 10 (choosing password)
+     */
+    function updateWiz10next()
+    {
+        if(globalTimeout) {
+            clearTimeout(globalTimeout);
+        }
+
+        let wiz10nextBtn = wdg('wiz10next');
+        let pwd = wdg('addpwd');
+        let pwd2 = wdg('addpwd2');
+        wiz10nextBtn.disabled = true;
+        if(pwd.value === pwd2.value) {
+            wiz10nextBtn.disabled = false;
+            if(pwd.value === '') {
+                shtml('wiz10hint', 'It would be wiser to set a non-empty password');
+            } else if(pwd.value.length <= 6) {
+                shtml('wiz10hint', 'It would be wiser to set a longer password...');
+            }
+        } else if(pwd2.value !== '') {
+            shtml('wiz10hint', 'Passwords do not match !');
+        }
+    }
+
+    /*
+     * Code for wizard page 11 (adding instances to an existing install)
+     */
+    async function createInstances()
+    {
+        let instances = [];
+        for(let el of document.getElementsByClassName('instanceName')) {
+            let name = el.value.trim();
+            if(name !== '') {
+                instances.push(name);
+            }
+        }
+        let args = '&instances='+encodeURIComponent(JSON.stringify(instances));
+        let addInstances = await tryFunc('?func=install'+args);
+        if(addInstances.errors.length > 0) {
+            for(let error of addInstances.errors) {
+                wdg('addInstancesErrorList').innerHTML +=
+                    `<li>${error.msg} <a href='javascript:show(\"${error.error}AddInstDetails\")'>tell me more</a><div class='more' id='${error.error}AddInstDetails'>${error.cause}</div></li>`;
+            }
+            wdg('addInstancesErrors').style.display = 'block';
+            return;
+        }
+        // test install, setup password
+        let pwd = wdg('addpwd').value;
+        for(let hostPath of addInstances.props.urls) {
+            let res = await testInstall(hostPath, pwd);
+            if(res !== '') {
+                wdg('addInstancesErrorList').innerHTML += res;
+                wdg('addInstancesErrors').style.display = 'block';
+                return;
+            }
+        }
+
+        // report success
+        wdg('addInstancesSuccess').style.display = 'block';
+        let accessUrls = '';
+        let callbackUrls = '';
+        for(let hostPath of addInstances.props.urls) {
+            let url = window.location.protocol + '//' + window.location.host + hostPath;
+            let cburl = url+'/HTTPCallback';
+            accessUrls += `<li class="stt"><a href="${url}" target="_blank">${url}</a></li>`;
+            callbackUrls += `<li class="stt">${cburl}</li>`;
+        }
+        wdg('addnewURLs').innerHTML = accessUrls;
+        wdg('addcbURLs').innerHTML = callbackUrls;
     }
 
     /*
@@ -1263,10 +1392,10 @@ if(isset($_GET['func'])) {
         </div>
         <div id="readyToUpdate" style="display:none">
             <p><span style="font-size: x-large; font-weight: bold;">&#8680;</span> What would you like to do ?</p>
-            <div><label><input type="radio" id="uninstallRadio" name="updateAction" onclick="selectUpdateWizPage(6)"/> Uninstall / delete VirtualHub-4web from this server</label></div>
-            <div><label><input type="radio" id="updateRadio" name="updateAction" onclick="selectUpdateWizPage(8,fullUpdate)"/> Update all instances from <span id="installedVersion"></span> to <span id="thisVersion"></span></label></div>
+            <div><label><input type="radio" id="updateRadio" name="updateAction" onclick="selectUpdateWizPage(8)"/> Update all instances from <span id="installedVersion"></span> to <span id="thisVersion"></span></label></div>
             <div><label><input type="radio" id="addRadio" name="updateAction" onclick="selectUpdateWizPage(9)"/> Add new instances</label></div>
-            <div><label><input type="radio" id="modifyRadio" name="updateAction" onclick="selectUpdateWizPage(12)"/> Modify or delete existing instances</label></div>
+            <div><label><input type="radio" id="modifyRadio" name="updateAction" onclick="selectUpdateWizPage(12)"/> Update or delete some existing instances</label></div>
+            <div><label><input type="radio" id="uninstallRadio" name="updateAction" onclick="selectUpdateWizPage(6)"/> Uninstall VirtualHub-4web completely</label></div>
             <div class="WizButtons">
                 <button id="updateButton" disabled>Next &gt;</button>
             </div>
@@ -1285,7 +1414,7 @@ if(isset($_GET['func'])) {
         <ol id="instanceList" style="margin-block-end: 3px;">
             <li><span class="commonAccessRootURL"></span><input class="instanceName" onchange="updateWiz2next()" onkeyup="keyupTimer()" placeholder="sensorHub"/></li>
         </ol>
-        <div style="margin-left: 22px; font-size:small;"><a href="javascript:addInstance()">add one instance...</a></div>
+        <div style="margin-left: 22px; font-size:small;"><a href="javascript:addInstance('instanceList')">add one instance...</a></div>
         <p>
             Note: the installer will only create instances to which you give a name. Placeholder names are just examples,
             but will not be used to create instances.
@@ -1419,7 +1548,7 @@ if(isset($_GET['func'])) {
         <div><label><input type="radio" id="killDataRadio" name="uninstallType" onclick="selectUninstallType()"/> Delete data as well</label></div>
         <div class="WizButtons">
             <button onclick="wizNext(6,1)">&lt; Back</button>&nbsp;
-            <button onclick="wizNext(6,7,fullUninstall)" id="wiz6next" disabled>Uninstall !</button>
+            <button onclick="wizNext(6,7,fullUninstall)" id="uninstallButton" disabled>Uninstall !</button>
         </div>
     </div>
     <div id="wizPage7" style="display:none">
@@ -1463,15 +1592,15 @@ if(isset($_GET['func'])) {
         </div>
     </div>
     <div id="wizPage9" style="display:none">
-        <h3>2: About to adding new VirtualHub (for web) instances</h3>
+        <h3>2: About to add new VirtualHub (for web) instances</h3>
         <p>
             <span style="font-size: x-large; font-weight: bold;">&#8680;</span>
             Enter one or more instance name(s) below to be created:
         </p>
-        <ol id="instanceList" style="margin-block-end: 3px;">
+        <ol id="addInstanceList" style="margin-block-end: 3px;">
             <li><span class="commonAccessRootURL"></span><input class="instanceName" onchange="updateWiz9next()" onkeyup="keyupTimer()" placeholder="sensorHub"/></li>
         </ol>
-        <div style="margin-left: 22px; font-size:small;"><a href="javascript:addInstance()">add one instance...</a></div>
+        <div style="margin-left: 22px; font-size:small;"><a href="javascript:addInstance('addInstanceList')">add one instance...</a></div>
         <p>
             Note: the installer will only create instances to which you give a name. Placeholder names are just examples,
             but will not be used to create instances.
@@ -1484,7 +1613,7 @@ if(isset($_GET['func'])) {
     <div id="wizPage10" style="display:none">
         <h3>3: Choose a password for access control</h3>
         <p>
-            You should now provide a password to protect the new instances.
+            You should now provide a password to protect these new instances.
         </p>
         <p>
             At this point the installer will set the same password for all new instances, but you will
@@ -1496,16 +1625,16 @@ if(isset($_GET['func'])) {
         </p>
         <p>
             <span style="font-size: x-large; font-weight: bold;">&#8680;</span>
-            Enter desired password: <input type="password" id="pwd" onchange="updateWiz10next()" onkeyup="keyupTimer()"/>
+            Enter desired password: <input type="password" id="addpwd" onchange="updateWiz10next()" onkeyup="keyupTimer()"/>
         </p>
         <p>
             <span style="font-size: x-large; font-weight: bold;">&#8680;</span>
-            Re-enter same password: <input type="password" id="pwd2" onchange="updateWiz10next()" onkeyup="keyupTimer()"/>
+            Re-enter same password: <input type="password" id="addpwd2" onchange="updateWiz10next()" onkeyup="keyupTimer()"/>
         </p>
-        <p id="wiz3hint" class="hint"></p>
+        <p id="wiz10hint" class="hint"></p>
         <div class="WizButtons">
             <button onclick="wizNext(10,9)">&lt; Back</button>&nbsp;
-            <button onclick="wizNext(10,11,addInstances)" id="wiz10next" disabled>Create instances</button>
+            <button onclick="wizNext(10,11,createInstances)" id="wiz10next" disabled>Create instances</button>
         </div>
     </div>
     <div id="wizPage11" style="display:none">
@@ -1513,12 +1642,12 @@ if(isset($_GET['func'])) {
         <div id="addInstancesSuccess" style="display:none">
             <p><b>Success !</b></p>
             <p>You can now use the URL belows to connect to your new VirtualHub (for web) instances:</p>
-            <ul id="newURLs"></ul>
+            <ul id="addnewURLs"></ul>
             <p>
                 To get data flowing to these VirtualHub (for web) instances, you should configure in
                 your YoctoHubs an HTTP Callback of type <i>Yocto-API</i> pointing to one of the following URLs:
             </p>
-            <ul id="cbURLs"></ul>
+            <ul id="addcbURLs"></ul>
             <p>
                 If you are done with your setup, it would be wise to remove <b>now</b> this installer
                 from the server to prevent any unauthorized access to it. You can do this using the

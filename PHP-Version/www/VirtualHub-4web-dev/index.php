@@ -11,7 +11,7 @@ if(RUN_FROM_SRC) {
         '..\..\..\..\..\..\..\projects\VirtualHub-4web\firmware\VirtualHub-4web\www',
         '..\..\..\..\..\embeddedUI'
     ]);
-    include(VHUB4WEB_ROOT . '/Server_PHP/src/vhub4web-init.php');
+    include(VHUB4WEB_ROOT . '/PHP-Version/src/vhub4web-init.php');
 } else {
-    include(VHUB4WEB_ROOT . '/Server_PHP/dist/vhub4web-init.php');
+    include(VHUB4WEB_ROOT . '/PHP-Version/dist/vhub4web-init.php');
 }

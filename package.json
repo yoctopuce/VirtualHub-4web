@@ -1,8 +1,8 @@
 {
   "name": "virtualhub-4web",
   "author": "Yoctopuce",
-  "description": "Yoctopuce web-based VirtualHub",
-  "version": "1.10.51774",
+  "description": "Yoctopuce VirtualHub for Web",
+  "version": "1.10.51840",
   "license": "SEE LICENSE IN LICENSE.txt",
   "repository": {
     "type": "git",
@@ -19,13 +19,13 @@
     "TypeScript"
   ],
   "files": [
-    "Server_NodeJS/dist"
+    "NodeJS-Server/dist"
   ],
   "scripts": {
-    "build_tools": "cd bin && tsc",
-    "fastbuild": "node bin/build.js build",
-    "newbuild": "npm run build_tools && node --enable-source-maps bin/build.js newbuild",
-    "build": "npm run build_tools && node --enable-source-maps bin/build.js build"
+    "build_tools": "cd build-tools && tsc",
+    "fastbuild": "node build-tools/build.js build",
+    "newbuild": "npm run build_tools && node --enable-source-maps build-tools/build.js newbuild",
+    "build": "npm run build_tools && node --enable-source-maps build-tools/build.js build"
   },
   "devDependencies": {
     "@types/node": "^14.14.31",

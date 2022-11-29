@@ -248,11 +248,15 @@ async function bundleTS(objdir, distdir, bundleName, banner) {
         bundle: true,
         target: 'es2017',
         format: 'esm',
-        sourcemap: true,
+        sourcemap: false,
         minify: true,
         banner: banner,
         outfile: distdir + '/' + bundleName + '.min.js',
     });
+}
+async function createJSinstaller(srcdir, objdir, distdir, bundleName, banner) {
+    await transpileTS(srcdir, objdir);
+    await bundleTS(objdir, distdir, bundleName, '/* ' + banner + ' */');
 }
 let args = process.argv.slice(2);
 if (args.length == 0) {
@@ -267,10 +271,15 @@ else {
             let json = JSON.parse(fs.readFileSync('package.json', 'utf8'));
             let banner = 'VirtualHub-4web (version ' + json.version + ')';
             console.log('Building version ' + json.version);
-            createPHPinstaller('Server_PHP/src', 'Server_PHP/dist', 'Server_PHP/installer', 'vhub4web', json.version, banner);
-            fs.copyFile('Server_PHP/installer/vhub4web-installer.php', 'Server_PHP/www/VirtualHub-4web/vhub4web-installer.php', () => { });
-            //transpileTS('Server_NodeJS/src', 'Server_NodeJS/obj');
-            //bundleTS('Server_NodeJS/obj', 'Server_NodeJS/dist', 'vhub4web', '/* '+banner+' */');
+            // Build PHP version
+            createPHPinstaller('PHP-Version/src', 'PHP-Version/dist', 'PHP-Version/installer', 'vhub4web', json.version, banner);
+            fs.copyFile('PHP-Version/installer/vhub4web-installer.php', 'PHP-Version/www/VirtualHub-4web/vhub4web-installer.php', () => { });
+            // Build NodeJS version when ready
+            //-- createJSinstaller('NodeJS-Version/src', 'NodeJS-Version/obj', 'NodeJS-Version/dist', 'vhub4web', banner);
+            // Create data directory used for debugging
+            if (!fs.existsSync('data')) {
+                fs.mkdirSync('data');
+            }
             break;
     }
 }
