@@ -605,7 +605,7 @@ class APICloudNetworkNode extends APINetworkNode
     {
         parent::__construct($httpReq, $server, $name);
         $this->cachedAttributes = ['defaultPage', 'userPassword', 'adminPassword'];
-        $this->values['httpPort'] = $_SERVER['SERVER_PORT'];
+        $this->values['httpPort'] = intVal($_SERVER['SERVER_PORT']);
     }
 
     public function loadStateFromCloudConf(VHubServerHTTPRequest $httpReq, GlobalCloudConf $cloudConf)

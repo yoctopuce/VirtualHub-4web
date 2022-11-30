@@ -1,3 +1,4 @@
-VirtualHub-4web v1.10.51840
+VirtualHub-4web v1.10.51909
 
-- First release
+- Avoid crash in bulk load in case something goes wrong in long URL processing
+- Fix type of Network httpPort attribute

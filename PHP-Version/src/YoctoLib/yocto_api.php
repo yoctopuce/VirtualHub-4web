@@ -1,7 +1,7 @@
 <?php
 /*********************************************************************
  *
- * $Id: yocto_api.php 51836 2022-11-28 11:00:38Z seb $
+ * $Id: yocto_api.php 51903 2022-11-29 17:25:59Z mvuilleu $
  *
  * High-level programming interface, common to all modules
  *
@@ -543,7 +543,7 @@ class YTcpHub
             }
         } else {
             $info_json_url = $this->rooturl.$this->url_info['subdomain'].'/info.json';
-            $info_json = file_get_contents($info_json_url);
+            $info_json = @file_get_contents($info_json_url);
             $jsonData = json_decode($info_json, true);
             if ($jsonData != null &&array_key_exists('protocol', $jsonData) && $jsonData['protocol'] =='HTTP/1.1') {
                 $this->use_pure_http = true;
@@ -3376,7 +3376,7 @@ class YAPI
      */
     public static function GetAPIVersion()
     {
-        return "1.10.51840";
+        return "1.10.51909";
     }
 
     /**
@@ -5468,7 +5468,7 @@ class YDataSet
             $streamStr = $this->_parent->_json_get_array($bulkFile);
             $urlIdx = 0;
             $idx = $this->_progress;
-            while (($idx < sizeof($this->_streams)) && ($urlIdx < sizeof($suffixes))) {
+            while (($idx < sizeof($this->_streams)) && ($urlIdx < sizeof($suffixes)) && ($urlIdx < sizeof($streamStr))) {
                 $stream = $this->_streams[$idx];
                 if (($stream->_get_baseurl() == $baseurl) && ($stream->_get_urlsuffix() == $suffixes[$urlIdx])) {
                     $streamBin = $streamStr[$urlIdx];

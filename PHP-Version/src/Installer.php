@@ -1663,5 +1663,18 @@ if(isset($_GET['func'])) {
             <button onclick="killInstaller()">Remove installer</button>
         </div>
     </div>
+    <div id="wizPage12" style="display:none">
+        <h3>Modifying existing VirtualHub (for web) instances</h3>
+        <p>
+            <span style="font-size: x-large; font-weight: bold;">&#8680;</span>
+            Select the action to perform on existing instances:
+        </p>
+        <ol id="modifyInstances" style="margin-block-end: 3px;">
+        </ol>
+        <div class="WizButtons">
+            <button onclick="wizNext(12,1)">&lt; Back</button>&nbsp;
+            <button onclick="wizNext(12,13)" id="wiz12next" disabled>Next &gt;</button>
+        </div>
+    </div>
 </div>
 </body>
