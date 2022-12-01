@@ -1,4 +1,6 @@
-VirtualHub-4web v1.10.51909
+VirtualHub-4web v1.10.51983
 
-- Avoid crash in bulk load in case something goes wrong in long URL processing
-- Fix type of Network httpPort attribute
+- Work on installer
+- Various misc improvements in installer and in the server
+- Various misc improvements in installer
+- Enlarge details window when within CloudHub

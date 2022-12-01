@@ -209,6 +209,11 @@ class VHubServerHTTPRequest
         }
     }
 
+    public function getProtocol(): string
+    {
+        return isset($_SERVER['HTTPS']) && !empty($_SERVER['HTTPS']) ? 'https' : 'http';
+    }
+
     public function getMethod(): string
     {
         return $this->method;
@@ -227,6 +232,16 @@ class VHubServerHTTPRequest
     public function getFullClientRequest(): string
     {
         return $this->getMethod().' '.$this->getRequestURL().' '.$_SERVER['SERVER_PROTOCOL'];
+    }
+
+    public function getServerPort(): int
+    {
+        return intVal($_SERVER['SERVER_PORT']);
+    }
+
+    public function getServerIP(): string
+    {
+        return $_SERVER['SERVER_ADDR'];
     }
 
     public function getClientIP(): string
@@ -619,7 +634,7 @@ class VHubServer
             VHubServer::Abort($httpReq, 'Invalid HTTP method, expected a Yocto-API POST Callback');
         }
 
-        // The input stream was already consumed, we need to make it available to the API
+        // The input stream was already consumed, we need to make it available to the YoctoLib API
         $_SERVER['HTTP_RAW_POST_DATA'] = $httpReq->getRawPostData();
         $_SERVER['HTTP_JSON_POST_DATA'] = $jsonPostData = $httpReq->getJsonPostData();
 
@@ -716,8 +731,12 @@ class VHubServer
             if($defaultPage == '') {
                 $defaultPage = 'index.html';
             }
+            $rootUrl = parse_url($httpReq->getRequestURL(), PHP_URL_PATH);
+            if(!str_ends_with($rootUrl, '/')) {
+                $rootUrl .= '/';
+            }
             $httpReq->putStatus(302);
-            $httpReq->putHeader('Location: '.dirname($_SERVER['PHP_SELF']).'/'.$defaultPage);
+            $httpReq->putHeader('Location: '.$rootUrl.$defaultPage);
             return;
         }
         $extension = '';
@@ -1850,7 +1869,7 @@ class VHubServer
         if(str_starts_with($uri, '/')) {
             $uri = substr($uri, 1);
         }
-        $protocol = isset($_SERVER['HTTPS']) && !empty($_SERVER['HTTPS']) ? 'https' : 'http';
+        $protocol = $httpReq->getProtocol();
         $userPwd = $this->apiroot->api->network->getattr('userPassword');
         $adminPwd = $this->apiroot->api->network->getattr('adminPassword');
         $info = [
@@ -1989,13 +2008,16 @@ class VHubServer
                 break;
             }
             // for PHP, flush every at every KEEPALIVE interval since Apache may be forcing cache
-            // we also flush immediately at the very first call to avoid any delay before connection
-            // is diagnosed as working
-            if(microtime(true) - $started > NOTIF_KEEPALIVE_DELAY || $veryFirstCall) {
+            if(microtime(true) - $started > NOTIF_KEEPALIVE_DELAY) {
                 break;
             }
             // delay execution for up to 0,1 [s] before retrying
             time_nanosleep(0, 100000);
+            // for PHP, we also flush quickly at the very first call to avoid any delay before
+            // connection is diagnosed as working
+            if($veryFirstCall) {
+                break;
+            }
         }
         if($maxlength > 0) {
             $httpReq->put(str_repeat("\n", $maxlength));

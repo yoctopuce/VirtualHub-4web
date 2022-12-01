@@ -492,7 +492,7 @@ class APICloudModuleNode extends APIModuleNode
         $this->values['productName'] = 'VirtualHub-4web';
         $this->values['productId'] = 0xc10d;
         $this->values['productRelease'] = 1;
-        $this->values['firmwareRelease'] = VERSION;
+        $this->values['firmwareRelease'] = substr(VERSION, strrpos(VERSION, '.')+1);
         $this->values['upTime'] = round(gettimeofday(true) * 1000.0) & 0xffffffff;
     }
 
@@ -571,7 +571,7 @@ class APINetworkNode extends APIFunctionNode
         parent::__construct($httpReq, $server, $name);
         $this->values['readiness'] = 0;
         $this->values['macAddress'] = '00:00:00:00:00:00';
-        $this->values['ipAddress'] = $_SERVER['SERVER_ADDR'];
+        $this->values['ipAddress'] = '0.0.0.0';
         $this->values['subnetMask'] = '0.0.0.0';
         $this->values['router'] = '0.0.0.0';
         $this->values['ipConfig'] = 'DHCP:169.254.95.6/16/169.254.0.1';
@@ -580,7 +580,7 @@ class APINetworkNode extends APIFunctionNode
         $this->values['ntpServer'] = '0.0.0.0';
         $this->values['userPassword'] = '';
         $this->values['adminPassword'] = '';
-        $this->values['httpPort'] = 80;
+        $this->values['httpPort'] = 4444;
         $this->values['defaultPage'] = '';
         $this->values['discoverable'] = 0;
         $this->values['wwwWatchdogDelay'] = 0;
@@ -605,7 +605,8 @@ class APICloudNetworkNode extends APINetworkNode
     {
         parent::__construct($httpReq, $server, $name);
         $this->cachedAttributes = ['defaultPage', 'userPassword', 'adminPassword'];
-        $this->values['httpPort'] = intVal($_SERVER['SERVER_PORT']);
+        $this->values['ipAddress'] = $httpReq->getServerIP();
+        $this->values['httpPort'] = $httpReq->getServerPort();
     }
 
     public function loadStateFromCloudConf(VHubServerHTTPRequest $httpReq, GlobalCloudConf $cloudConf)

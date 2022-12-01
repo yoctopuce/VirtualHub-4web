@@ -31,13 +31,16 @@ const HTACCESS_REWRITE_RULES_MULTI =
     "RewriteEngine on\r\n" .
     "RewriteRule ^([^/]*)/(.*)$ $1/index.php?node=$2 [QSA,END]\r\n";
 
+
 const HTACCESS_TEST_INDEX_PHP = '<?php 
+$max_post_kb = str_replace(["K", "M", "G", "T"], ["", "000", "000000", "000000000"], ini_get("post_max_size"));
+$max_upload = str_replace(["K", "M", "G", "T"], ["", "000", "000000", "000000000"], ini_get("upload_max_filesize"));
 Print(json_encode([ "props" => [
     "node" => $_GET["node"],
     "allowUrlFopen" => ini_get("allow_url_fopen"),
     "enablePostDataReading" => ini_get("enable_post_data_reading"),
-    "postMaxSize" => ini_get("post_max_size"),
-    "uploadMaxFilesize" => ini_get("upload_max_filesize")
+    "postMaxSize" => $max_post_kb,
+    "uploadMaxFilesize" => $max_upload
 ], "errors"=>[] ]));
 ';
 
@@ -62,6 +65,23 @@ inc"."lude(VHUB4WEB_CODE.'/vhub4web-init.php');
 ";
 
 const OR_INSTALL_MANUALLY = '<br>If this is not possible, follow the instructions to perform the install manually.';
+
+// Try to rename the installer immediately to avoid keeping a security loophole during install
+const DEFAULT_SCRIPTNAME = 'vhub4web-installer.php';
+$SCRIPT_NAME = $_SERVER['SCRIPT_NAME'];
+if(basename($SCRIPT_NAME) == DEFAULT_SCRIPTNAME) {
+    $newname = 'vhub4web-installer.'.bin2hex(random_bytes(6)).'.php';
+    if(@copy(__FILE__, __DIR__.'/'.$newname)) {
+        header('Location: '.str_replace(DEFAULT_SCRIPTNAME, $newname, $SCRIPT_NAME));
+        Print("Redirecting to renamed installer for safety");
+        exit;
+    }
+} else {
+    $defaultfile = __DIR__.'/'.DEFAULT_SCRIPTNAME;
+    if(file_exists($defaultfile)) {
+        @unlink($defaultfile);
+    }
+}
 
 function normalizeLineEndings(string $content, string $requiredEnding = PHP_EOL): string
 {
@@ -194,7 +214,7 @@ function getVhub4webConfig(string $entryPoint): array
     if(!is_dir($datadir)) {
         return [ 'version' => 'unknown', 'errmsg' => 'invalid VHUB4WEB_DATA in index.php' ];
     }
-    $res = [ 'codedir' => $codedir, 'datadir' => $datadir, 'version' => 'unknown' ];
+    $res = [ 'codedir' => realpath($codedir), 'datadir' => realpath($datadir), 'version' => 'unknown' ];
 
     // Parse code directory
     $constants = commonPhpDefinitions($codedir);
@@ -342,9 +362,10 @@ function uninstallCode(string $codeDir, string $version, array &$properties, arr
  */
 function processInstall(string $func): array
 {
+    global $SCRIPT_NAME;
     $properties = [];
     $errors = [];
-    $accessURL = dirname($_SERVER['SCRIPT_NAME']);
+    $accessURL = dirname($SCRIPT_NAME);
     $scanURL = $accessURL;
     $serverRoot = __DIR__;
     while(basename($scanURL) && basename($scanURL) == basename($serverRoot) && $scanURL != dirname($scanURL)) {
@@ -369,10 +390,10 @@ function processInstall(string $func): array
             $properties['allowUrlFopen'] = ini_get('allow_url_fopen');
             $properties['enablePostDataReading'] = ini_get('enable_post_data_reading');
             $max_post = ini_get('post_max_size');
-            $max_post_kb = str_replace(['K', 'M', 'G'], ['', '000', '000000'], $max_post);
+            $max_post_kb = str_replace(['K', 'M', 'G', 'T'], ['', '000', '000000', '000000000'], $max_post);
             $properties['postMaxSize'] = $max_post_kb.' KB';
             $max_upload = ini_get('upload_max_filesize');
-            $max_upload_kb = str_replace(['K', 'M', 'G'], ['', '000', '000000'], $max_upload);
+            $max_upload_kb = str_replace(['K', 'M', 'G', 'T'], ['', '000', '000000', '000000000'], $max_upload);
             $properties['uploadMaxFilesize'] = $max_upload_kb.' KB';
             break;
         case 'testRW': // test read-write access in web-facing install dir
@@ -411,11 +432,14 @@ function processInstall(string $func): array
                 }
             }
             $installed = "no";
+            $isBasic = false;
             $installedVersion = "none";
             $nInstance = sizeof($properties['instances']);
             if($nInstance > 0) {
                 $instanceNames = array_keys($properties['instances']);
-                $installedVersion = $properties['instances'][$instanceNames[0]]['version'];
+                $firstInstance = $properties['instances'][$instanceNames[0]];
+                $installedVersion = $firstInstance['version'];
+                $isBasic = str_starts_with($firstInstance['datadir'], $firstInstance['codedir']);
                 if($nInstance == 1) {
                     $installed = '<b>yes, one instance</b>: '.$instanceNames[0];
                 } else {
@@ -425,6 +449,7 @@ function processInstall(string $func): array
                         if($installedVersion != $instance['version']) {
                             $installedVersion = 'various';
                         }
+                        $isBasic = $isBasic || str_starts_with($instance['datadir'], $instance['codedir']);
                     }
                     for($i = 1; $i < $nInstance; $i++) {
                         $installedMore = $installed . ", {$instanceNames[$i]}";
@@ -438,6 +463,7 @@ function processInstall(string $func): array
             }
             $properties['alreadyInstalled'] = $installed;
             $properties['installedVersion'] = $installedVersion;
+            $properties['basicInstall'] = ($isBasic ? 'yes' : 'no');
             break;
         case 'createTestDir': // create a subdirectory to test .htaccess without risk
             $properties['dirname'] = $testdirName;
@@ -597,8 +623,9 @@ function processInstall(string $func): array
             }
             $properties['urls'] = $instanceURLs;
             break;
-        case 'fullUninstall':
+        case 'uninstall':
             $removeData = (isset($_GET['removeData']) && $_GET['removeData'] == '1');
+            $removeCode = (isset($_GET['removeCode']) && $_GET['removeCode'] == '1');
             $instances = (isset($_GET['instances']) ? json_decode($_GET['instances']) : []);
             if(!$instances || sizeof($instances) == 0) {
                 $errors[] = [
@@ -618,9 +645,11 @@ function processInstall(string $func): array
             }
             $properties['uninstalledInstances'] = $uninstalled;
             $uninstalled = [];
-            foreach($properties['linkedCodeDirs'] as $codedir => $version) {
-                if(uninstallCode($codedir, $version, $properties, $errors)) {
-                    $uninstalled[] = $version;
+            if($removeCode) {
+                foreach($properties['linkedCodeDirs'] as $codedir => $version) {
+                    if(uninstallCode($codedir, $version, $properties, $errors)) {
+                        $uninstalled[] = $version;
+                    }
                 }
             }
             $properties['uninstalledVersions'] = $uninstalled;
@@ -730,6 +759,16 @@ if(isset($_GET['func'])) {
  */
 ?>
 <script>
+    function installLog(...theArgs)
+    {
+        console.log.apply(console, theArgs);
+        if(!window.InstallationLogs) {
+            window.InstallationLogs = [ {'InstallerVERSION': '<?php Print(VERSION); ?>'}, theArgs ];
+        } else {
+            window.InstallationLogs.push(theArgs);
+        }
+    }
+
     function wdg(id)
     {
         return document.getElementById(id);
@@ -746,7 +785,7 @@ if(isset($_GET['func'])) {
         if(elem) {
             elem.style.display = 'block';
         } else {
-            console.log('Cannot show div ['+id+'] (unknown)');
+            installLog('Cannot show div ['+id+'] (unknown)');
         }
     }
 
@@ -756,7 +795,7 @@ if(isset($_GET['func'])) {
         if(elem) {
             elem.style.display = 'none';
         } else {
-            console.log('Cannot hide div ['+id+'] (unknown)');
+            installLog('Cannot hide div ['+id+'] (unknown)');
         }
     }
 
@@ -770,6 +809,16 @@ if(isset($_GET['func'])) {
     function setErrorDetails(ident,details)
     {
         shtml(ident+'Details', details);
+    }
+
+    function ReportError()
+    {
+        let trace = JSON.stringify(window.InstallationLogs);
+        let textArea = wdg('debugData');
+        textArea.innerText = trace;
+        show('popupWindow');
+        textArea.focus();
+        textArea.setSelectionRange(0, trace.length);
     }
 
     function hideClass(classname)
@@ -824,7 +873,7 @@ if(isset($_GET['func'])) {
     async function tryFunc(query)
     {
         let ident = query.replace(/[^\w]/g,'');
-        let fetchUrl = <?php Print(json_encode($_SERVER['SCRIPT_NAME'])); ?>;
+        let fetchUrl = <?php Print(json_encode($SCRIPT_NAME)); ?>;
         if(query[0] !== '?') {
             fetchUrl = fetchUrl.slice(0, fetchUrl.lastIndexOf('/')+1);
         }
@@ -833,7 +882,7 @@ if(isset($_GET['func'])) {
         let res = null;
         if(!response.ok) {
             let status = 'HTTP '+response.status+' '+response.statusText;
-            console.log(ident+': '+status);
+            installLog(ident+': '+status);
             res = {
                 props: { status: response.status },
                 errors: [{ error: ident+'Error', msg: query+' caused an '+status, cause: 'Full response was:<br>' + responseText }]
@@ -841,7 +890,7 @@ if(isset($_GET['func'])) {
         } else {
             try {
                 res = JSON.parse(responseText);
-                console.log(ident+':', res);
+                installLog(ident+':', res);
                 for (key in res.props) {
                     let el = wdg(key);
                     if (el) {
@@ -850,7 +899,7 @@ if(isset($_GET['func'])) {
                 }
             } catch (e) {}
             if (res == null) {
-                console.log(ident+': invalid JSON', responseText);
+                installLog(ident+': invalid JSON', responseText);
                 res = {
                     props: {},
                     errors: [{
@@ -920,20 +969,23 @@ if(isset($_GET['func'])) {
 
             // try to fix php settings via .htaccess if needed
             let usePhpValueInHTAccess = false;
-            let allowUrlFopen = String(testIndexPHP.props.allowUrlFopen).match(/^(1|On)/i);
+            let allowUrlFopen = String(testIndexPHP.props.allowUrlFopen).match(/1|On/i);
             let postDataReading = String(testIndexPHP.props.enablePostDataReading).match(/1|On/i);
             let postMaxSize = parseInt(testIndexPHP.props.postMaxSize);
-            let uploadMaxFilesize = parseInt(testIndexPHP.props.postMaxFilesize);
-            let perDirSettingsNeeded = (postMaxSize<4000 || uploadMaxFilesize < 4000 || postDataReading);
+            let uploadMaxFilesize = parseInt(testIndexPHP.props.uploadMaxFilesize);
+            let perDirSettingsNeeded = (postMaxSize < 4000 || uploadMaxFilesize < 4000 || postDataReading);
+            installLog('Settings: ', allowUrlFopen, postDataReading, postMaxSize, uploadMaxFilesize);
             if(!allowUrlFopen || perDirSettingsNeeded) {
                 let createPhpValue = await tryFunc('?func=createPhpValue');
                 if(createPhpValue.errors.length > 0) return;
                 let testPhpValue = await tryFunc(createTestDir.props.dirname+'/index.php?node=Subdir');
                 if(testPhpValue.props.status === 500) {
                     if(perDirSettingsNeeded) {
-                        setErrorDetails(testPhpValue.errors[0].error, 'Your Web server does not process '+
-                            'per-dir PHP settings in <b>.user.ini</b>, but it does not accept per-dir '+
-                            '<b>php_value</b> in the <b>.htaccess</b> file neither.');
+                        setErrorDetails(testPhpValue.errors[0].error, 'Your Web server does not appear to '+
+                            'process per-dir PHP settings in <b>.user.ini</b>. The installer tried to use '+
+                            '<b>php_value</b> in the <b>.htaccess</b> file as a backup solution, but this '+
+                            'is causing a Server Error. You should therefore find out how to set per-dir ' +
+                            'PHP setting on this hosting platform, and let Yoctopuce support know...');
                     } else {
                         setErrorDetails(testPhpValue.errors[0].error, 'Your Web server does not enable '+
                             'PHP <b>allow_url_fopen</b> setting, as required by this software. '+
@@ -979,6 +1031,9 @@ if(isset($_GET['func'])) {
             wdg('readyToUpdate').style.display = 'block';
             shtml('installedVersion', testExisting.props.installedVersion);
             shtml('thisVersion', '<?php Print(VERSION); ?>');
+            if(testExisting.props.basicInstall === 'yes') {
+                shtml('changeLabel', 'Delete');
+            }
             window.Vhub4webInstances = testExisting.props.instances;
         }
     }
@@ -988,7 +1043,13 @@ if(isset($_GET['func'])) {
         let callback = null;
         if(wizPage === 8) {
             shtml('updateButton', 'Update!');
-            callback = fullUpdate
+            callback = fullUpdate;
+        } else if(wizPage === 12) {
+            shtml('updateButton', 'Next >');
+            callback = prepModify;
+        } else if(wizPage === 99) {
+            shtml('updateButton', 'Remove Installer');
+            callback = killInstaller;
         } else {
             shtml('updateButton', 'Next >');
         }
@@ -1013,7 +1074,7 @@ if(isset($_GET['func'])) {
         span.innerText = window.location.href.replace(/[^\/]*$/,'');
         input.className = 'instanceName';
         if(nChildren < placeHolders.length) {
-            input.placeholder = placeHolders[nChildren];
+            input.placeholder = 'eg. '+placeHolders[nChildren];
         }
         input.addEventListener('change', updateWiz2next);
         input.addEventListener('keyup', keyupTimer);
@@ -1063,18 +1124,30 @@ if(isset($_GET['func'])) {
         }
 
         let wiz3nextBtn = wdg('wiz3next');
-        let pwd = wdg('pwd');
-        let pwd2 = wdg('pwd2');
+        let userpwd = wdg('userpwd');
+        let userpwd2 = wdg('userpwd2');
+        let adminpwd = wdg('adminpwd');
+        let adminpwd2 = wdg('adminpwd2');
         wiz3nextBtn.disabled = true;
-        if(pwd.value === pwd2.value) {
-            wiz3nextBtn.disabled = false;
-            if(pwd.value === '') {
-                shtml('wiz3hint', 'It would be wiser to set a non-empty password');
-            } else if(pwd.value.length <= 6) {
-                shtml('wiz3hint', 'It would be wiser to set a longer password...');
-            }
-        } else if(pwd2.value !== '') {
-            shtml('wiz3hint', 'Passwords do not match !');
+        if(userpwd.value !== userpwd2.value) {
+            shtml('wiz3hint', 'User passwords do not match !');
+            return;
+        }
+        if(adminpwd.value !== adminpwd2.value) {
+            shtml('wiz3hint', 'Admin passwords do not match !');
+            return;
+        }
+        wiz3nextBtn.disabled = false;
+        if(userpwd.value === '') {
+            shtml('wiz3hint', 'It would be wiser to set a non-empty user password');
+        } else if(userpwd.value.length <= 6) {
+            shtml('wiz3hint', 'It would be wiser to set a longer user password...');
+        } else if(adminpwd.value === '') {
+            shtml('wiz3hint', 'It would be wiser to set a non-empty admin password');
+        } else if(adminpwd.value.length <= 6) {
+            shtml('wiz3hint', 'It would be wiser to set a longer admin password...');
+        } else {
+            shtml('wiz3hint', '');
         }
     }
 
@@ -1089,9 +1162,9 @@ if(isset($_GET['func'])) {
     /*
      * Code for wizard page 4 (install)
      */
-    async function testInstall(hostPath, pwd)
+    async function testInstall(hostPath, userpwd, adminpwd)
     {
-        console.log('Testing '+hostPath);
+        installLog('Testing '+hostPath);
         let url = window.location.protocol + '//' + window.location.host + hostPath + '/api/network.json';
         let response = await fetch(url);
         let responseText = await response.text()
@@ -1106,11 +1179,17 @@ if(isset($_GET['func'])) {
             if(response.status !== 200) {
                 details = hostPath+' returned '+status+'<br>'+details;
             }
-            console.log('Testing '+hostPath+': '+status);
+            installLog('Testing '+hostPath+': '+status);
             return `<li>${errmsg} <a href='javascript:show(\"${hostPath}TestInstallDetails\")'>tell me more</a><div class='more' id='${hostPath}TestInstallDetails'>${details}</div></li>`;
         }
-        if(pwd) {
-            await fetch(url+'?userPassword='+pwd);
+        if(userpwd || adminpwd) {
+            // setup requested password (details of this request are intentionally not logged)
+            installLog('Applying requested password(s)');
+            url += '?scr=0';
+            if(userpwd) url += '&userPassword='+encodeURIComponent(userpwd);
+            if(adminpwd) url += '&adminPassword='+encodeURIComponent(adminpwd);
+            response = await fetch(url);
+            installLog('Success='+response.ok);
         }
         return '';
     }
@@ -1138,9 +1217,8 @@ if(isset($_GET['func'])) {
         }
 
         // test install, setup password
-        let pwd = wdg('pwd').value;
         for(let hostPath of install.props.urls) {
-            let res = await testInstall(hostPath, pwd);
+            let res = await testInstall(hostPath, wdg('userpwd').value, wdg('adminpwd').value);
             if(res !== '') {
                 wdg('installErrorList').innerHTML += res;
                 wdg('installErrors').style.display = 'block';
@@ -1179,7 +1257,7 @@ if(isset($_GET['func'])) {
         let killData = wdg('killDataRadio').checked;
         let instances = Object.keys(window.Vhub4webInstances);
         let args = '&removeData='+(killData ? '1' : '0')+'&instances='+encodeURIComponent(JSON.stringify(instances));
-        let uninstall = await tryFunc('?func=fullUninstall'+args);
+        let uninstall = await tryFunc('?func=uninstall&removeCode=1'+args);
         if(uninstall.errors.length > 0) {
             for(let error of uninstall.errors) {
                 wdg('uninstallErrorList').innerHTML +=
@@ -1206,7 +1284,7 @@ if(isset($_GET['func'])) {
                 wdg('updateErrorList').innerHTML +=
                     `<li>${error.msg} <a href='javascript:show(\"${error.error}UpdDetails\")'>tell me more</a><div class='more' id='${error.error}UpdDetails'>${error.cause}</div></li>`;
             }
-            wdg('updateErrorList').style.display = 'block';
+            wdg('updateErrors').style.display = 'block';
             return;
         }
         // report success
@@ -1243,20 +1321,31 @@ if(isset($_GET['func'])) {
         if(globalTimeout) {
             clearTimeout(globalTimeout);
         }
-
         let wiz10nextBtn = wdg('wiz10next');
-        let pwd = wdg('addpwd');
-        let pwd2 = wdg('addpwd2');
+        let userpwd = wdg('userpwdA');
+        let userpwd2 = wdg('userpwd2A');
+        let adminpwd = wdg('adminpwdA');
+        let adminpwd2 = wdg('adminpwd2A');
         wiz10nextBtn.disabled = true;
-        if(pwd.value === pwd2.value) {
-            wiz10nextBtn.disabled = false;
-            if(pwd.value === '') {
-                shtml('wiz10hint', 'It would be wiser to set a non-empty password');
-            } else if(pwd.value.length <= 6) {
-                shtml('wiz10hint', 'It would be wiser to set a longer password...');
-            }
-        } else if(pwd2.value !== '') {
-            shtml('wiz10hint', 'Passwords do not match !');
+        if(userpwd.value !== userpwd2.value) {
+            shtml('wiz10hint', 'User passwords do not match !');
+            return;
+        }
+        if(adminpwd.value !== adminpwd2.value) {
+            shtml('wiz10hint', 'Admin passwords do not match !');
+            return;
+        }
+        wiz10nextBtn.disabled = false;
+        if(userpwd.value === '') {
+            shtml('wiz10hint', 'It would be wiser to set a non-empty user password');
+        } else if(userpwd.value.length <= 6) {
+            shtml('wiz10hint', 'It would be wiser to set a longer user password...');
+        } else if(adminpwd.value === '') {
+            shtml('wiz10hint', 'It would be wiser to set a non-empty admin password');
+        } else if(adminpwd.value.length <= 6) {
+            shtml('wiz10hint', 'It would be wiser to set a longer admin password...');
+        } else {
+            shtml('wiz10hint', '');
         }
     }
 
@@ -1283,9 +1372,8 @@ if(isset($_GET['func'])) {
             return;
         }
         // test install, setup password
-        let pwd = wdg('addpwd').value;
         for(let hostPath of addInstances.props.urls) {
-            let res = await testInstall(hostPath, pwd);
+            let res = await testInstall(hostPath, wdg('userpwdA').value, wdg('adminpwdA').value);
             if(res !== '') {
                 wdg('addInstancesErrorList').innerHTML += res;
                 wdg('addInstancesErrors').style.display = 'block';
@@ -1308,10 +1396,90 @@ if(isset($_GET['func'])) {
     }
 
     /*
+     * Code for wizard page 12 (modifying instances to an existing install)
+     */
+    async function prepModify()
+    {
+        let isBasic = (wdg('changeLabel').innerText === 'Delete');
+        let version = '<?php Print(VERSION); ?>';
+        let items = '<div class="instanceTH">Instance name</div>'+
+            '<div class="instanceTH">Version</div>'+
+            '<div class="instanceTH">Action</div>';
+        let choices = '<option value="">leave as-is</option>'+
+            (isBasic ? '' : '<option value="upgrade">Update to '+version+'</option>') +
+            '<option value="delete">Delete this instance</option>';
+        for(let instanceName in window.Vhub4webInstances) {
+            let instance = window.Vhub4webInstances[instanceName];
+            items += '<div class="instanceTD">'+instanceName+'</div>'+
+                '<div class="instanceTD">'+instance.version+'</div>'+
+                '<div class="instanceTD"><select id="modify_'+instanceName+'" onchange="modifyChanged()">'+choices+'</select></div>';
+        }
+        wdg('modifyInstances').innerHTML = items;
+    }
+
+    function modifyChanged()
+    {
+        let disabled = true;
+        for(let instanceName in window.Vhub4webInstances) {
+            if(wdg('modify_'+instanceName).value !== '') {
+                disabled = false;
+            }
+        }
+        wdg('wiz12next').disabled = disabled;
+    }
+
+    async function applyChanges()
+    {
+        let updateList = [];
+        let deleteList = [];
+        for(let instanceName in window.Vhub4webInstances) {
+            switch(wdg('modify_'+instanceName).value) {
+                case 'upgrade':
+                    updateList.push(instanceName);
+                    break;
+                case 'delete':
+                    deleteList.push(instanceName);
+                    break;
+            }
+        }
+        installLog('must update:', updateList);
+        installLog('must delete:', deleteList);
+        if(updateList.length > 0) {
+            // Update instances
+            let args = '&instances='+encodeURIComponent(JSON.stringify(updateList));
+            let update = await tryFunc('?func=updateInstances'+args);
+            if(update.errors.length > 0) {
+                for(let error of update.errors) {
+                    wdg('changeErrorList').innerHTML +=
+                        `<li>${error.msg} <a href='javascript:show(\"${error.error}changeDetails\")'>tell me more</a><div class='more' id='${error.error}changeDetails'>${error.cause}</div></li>`;
+                }
+                wdg('changeErrors').style.display = 'block';
+                return;
+            }
+        }
+        if(deleteList.length > 0) {
+            // delete instances
+            args = '&instances=' + encodeURIComponent(JSON.stringify(deleteList));
+            let uninstall = await tryFunc('?func=uninstall&removeCode=0&removeData=1' + args);
+            if (uninstall.errors.length > 0) {
+                for (let error of uninstall.errors) {
+                    wdg('changeErrorList').innerHTML +=
+                        `<li>${error.msg} <a href='javascript:show(\"${error.error}delinstDetails\")'>tell me more</a><div class='more' id='${error.error}delinstDetails'>${error.cause}</div></li>`;
+                }
+                wdg('changeErrors').style.display = 'block';
+                return;
+            }
+        }
+        // report success
+        wdg('changeSuccess').style.display = 'block';
+    }
+
+    /*
      * Common code to remove the installer itself
      */
     async function killInstaller()
     {
+        let testExisting = await tryFunc('?func=testExisting');
         let killme = await tryFunc('?func=removeInstaller');
         if (killme.errors.length > 0) {
             for (let error of killme.errors) {
@@ -1323,10 +1491,14 @@ if(isset($_GET['func'])) {
         }
         let wizardDiv = wdg('wizardDiv');
         wizardDiv.style.animationPlayState = 'running';
-        let firstUrl = wdg('newURLs').getElementsByTagName('a')[0].href;
-        setTimeout(() => {
-            window.location = firstUrl;
-        }, 1000);
+
+        // prepare to redirect to an existing instance if possible
+        if(testExisting.errors.length === 0 && testExisting.props.alreadyInstalled !== 'no') {
+            let instanceNames = Object.keys(testExisting.props.instances);
+            setTimeout(() => {
+                window.location = instanceNames[0];
+            }, 1000);
+        }
     }
 </script>
 <style>
@@ -1335,6 +1507,10 @@ if(isset($_GET['func'])) {
         width: 780px; height: 660px; padding: 10px;
         background-color: #e1e9f3; border: 2px solid navy; border-radius: 20px;
         animation-name: fadeOut; animation-duration: 1s; animation-play-state: paused; animation-fill-mode: forwards;
+    }
+    div.popup { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
+        width: 500px; height: 500px; padding: 10px;
+        background-color: #c7dcf6; border: 2px solid navy; border-radius: 20px;
     }
     h1 { font-size: 1.5em; }
     h2 { text-align: center; }
@@ -1356,6 +1532,9 @@ if(isset($_GET['func'])) {
     .SelectedTab { background-color: aliceblue; border-bottom: 1px solid aliceblue; }
     .UnselectedTab { background-color: lightgray; border-bottom: 1px solid black; }
     .Tab { border: 1px solid black; border-radius: 10px; background-color: aliceblue; padding: 0 10px 0 10px; }
+    .instanceTable { display: grid; margin: 3px 0 3px 0; grid-template-columns: 250px 200px 200px; }
+    .instanceTH { border: 1px solid black; padding: 3px 10px 3px 10px; background-color: #c7dcf6; margin:0 -1px -1px 0; font-weight: bold; }
+    .instanceTD { border: 1px solid black; padding: 3px 10px 3px 10px; background-color: #c7dcf6; margin:0 -1px -1px 0; }
     @keyframes fadeOut { 0% {opacity: 1;} 100% {opacity: 0;} }
 </style>
 <body onload="checkInstall()">
@@ -1382,6 +1561,7 @@ if(isset($_GET['func'])) {
         <div id="errors" style="display:none">
             <h3>Oops, we have a problem...</h3>
             <ul id="errorList"></ul>
+            <a href='javascript:ReportError()'>report problem to Yoctopuce support</a>
             <div class="WizButtons"><button onclick="window.location.reload(true)">Retry</button></div>
         </div>
         <div id="readyToInstall" style="display:none">
@@ -1394,8 +1574,9 @@ if(isset($_GET['func'])) {
             <p><span style="font-size: x-large; font-weight: bold;">&#8680;</span> What would you like to do ?</p>
             <div><label><input type="radio" id="updateRadio" name="updateAction" onclick="selectUpdateWizPage(8)"/> Update all instances from <span id="installedVersion"></span> to <span id="thisVersion"></span></label></div>
             <div><label><input type="radio" id="addRadio" name="updateAction" onclick="selectUpdateWizPage(9)"/> Add new instances</label></div>
-            <div><label><input type="radio" id="modifyRadio" name="updateAction" onclick="selectUpdateWizPage(12)"/> Update or delete some existing instances</label></div>
+            <div><label><input type="radio" id="modifyRadio" name="updateAction" onclick="selectUpdateWizPage(12)"/> <span id="changeLabel">Update or delete</span> some existing instances</label></div>
             <div><label><input type="radio" id="uninstallRadio" name="updateAction" onclick="selectUpdateWizPage(6)"/> Uninstall VirtualHub-4web completely</label></div>
+            <div><label><input type="radio" id="killInstallerRadio" name="updateAction" onclick="selectUpdateWizPage(99)"/> Exit this installer and remove it from server</label></div>
             <div class="WizButtons">
                 <button id="updateButton" disabled>Next &gt;</button>
             </div>
@@ -1412,7 +1593,7 @@ if(isset($_GET['func'])) {
             Enter one or more instance name(s) below to be created for your initial install:
         </p>
         <ol id="instanceList" style="margin-block-end: 3px;">
-            <li><span class="commonAccessRootURL"></span><input class="instanceName" onchange="updateWiz2next()" onkeyup="keyupTimer()" placeholder="sensorHub"/></li>
+            <li><span class="commonAccessRootURL"></span><input class="instanceName" onchange="updateWiz2next()" onkeyup="keyupTimer()" placeholder="eg. sensorHub"/></li>
         </ol>
         <div style="margin-left: 22px; font-size:small;"><a href="javascript:addInstance('instanceList')">add one instance...</a></div>
         <p>
@@ -1427,23 +1608,29 @@ if(isset($_GET['func'])) {
     <div id="wizPage3" style="display:none">
         <h3>3: Choose a password for access control</h3>
         <p>
-            You should now provide a password that will prevent unauthorized access to your VirtualHub (for web).
+            You should now provide passwords that will prevent unauthorized access to your VirtualHub (for web).
         </p>
         <p>
-            At this point the installer will set the same password for all new instances, but you will
-            be able to later customize them individually using VirtualHub-4web UI, and/or set a different
-            administrator password to only grand read-only access by default.
+            At this point the installer will set the same passwords for all new instances, but you will
+            be able to later customize them individually using VirtualHub-4web UI.
         </p>
         <p>
-            The login username will be: <span class="tt">user</span>
-        </p>
-        <p>
-            <span style="font-size: x-large; font-weight: bold;">&#8680;</span>
-            Enter desired password: <input type="password" id="pwd" onchange="updateWiz3next()" onkeyup="keyupTimer()"/>
+            The read-only login will be: <span class="tt">user</span>
         </p>
         <p>
             <span style="font-size: x-large; font-weight: bold;">&#8680;</span>
-            Re-enter same password: <input type="password" id="pwd2" onchange="updateWiz3next()" onkeyup="keyupTimer()"/>
+            Enter desired user password: <input type="password" id="userpwd" onchange="updateWiz3next()" onkeyup="keyupTimer()"/><br>
+            <span style="font-size: x-large; font-weight: bold;">&#8680;</span>
+            Re-enter same user password: <input type="password" id="userpwd2" onchange="updateWiz3next()" onkeyup="keyupTimer()"/>
+        </p>
+        <p>
+            The administrator login will be: <span class="tt">admin</span>
+        </p>
+        <p>
+            <span style="font-size: x-large; font-weight: bold;">&#8680;</span>
+            Enter desired admin password: <input type="password" id="adminpwd" onchange="updateWiz3next()" onkeyup="keyupTimer()"/><br>
+            <span style="font-size: x-large; font-weight: bold;">&#8680;</span>
+            Re-enter same admin password: <input type="password" id="adminpwd2" onchange="updateWiz3next()" onkeyup="keyupTimer()"/>
         </p>
         <p id="wiz3hint" class="hint"></p>
         <div class="WizButtons">
@@ -1475,8 +1662,8 @@ if(isset($_GET['func'])) {
                 <div class="table">
                     <div class="th">Server document root path:</div><div id="serverRoot" class="td stt"></div>
                     <div class="th">VirtualHub-4web root path:</div><div id="advancedInstallPath" class="td stt"></div>
-                    <div class="th">VirtualHub-4web code dir:</div><div class="td stt">[...]/vhub4web/dist/[versionNumber]</div>
-                    <div class="th">Instance-specific data dir:</div><div class="td stt">[...]/vhub4web/data/[instanceName]</div>
+                    <div class="th">VirtualHub-4web code dir:</div><div class="td stt"><span id="advancedInstallPath2"></span>/vhub4web/dist/[versionNumber]</div>
+                    <div class="th">Instance-specific data dir:</div><div class="td stt"><span id="advancedInstallPath3"></span>/vhub4web/data/[instanceName]</div>
                 </div>
                 <p>
                     In this case, the HTTP server public document tree will only contain minimal configuration files
@@ -1527,6 +1714,7 @@ if(isset($_GET['func'])) {
         <div id="installErrors" style="display:none">
             <h3>Oops, we have a problem...</h3>
             <ul id="installErrorList"></ul>
+            <a href='javascript:ReportError()'>report problem to Yoctopuce support</a>
         </div>
         <div class="WizButtons">
             <button onclick="window.location.reload(true)">Restart</button>
@@ -1565,6 +1753,7 @@ if(isset($_GET['func'])) {
         <div id="uninstallErrors" style="display:none">
             <h3>Oops, we have a problem...</h3>
             <ul id="uninstallErrorList"></ul>
+            <a href='javascript:ReportError()'>report problem to Yoctopuce support</a>
         </div>
         <div class="WizButtons">
             <button onclick="window.location.reload(true)">Restart</button>
@@ -1585,6 +1774,7 @@ if(isset($_GET['func'])) {
         <div id="updateErrors" style="display:none">
             <h3>Oops, we have a problem...</h3>
             <ul id="updateErrorList"></ul>
+            <a href='javascript:ReportError()'>report problem to Yoctopuce support</a>
         </div>
         <div class="WizButtons">
             <button onclick="window.location.reload(true)">Restart</button>
@@ -1598,7 +1788,7 @@ if(isset($_GET['func'])) {
             Enter one or more instance name(s) below to be created:
         </p>
         <ol id="addInstanceList" style="margin-block-end: 3px;">
-            <li><span class="commonAccessRootURL"></span><input class="instanceName" onchange="updateWiz9next()" onkeyup="keyupTimer()" placeholder="sensorHub"/></li>
+            <li><span class="commonAccessRootURL"></span><input class="instanceName" onchange="updateWiz9next()" onkeyup="keyupTimer()" placeholder="eg. oneMoreHub"/></li>
         </ol>
         <div style="margin-left: 22px; font-size:small;"><a href="javascript:addInstance('addInstanceList')">add one instance...</a></div>
         <p>
@@ -1616,20 +1806,26 @@ if(isset($_GET['func'])) {
             You should now provide a password to protect these new instances.
         </p>
         <p>
-            At this point the installer will set the same password for all new instances, but you will
-            be able to later customize them individually using VirtualHub-4web UI, and/or set a different
-            administrator password to only grand read-only access by default.
+            At this point the installer will set the same passwords for all new instances, but you will
+            be able to later customize them individually using VirtualHub-4web UI.
         </p>
         <p>
-            The login username will be: <span class="tt">user</span>
-        </p>
-        <p>
-            <span style="font-size: x-large; font-weight: bold;">&#8680;</span>
-            Enter desired password: <input type="password" id="addpwd" onchange="updateWiz10next()" onkeyup="keyupTimer()"/>
+            The read-only login will be: <span class="tt">user</span>
         </p>
         <p>
             <span style="font-size: x-large; font-weight: bold;">&#8680;</span>
-            Re-enter same password: <input type="password" id="addpwd2" onchange="updateWiz10next()" onkeyup="keyupTimer()"/>
+            Enter desired user password: <input type="password" id="userpwdA" onchange="updateWiz10next()" onkeyup="keyupTimer()"/><br>
+            <span style="font-size: x-large; font-weight: bold;">&#8680;</span>
+            Re-enter same user password: <input type="password" id="userpwd2A" onchange="updateWiz10next()" onkeyup="keyupTimer()"/>
+        </p>
+        <p>
+            The administrator login will be: <span class="tt">admin</span>
+        </p>
+        <p>
+            <span style="font-size: x-large; font-weight: bold;">&#8680;</span>
+            Enter desired admin password: <input type="password" id="adminpwdA" onchange="updateWiz10next()" onkeyup="keyupTimer()"/><br>
+            <span style="font-size: x-large; font-weight: bold;">&#8680;</span>
+            Re-enter same admin password: <input type="password" id="adminpwd2A" onchange="updateWiz10next()" onkeyup="keyupTimer()"/>
         </p>
         <p id="wiz10hint" class="hint"></p>
         <div class="WizButtons">
@@ -1657,6 +1853,7 @@ if(isset($_GET['func'])) {
         <div id="addInstancesErrors" style="display:none">
             <h3>Oops, we have a problem...</h3>
             <ul id="addInstancesErrorList"></ul>
+            <a href='javascript:ReportError()'>report problem to Yoctopuce support</a>
         </div>
         <div class="WizButtons">
             <button onclick="window.location.reload(true)">Restart</button>
@@ -1669,12 +1866,48 @@ if(isset($_GET['func'])) {
             <span style="font-size: x-large; font-weight: bold;">&#8680;</span>
             Select the action to perform on existing instances:
         </p>
-        <ol id="modifyInstances" style="margin-block-end: 3px;">
-        </ol>
+        <div class="instanceTable" id="modifyInstances">
+        </div>
         <div class="WizButtons">
             <button onclick="wizNext(12,1)">&lt; Back</button>&nbsp;
-            <button onclick="wizNext(12,13)" id="wiz12next" disabled>Next &gt;</button>
+            <button onclick="wizNext(12,13,applyChanges)" id="wiz12next" disabled>Execute changes</button>
         </div>
+    </div>
+    <div id="wizPage13" style="display:none">
+        <h3>Updating...</h3>
+        <div id="changeSuccess" style="display:none">
+            <p><b>Success !</b></p>
+            <p>
+                All requested changes have been performed successfully.
+            </p>
+            <p>
+                If you are done with your setup, it would be wise to remove <b>now</b> this installer
+                from the server to prevent any unauthorized access to it. You can do this using the
+                the button below.
+            </p>
+        </div>
+        <div id="changeErrors" style="display:none">
+            <h3>Oops, we have a problem...</h3>
+            <ul id="changeErrorList"></ul>
+            <a href='javascript:ReportError()'>report problem to Yoctopuce support</a>
+        </div>
+        <div class="WizButtons">
+            <button onclick="window.location.reload(true)">Restart</button>
+            <button onclick="killInstaller()">Remove installer</button>
+        </div>
+    </div>
+    <div id="wizPage99" style="display:none">
+    </div>
+</div>
+<div class="popup" id="popupWindow" style="display:none">
+    <h3>Reporting an issue with VirtualHub-4web installer</h3>
+    <p>
+        Please send a message to <span class="tt">support@yoctopuce.com</span> describing the issue you are
+        experiencing, including the following debug information (use copy-paste to put it in your message):
+    </p>
+    <textarea rows="19" id="debugData" style="width:100%;"></textarea>
+    <div class="WizButtons">
+        <button onclick="hide('popupWindow')">Close</button>
     </div>
 </div>
 </body>

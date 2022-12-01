@@ -191,6 +191,15 @@ function createPHPinstaller(srcdir: string, distdir: string, instdir: string, bu
     fs.writeFileSync(instpath + '-installer.php', installerFile);
 }
 
+function setupPHPtestEnv(installer: string, testdir: string)
+{
+    let prevInstallers = findFilesRecursively(testdir, /^vhub4web-installer.*\.php$/);
+    for(let prevFile of prevInstallers) {
+        fs.unlinkSync(prevFile);
+    }
+    fs.copyFile(installer, testdir+'/vhub4web-installer.php', ()=>{})
+}
+
 async function transpileTS(srcdir: string, objdir: string)
 {
     const cwd: string = process.cwd().replace(/\\/g, '/');
@@ -263,7 +272,7 @@ if(args.length == 0) {
 
             // Build PHP version
             createPHPinstaller('PHP-Version/src', 'PHP-Version/dist', 'PHP-Version/installer', 'vhub4web', json.version, banner);
-            fs.copyFile('PHP-Version/installer/vhub4web-installer.php', 'PHP-Version/www/VirtualHub-4web/vhub4web-installer.php', ()=>{})
+            setupPHPtestEnv('PHP-Version/installer/vhub4web-installer.php', 'PHP-Version/www/VirtualHub-4web');
 
             // Build NodeJS version when ready
             //-- createJSinstaller('NodeJS-Version/src', 'NodeJS-Version/obj', 'NodeJS-Version/dist', 'vhub4web', banner);
