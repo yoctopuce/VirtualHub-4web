@@ -28,6 +28,8 @@ const DEVICESTATS_MAX_DAYS = 400;    // Keep up to 400 days of summarized statis
 const DEVICESTATS_MAX_CONN = 400;    // Keep up to 400 records of detailled informations about hub callbacks
 const STATE_FILE = 'VHUB4WEB.json';  // Name of our own configuration file
 const NOTIF_KEEPALIVE_DELAY = 3;     // Max long-polling time in sec. before close-to-flush
+const SESSION_MAX_INACTIVITY = 15;   // Max inactivity timeout [s] before dropping a session
+const SESSION_MAX_PENDING = 100;     // Max number of pending new sessions
 ////-- MARKER: New constants will be added here by the installer when upgrading VirtualHub-4web
 
 include_once('VHubServer.php');

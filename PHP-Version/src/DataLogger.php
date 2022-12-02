@@ -54,7 +54,7 @@ class DataFrequency
      * - a frequency string, as used in the devices, such as "30/m"
      * - a period specified as a number of seconds
      */
-    public function __construct(string|int|float $timebase)
+    public function __construct(mixed $timebase)  // string|int|float
     {
         $this->maxSeqRowsCache = 0;
         $this->perSec = false;

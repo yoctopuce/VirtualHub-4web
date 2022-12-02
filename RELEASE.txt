@@ -1,6 +1,3 @@
-VirtualHub-4web v1.10.51983
+VirtualHub-4web v1.10.52094
 
-- Work on installer
-- Various misc improvements in installer and in the server
-- Various misc improvements in installer
-- Enlarge details window when within CloudHub
+- Release candidate

@@ -56,6 +56,9 @@ const LOG_TARFILE = 4;
 const LOG_DATALOGGER = 5;
 const LOG_FILESYNC = 6;
 
+const GET_LAST_VERSION_URL = 'http://www.yoctopuce.com/FR/common/getLastFirmwareLink.php?serial=VHUB4WEB-00000';
+const VHUB4WEB_SESSIONS = VHUB4WEB_DATA.'/sessions';
+
 // Object used to retrieve data sent by HTTP Client and to send data back
 //
 class VHubServerHTTPRequest
@@ -286,6 +289,82 @@ class VHubServerHTTPRequest
         return '';
     }
 
+    public function newNonce(): string
+    {
+        $newSessions = [];
+        if(!is_dir(VHUB4WEB_SESSIONS)) {
+            mkdir(VHUB4WEB_SESSIONS, 0700);
+        } else {
+            $now = time();
+            $files = scandir(VHUB4WEB_SESSIONS);
+            if($files !== FALSE) {
+                foreach($files as $fname) {
+                    if(!preg_match('/^([0-9a-f]{20})_(new|act)$/', $fname, $matches)) continue;
+                    if($matches[2] == 'new') {
+                        $hexstamp = substr($matches[1], 0, -12);
+                        $stamp = hexdec($hexstamp);
+                        $newSessions[$fname] = $now - $stamp;
+                    } else {
+                        $this->checkSession($matches[1], $A1);
+                    }
+                }
+            }
+        }
+
+        // Cleanup old inactive pending sessionIds
+        foreach($newSessions as $fname => $age) {
+            if($age > SESSION_MAX_INACTIVITY) {
+                $fullpath = VHUB4WEB_SESSIONS.'/'.$fname;
+                if(file_exists($fullpath)) {
+                    try { @unlink($fullpath); } catch(Throwable $e) {}
+                }
+            }
+        }
+
+        // Allocate a new secure session ID, make sure it is unused
+        do {
+            $res = strtolower(dechex(time()).bin2hex(random_bytes(6)));
+            $fname = "{$res}_new";
+        } while(isset($newSessions[$fname]));
+
+        // Create the new (empty) session file
+        file_put_contents(VHUB4WEB_SESSIONS.'/'.$fname, '');
+
+        // If we have too many valid pending sessions, delay new allocations
+        if(sizeof($newSessions) > SESSION_MAX_PENDING) {
+            usleep(199000);
+        }
+
+        return $res;
+    }
+
+    public function checkSession(string $nonce, &$A1 = null): bool
+    {
+        if(!is_dir(VHUB4WEB_SESSIONS)) {
+            return false;
+        }
+        $actfile = VHUB4WEB_SESSIONS."/{$nonce}_act";
+        if(!file_exists($actfile)) {
+            return false;
+        }
+        $data = explode(':', file_get_contents($actfile));
+        if(sizeof($data) < 2 || time()-hexdec($data[0]) > SESSION_MAX_INACTIVITY) {
+            try { @unlink($actfile); } catch(Throwable $e) {}
+            return false;
+        }
+        $A1 = $data[1];
+        return true;
+    }
+
+    public function touchSession(string $nonce, string $A1)
+    {
+        if(!is_dir(VHUB4WEB_SESSIONS)) {
+            return false;
+        }
+        $actfile = VHUB4WEB_SESSIONS."/{$nonce}_act";
+        file_put_contents($actfile, dechex(time()).':'.$A1);
+    }
+
     public function checkPassword(string $password): bool
     {
         $authvals = $this->authParams;
@@ -296,7 +375,21 @@ class VHubServerHTTPRequest
                 return false;
             }
         }
-        $A1 = bin2hex(substr(base64_decode($password),1));
+        if(!is_dir(VHUB4WEB_SESSIONS)) {
+            return false;
+        }
+        $nonce = $authvals['nonce'];
+        if(!preg_match('/^([0-9a-f]{20})$/', $nonce)) {
+            return false;
+        }
+        $newSessionFile = VHUB4WEB_SESSIONS."/{$nonce}_new";
+        if(file_exists($newSessionFile)) {
+            // new session with a valid nonce, check signature against password
+            try { @unlink($newSessionFile); } catch(Throwable $e) {}
+            $A1 = bin2hex(substr(base64_decode($password),1));
+        } else if(!$this->checkSession($nonce, $A1)) {
+            return false; // invalid nonce (possibly expired)
+        }
         if($authvals['type'] == 'x-yauth') {
             $A2 = sha1($this->method.':'.$authvals['uri']);
             $signature = sha1($A1.':'.$authvals['nonce'].':'.$authvals['nc'].':'.$authvals['cnonce'].':'.$authvals['qop'].':'.$A2);
@@ -304,7 +397,11 @@ class VHubServerHTTPRequest
             $A2 = md5($this->method.':'.$authvals['uri']);
             $signature = md5($A1.':'.$authvals['nonce'].':'.$authvals['nc'].':'.$authvals['cnonce'].':'.$authvals['qop'].':'.$A2);
         }
-        return ($authvals['response'] == $signature);
+        if($authvals['response'] != $signature) {
+            return false;
+        }
+        $this->touchSession($nonce, $A1);
+        return true;
     }
 
     public function setAuthUser(string $username): void
@@ -364,7 +461,7 @@ class VHubServerHTTPRequest
             // Request standard digest authentication
             $this->putStatus(401);
             $this->putHeader('WWW-Authenticate: Digest realm="' . $realm .
-                '",qop="auth",nonce="' . uniqid() . '",opaque="' . md5($realm) . '"');
+                '",qop="auth",nonce="' . $this->newNonce() . '",opaque="' . md5($realm) . '"');
         }
         $this->putHeader('X-Auth-Error: ' . $reason);
         // mark user as not authentified
@@ -474,7 +571,7 @@ class VHubServer
     protected array $fdcache;       // File descriptor cache to prevent open/close of TAR files within a single HTTP callback
 
     // Freely accessible files:
-    protected array $safeFiles = [ 'iframe.html', 'webapp.html', 'ssdp.xml', 'index.html', 'info.json' ];
+    protected array $safeFiles = [ 'iframe.html', 'webapp.html', 'ssdp.xml', 'index.html', 'info.json', 'favicon.svg', 'favicon.ico' ];
     // Extra parameters that do not require admin rights:
     protected array $safeParams = [ 'node', 'abs', 'ctx', 'dir', 'fw', 'hub', 'len', 'pos', 'rnd', 'scr', 'logUrl', 'id', 'run', 'utc', 'from', 'to' ];
 
@@ -613,6 +710,9 @@ class VHubServer
         // so we need to use the static variable. This works for PHP since
         // there is only one request per process
         $httpReq = VHubServer::$CurrentHTTPRequest;
+        if(is_null($httpReq)) {
+            $httpReq = new VHubServerHTTPRequest(true);
+        }
         $origin = basename($ex->getFile()).':'.$ex->getLine();
         $stackTrace = $ex->getTrace();
         if(sizeof($stackTrace) > 0) {
@@ -638,6 +738,17 @@ class VHubServer
         $_SERVER['HTTP_RAW_POST_DATA'] = $httpReq->getRawPostData();
         $_SERVER['HTTP_JSON_POST_DATA'] = $jsonPostData = $httpReq->getJsonPostData();
 
+        // Identify the network hub first
+        if(isset($jsonPostData['serial'])) {
+            $hubSerial = $jsonPostData['serial'];
+        } else {
+            $hubSerial = $jsonPostData['/api.json']['module']['serialNumber'];
+        }
+
+        // In PHP, we have to instantiate a new server for every connection (not persistent accross calls)
+        $server = new VHubServer($httpReq, VHUB4WEB_DATA);
+        $server->loadState($httpReq);
+
         // enable HTTP callback Cache
         if(!file_exists(VHUB4WEB_DATA . "/cache_dir")) {
             mkdir(VHUB4WEB_DATA . "/cache_dir");
@@ -646,14 +757,14 @@ class VHubServer
 
         // Try to RegisterHub - if it fails, we will catch the exception from caller
         $errmsg = '';
-        YAPI::RegisterHub("callback", $errmsg);
-
-        // Identify the network hub first
-        if(isset($jsonPostData['serial'])) {
-            $hubSerial = $jsonPostData['serial'];
+        if($server->apiroot->cloudConf->md5signPwd) {
+            $auth = base64_decode($server->apiroot->cloudConf->md5signPwd);
+            YAPI::RegisterHub("{$auth}@callback", $errmsg);
         } else {
-            $hubSerial = $jsonPostData['/api.json']['module']['serialNumber'];
+            YAPI::RegisterHub("callback", $errmsg);
         }
+
+        // Try to retrieve the network name
         $network = YNetwork::FindNetwork($hubSerial.'.network');
         if($network->isOnline()) {
             $hubName = $network->get_logicalName();
@@ -663,9 +774,6 @@ class VHubServer
         $httpReq->setClientIdent($hubSerial, $hubName);
         VHubServer::Log($httpReq, LOG_HTTPCALLBACK, 5, 'Incoming HTTP Callback from ' . $hubName);
 
-        // In PHP, we have to instantiate a new server for every connection (not persistent accross calls)
-        $server = new VHubServer($httpReq, VHUB4WEB_DATA);
-        $server->loadState($httpReq);
         $server->prepareToNotify($httpReq);
         $nReset = 0;
         $nDevices = $server->discoverDevices($httpReq, $nReset);
@@ -682,6 +790,7 @@ class VHubServer
         $server->saveDeviceState($httpReq);
         $server->saveState($httpReq);
         $server->closeNotificationStream($httpReq);
+        $httpReq->put('VirtualHub-4web callback complete.');
         // Save last request for trace purposes
         if($httpReq->getErrorCount() > 0) {
             $reqfile = 'lastError.trace';
@@ -826,11 +935,14 @@ class VHubServer
                 case 'upload.html':         // upload.html?...
                     $server->handleUpload($httpReq, '');
                     return;
+                case 'not.byn':             // not.byn?len=...&abs=...
+                    $server->serveNotifications($httpReq);
+                    return;
                 case 'flash.json':          // flash.json?a=list - ignore for now
                     $httpReq->put('{"total":0, "list":[]}');
                     return;
-                case 'not.byn':             // not.byn?len=...&abs=...
-                    $server->serveNotifications($httpReq);
+                case 'getInstaller.json':   // getInstaller.json?forVersion=...
+                    $server->serveInstaller($httpReq);
                     return;
                 case 'testcb.txt':          // testcb.txt[?w=10]
                     // FIXME: emulate callbacks to third party services ?
@@ -1123,7 +1235,10 @@ class VHubServer
             $cloudapiobj = json_decode($this->loadFile($httpReq, STATE_FILE, true, $fp), true, 99, JSON_THROW_ON_ERROR);
             // Selectively update changed values
             foreach($stateChanges as $key => $value) {
-                VHubServer::Log($httpReq, LOG_VHUBSERVER, 2, "Attribute change: $key = $value");
+                if (!str_ends_with($key, 'Password')) {
+                    // don't log password changes, to avoid security problems
+                    VHubServer::Log($httpReq, LOG_VHUBSERVER, 4, "Attribute change: $key = $value");
+                }
                 if ($key != 'persistentSettings') {
                     $cloudapiobj['VirtualHub4web']['valuesCache'][$key] = $value;
                 }
@@ -1863,6 +1978,87 @@ class VHubServer
     /**
      * Provide connection information in JSON format
      */
+    public function serveInstaller(VHubServerHTTPRequest $httpReq): void
+    {
+        $res = [];
+
+        // Test command, to avoid timeouts
+        $testTimeout = $httpReq->getArg('testTimeout');
+        if(!is_null($testTimeout)) {
+            try {
+                $fp = fsockopen('www.yoctopuce.com', 80, $errorCode, $errorMsg, floatVal($testTimeout));
+                if($fp === FALSE) {
+                    $res['error'] = "{$errorMsg} (error {$errorCode})";
+                } else {
+                    $res['success'] = 1;
+                    fclose($fp);
+                }
+            } catch(Throwable $ex) {
+                $res['error'] = $ex->getMessage();
+            }
+            $this->files->sendContentHeader($httpReq, 'json');
+            $httpReq->put(json_encode($res, JSON_UNESCAPED_SLASHES));
+            return;
+        }
+
+        // Real command to prepare to run the installer
+        $version = $httpReq->getArg('forVersion');
+        $getVersionStr = @file_get_contents(GET_LAST_VERSION_URL);
+        if(!$version) {
+            // forVersion flag is enforce requirements for admin rights
+            $res['error'] = 'version specifier is MANDATORY';
+        } else if(!$getVersionStr) {
+            $res['error'] = 'unable to retrieve version information from www.yoctopuce.com';
+        } else if(!class_exists('ZipArchive')) {
+            $res['error'] = 'PHP zip extension is not enabled';
+        } else {
+            $getVersion = json_decode($getVersionStr);
+            if(is_null($getVersion)) {
+                $res['error'] = 'unable to retrieve version information from www.yoctopuce.com';
+            } else if($version == 'latest') {
+                $url = $getVersion->link;
+            } else {
+                $url = str_replace('.'.$getVersion->version.'.', '.'.urlencode($version).'.', $getVersion->link);
+            }
+            $res['installerURL'] = $url;
+            $installer = @file_get_contents($url);
+            if(!$installer) {
+                $res['error'] = "unable to retrieve installer from www.yoctopuce.com ({$url})";
+            } else {
+                $baseDir = dirname(dirname($_SERVER['SCRIPT_FILENAME']));
+                $tempFile = tempnam($baseDir, 'vhw');
+                $zip = new ZipArchive;
+                if (!@file_put_contents($tempFile, $installer)) {
+                    $res['error'] = 'unable to write ZIP file';
+                } else if($zip->open($tempFile) !== TRUE) {
+                    $res['error'] = 'unable to open ZIP file';
+                    @unlink($tempFile);
+                } else {
+                    $installer = $zip->getFromName('vhub4web-installer.php');
+                    $zip->close();
+                    @unlink($tempFile);
+                    if(!$installer) {
+                        $res['error'] = 'unable to read from ZIP file';
+                    } else {
+                        $installerName = 'vhub4web-installer.'.bin2hex(random_bytes(6)).'.php';
+                        $installerFile = $baseDir.'/'.$installerName;
+                        if(!@file_put_contents($installerFile, $installer)) {
+                            $res['error'] = 'unable to write installer file';
+                        } else {
+                            $baseUrl = dirname(dirname(parse_url($httpReq->getRequestURL(), PHP_URL_PATH)));
+                            $res['location'] = $baseUrl.'/'.$installerName;
+                        }
+                    }
+                }
+            }
+        }
+        $this->files->sendContentHeader($httpReq, 'json');
+        $httpReq->put(json_encode($res, JSON_UNESCAPED_SLASHES));
+    }
+
+    /**
+     * Provide connection information in JSON format
+     */
     public function serveInfo(VHubServerHTTPRequest $httpReq): void
     {
         $uri = preg_replace('~(/info.json|\?).*~', '', $httpReq->getRequestURL());
@@ -1882,7 +2078,7 @@ class VHubServer
             "port" => [ $protocol.':'.$this->apiroot->api->network->getattr('httpPort') ],
             "protocol" => "HTTP/1.1",
             "realm" =>  $this->apiroot->cloudConf->authRealm,
-            "nonce" => uniqid()
+            "nonce" => $httpReq->newNonce()
         ];
         $this->files->sendContentHeader($httpReq, 'json');
         $httpReq->put(json_encode($info, JSON_UNESCAPED_SLASHES));
@@ -1937,6 +2133,22 @@ class VHubServer
             } else {
                 $res['deleteDevice']['errmsg'] = 'unknown device '.$serial;
             }
+        }
+        $setCbMd5Pwd = $httpReq->getArg('callbackMD5Password');
+        if(!is_null($setCbMd5Pwd)) {
+            if($setCbMd5Pwd == '?') {
+                $res['callbackMD5Password'] = [ 'changed' => 0 ];
+            } else {
+                // Reload the state file while keeping an exclusive lock to update it
+                $cloudapiobj = json_decode($this->loadFile($httpReq, STATE_FILE, true, $fp), false, 99, JSON_THROW_ON_ERROR);
+                $this->apiroot->loadState($httpReq, $cloudapiobj, false);
+                $this->apiroot->cloudConf->md5signPwd = $setCbMd5Pwd;
+                $cloudapiobj = $this->apiroot->saveState();
+                $this->saveFile($httpReq, STATE_FILE, json_encode($cloudapiobj, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES), $fp);
+                $res['callbackMD5Password'] = [ 'changed' => 1 ];
+            }
+            $isSet = ($this->apiroot->cloudConf->md5signPwd ? 'YES' : 'NO');
+            $res['callbackMD5Password']['isSet'] = $isSet;
         }
         $this->files->sendContentHeader($httpReq, 'json');
         $httpReq->put(json_encode($res, JSON_UNESCAPED_SLASHES));

@@ -492,8 +492,13 @@ class APICloudModuleNode extends APIModuleNode
         $this->values['productName'] = 'VirtualHub-4web';
         $this->values['productId'] = 0xc10d;
         $this->values['productRelease'] = 1;
-        $this->values['firmwareRelease'] = substr(VERSION, strrpos(VERSION, '.')+1);
         $this->values['upTime'] = round(gettimeofday(true) * 1000.0) & 0xffffffff;
+        $versionDotPos = strrpos(VERSION, '.');
+        if($versionDotPos !== FALSE) {
+            $this->values['firmwareRelease'] = substr(VERSION, $versionDotPos+1);
+        } else {
+            $this->values['firmwareRelease'] = VERSION;
+        }
     }
 
     public function loadStateFromCloudConf(VHubServerHTTPRequest $httpReq, GlobalCloudConf $cloudConf)

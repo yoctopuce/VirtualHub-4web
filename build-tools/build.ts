@@ -80,8 +80,8 @@ function downgradePHP(php8code: string): string
     return php8code
         .replace(/JSON_THROW_ON_ERROR/g,'0')
         .replace(/\(Throwable\)/gi, '(Throwable $e)')
-        .replace(/: *void/g, '')       // void return >= PHP 7.1
-        .replace(/string\|int\s+/g, '')  // union type >= PHP 8.0
+        .replace(/: *(void|mixed)/g, '') // no declared void or mixed return types
+        .replace(/mixed/g, '')           // mixed type declaration (and union types) >= PHP 8.0
         .replace(/(public\s+|protected\s+|private\s+)(static\s+|)\??(array|bool|float|int|string|object|self|parent|interable|mixed|[A-Z]\w+)\s+(\$\w+\s*(=[^;]+|);)/g, '$1$2$4');
 }
 

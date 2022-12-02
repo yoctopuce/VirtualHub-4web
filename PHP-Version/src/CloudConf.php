@@ -126,6 +126,8 @@ class GlobalCloudConf extends CloudConf
     // The authentication realm is initialized to the serial number, then preserved.
     // Passwords must be reset if the realm is changed manually.
     public string $authRealm;
+    // Incoming HTTP callback MD5 signature password.
+    public string $md5signPwd;
     // Settings saved explicitely
     public array $savedSettings;
     // Current attribute values
@@ -141,6 +143,7 @@ class GlobalCloudConf extends CloudConf
         parent::__construct();
         $this->serialNumber = 'VHUB4WEB-'.dechex(mt_rand(0x1000000,0xfffffff));
         $this->authRealm = $this->serialNumber;
+        $this->md5signPwd = '';
         $this->savedSettings = [
             'logicalName' => '',
             'networkName' => '',
@@ -159,6 +162,9 @@ class GlobalCloudConf extends CloudConf
         parent::loadState($httpReq, $data);
         $this->serialNumber = $data->serialNumber;
         $this->authRealm = $data->authRealm;
+        if(isset($data->md5signPwd)) {
+            $this->md5signPwd = $data->md5signPwd;
+        }
         foreach($data->savedSettings as $name => $value) {
             $this->savedSettings[$name] = $value;
             // default current value to saved setting
@@ -234,6 +240,7 @@ class GlobalCloudConf extends CloudConf
         $res = parent::saveState();
         $res['serialNumber'] = $this->serialNumber;
         $res['authRealm'] = $this->authRealm;
+        $res['md5signPwd'] = $this->md5signPwd;
         $res['savedSettings'] = $this->savedSettings;
         $res['valuesCache'] = $this->valuesCache;
         $res['devYdxBySerial'] = $this->devYdxBySerial;

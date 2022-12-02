@@ -31,7 +31,6 @@ const HTACCESS_REWRITE_RULES_MULTI =
     "RewriteEngine on\r\n" .
     "RewriteRule ^([^/]*)/(.*)$ $1/index.php?node=$2 [QSA,END]\r\n";
 
-
 const HTACCESS_TEST_INDEX_PHP = '<?php 
 $max_post_kb = str_replace(["K", "M", "G", "T"], ["", "000", "000000", "000000000"], ini_get("post_max_size"));
 $max_upload = str_replace(["K", "M", "G", "T"], ["", "000", "000000", "000000000"], ini_get("upload_max_filesize"));
@@ -64,6 +63,15 @@ const VHUB4WEB_DATA = VHUB4WEB_ROOT.'/data/_%_INSTANCE_%_';
 inc"."lude(VHUB4WEB_CODE.'/vhub4web-init.php');
 ";
 
+const PHP7_POLYFILLS_PHP = '
+function str_starts_with($haystack, $needle): bool
+{ return $needle !== \'\' && strncmp($haystack, $needle, strlen($needle)) === 0; }
+function str_ends_with($haystack, $needle): bool
+{ return $needle !== \'\' && substr($haystack, -strlen($needle)) === (string)$needle; }
+function str_contains($haystack, $needle): bool
+{ return $needle !== \'\' && mb_strpos($haystack, $needle) !== false; }
+';
+
 const OR_INSTALL_MANUALLY = '<br>If this is not possible, follow the instructions to perform the install manually.';
 
 // Try to rename the installer immediately to avoid keeping a security loophole during install
@@ -83,6 +91,28 @@ if(basename($SCRIPT_NAME) == DEFAULT_SCRIPTNAME) {
     }
 }
 
+/*
+ * Backward-compatibility with PHP 7.x
+ */
+if (!function_exists('str_starts_with')) {
+    function str_starts_with($haystack, $needle): bool
+    {
+        return $needle !== '' && strncmp($haystack, $needle, strlen($needle)) === 0;
+    }
+}
+if (!function_exists('str_ends_with')) {
+    function str_ends_with($haystack, $needle): bool
+    {
+        return $needle !== '' && substr($haystack, -strlen($needle)) === (string)$needle;
+    }
+}
+if (!function_exists('str_contains')) {
+    function str_contains($haystack, $needle): bool
+    {
+        return $needle !== '' && mb_strpos($haystack, $needle) !== false;
+    }
+}
+
 function normalizeLineEndings(string $content, string $requiredEnding = PHP_EOL): string
 {
     return preg_replace('~\R~u', $requiredEnding, $content);
@@ -93,10 +123,11 @@ function normalizeLineEndings(string $content, string $requiredEnding = PHP_EOL)
  */
 function downgradePHP(string $code): string
 {
+    $code = preg_replace('/(const +VERSION *=)/', PHP7_POLYFILLS_PHP.'$1', $code);
     $code = preg_replace('/JSON_THROW_ON_ERROR/i', '0', $code);
     $code = preg_replace('/\(Throwable\)/i', '(Throwable $e)', $code);
-    $code = preg_replace('/: *void/', '', $code);
-    $code = preg_replace('/string\|int\s+/', '', $code);
+    $code = preg_replace('/: *(void|mixed)/', '', $code);
+    $code = preg_replace('/mixed/', '', $code);
     $code = preg_replace('/(public\s+|protected\s+|private\s+)(static\s+|)\??(array|bool|float|int|string|object|self|parent|interable|mixed|[A-Z]\w+)\s+(\$\w+\s*(=[^;]+|);)/', '$1$2$4', $code);
     return $code;
 }
@@ -104,7 +135,7 @@ function downgradePHP(string $code): string
 /*
  * Install function: read and decompress runtime files for VirtualHub-4web
  */
-function installFiles(string $destDir, array $prevConfig = []): bool
+function installFiles(string $destDir, string $timezone, array $prevConfig = []): bool
 {
     global $phpCode, $initCode, $yfsImage;
     $php8 = '';
@@ -114,6 +145,10 @@ function installFiles(string $destDir, array $prevConfig = []): bool
     }
     gzclose($zp);
     $newInitCode = file_get_contents($initCode);
+    if($timezone) {
+        $newInitCode = preg_replace('/date_default_timezone_set[^;]+/',
+            "date_default_timezone_set('$timezone')", $newInitCode);
+    }
     if(isset($prevConfig['definedSymbols']) && isset($prevConfig['codedir'])) {
         $prevInitPath = $prevConfig['codedir'].'/vhub4web-init.php';
         if(file_exists($prevInitPath)) {
@@ -385,7 +420,8 @@ function processInstall(string $func): array
             break;
         case 'testPHP': // test important PHP serrtings
             $bitSize = round(log(PHP_INT_MAX) / log(2) / 8) * 8;
-            $properties['phpVersion'] = 'PHP '.phpversion().' '.php_sapi_name()." (with {$bitSize} bit integers)";
+            $properties['phpVersion'] = 'PHP '.phpversion().' '.php_sapi_name()." (with {$bitSize} bit integers)&nbsp;&nbsp;".
+                "<a href='?func=phpinfo' target='_blank' style='font-size: smaller;'>phpinfo</a>";
             $properties['phpIntBits'] = $bitSize;
             $properties['allowUrlFopen'] = ini_get('allow_url_fopen');
             $properties['enablePostDataReading'] = ini_get('enable_post_data_reading');
@@ -395,6 +431,13 @@ function processInstall(string $func): array
             $max_upload = ini_get('upload_max_filesize');
             $max_upload_kb = str_replace(['K', 'M', 'G', 'T'], ['', '000', '000000', '000000000'], $max_upload);
             $properties['uploadMaxFilesize'] = $max_upload_kb.' KB';
+            break;
+        case 'phpinfo': // show standard phpinfo
+            phpinfo();
+            exit;
+        case 'getTimezones': // retrieve valid timezones
+            $properties['defaultTimezone'] = date_default_timezone_get();
+            $properties['timezones'] = timezone_identifiers_list();
             break;
         case 'testRW': // test read-write access in web-facing install dir
             $testfile = __DIR__.'/installer-testfile.txt';
@@ -409,6 +452,87 @@ function processInstall(string $func): array
             } else {
                 @unlink($testfile);
                 $properties['writeAccess'] = 'allowed';
+            }
+            if(!is_dir($testdir)) {
+                if(!@mkdir($testdir, 0755)) {
+                    $errors[] = [
+                        'error' => 'createTestDir',
+                        'msg' => 'The installer failed to create a test directory to proceed to installation.',
+                        'cause' => 'Change the access rights of the installation directory to fix this.'.OR_INSTALL_MANUALLY
+                    ];
+                    break;
+                }
+                $properties['testDir'] = 'created';
+            }
+            break;
+        case 'testQuotaA': // ensure that there is enough space to write
+        case 'testQuotaB': // ensure that we still have the right to create files
+            $testfile = __DIR__.'/installer-large-testfile';
+            $datablock = str_repeat('1234567890AB',512); // ~6KB
+            $datalen = strlen($datablock);
+            $nblocks = 1024;    // 6 MB files
+            $firstFile = 0;
+            $nfiles = 5;        // 5 * 6MB = 30MB
+            for($fcount = $firstFile; $fcount < $nfiles; $fcount++) {
+                scandir(__DIR__);
+                $writeRes = 'fp=FALSE';
+                try {
+                    @$fp = fopen($testfile.$fcount,"wb");
+                } catch(Throwable $exc) {
+                    $writeRes = 'fopen exception: '.$exc->getMessage();
+                }
+                if($fp === FALSE) break;
+                try {
+                    for($i = 0; $i < $nblocks; $i++) {
+                        $writeRes = @fwrite($fp, $datablock, $datalen);
+                        if($writeRes !== $datalen) {
+                            break;
+                        }
+                    }
+                } catch(Throwable $exc) {
+                    $writeRes = 'fwrite exception: '.$exc->getMessage();
+                }
+                @fclose($fp);
+                scandir(__DIR__);
+                if($writeRes !== $datalen) {
+                    break;
+                }
+            }
+            $properties['lastWriteRes'] = strval($writeRes);
+            $testdirOK = true;
+            if(!is_dir($testdir)) {
+                if(!@mkdir($testdir, 0755)) {
+                    $testdirOK = false;
+                } else {
+                    $testdirOK = is_dir($testdir);
+                }
+                $properties['testDir'] = ($testdirOK ? 'created' : 'not created');
+            }
+            $totalsize = 0;
+            scandir(__DIR__);
+            for($fcount = 0; $fcount < $nfiles; $fcount++) {
+                if(file_exists($testfile.$fcount)) {
+                    $totalsize += filesize($testfile.$fcount);
+                    if($func == 'testQuotaB') {
+                        unlink($testfile.$fcount);
+                    }
+                }
+            }
+            $properties['totalSize'] = $totalsize;
+            if($writeRes === $datalen && $totalsize === $nfiles*$nblocks*$datalen && $testdirOK) {
+                $properties['testQuota'] = ($func == 'testQuotaA' ? 'waiting for quota checks...' : 'yes');
+            } else {
+                $properties['testQuota'] = '<strong>test failed</strong>';
+                $errors[] = [
+                    'error' => 'testQuota',
+                    'msg' => 'This software requires at least 30MB of available storage space.',
+                    'cause' => 'Make sure your hosting plan gives you enough storage space for use by PHP.'
+                ];
+                for($fcount = 0; $fcount < $nfiles; $fcount++) {
+                    if(file_exists($testfile.$fcount)) {
+                        unlink($testfile.$fcount);
+                    }
+                }
             }
             break;
         case 'testExisting': // detect any existing .htaccess files and look for existing Virtualhub-4web instances
@@ -554,6 +678,7 @@ function processInstall(string $func): array
             break;
         case 'install':
             $basicInstall = (isset($_GET['installType']) && $_GET['installType'] == 'basic');
+            $timezone = (isset($_GET['timezone']) ? $_GET['timezone'] : '');
             $instances = (isset($_GET['instances']) ? json_decode($_GET['instances']) : []);
             if(!$instances || !preg_match('~^[\w-]+$~', implode('', $instances))) {
                 $errors[] = [
@@ -606,7 +731,7 @@ function processInstall(string $func): array
                     }
                 }
             }
-            installFiles($codeDir);
+            installFiles($codeDir, $timezone);
             $instanceURLs = [];
             foreach($instances as $instance) {
                 if(!$basicInstall && !is_dir($dataDir . '/' . $instance)) {
@@ -696,7 +821,7 @@ function processInstall(string $func): array
                                     continue;
                                 }
                             }
-                            if(installFiles($codeDir, $instanceData)) {
+                            if(installFiles($codeDir, '', $instanceData)) {
                                 $updatedCodeDirs[$codeDir] = true;
                             }
                         }
@@ -707,12 +832,12 @@ function processInstall(string $func): array
                         $matchExpr = '~([^0-9])'.preg_quote($currVersion).'([^0-9])~';
                         $currIndex = file_get_contents($entryPoint);
                         $newIndex = preg_replace($matchExpr, '${1}'.VERSION.'${2}', $currIndex);
-                        file_put_contents($entryPoint, normalizeLineEndings(downgradePHP($newIndex)));
+                        file_put_contents($entryPoint, normalizeLineEndings($newIndex));
                         $updatedInstances[$instance] = true;
                     } else {
                         // simply replace files of existing install
                         $codeDir = $currCodeDir;
-                        installFiles($codeDir, $instanceData);
+                        installFiles($codeDir, '', $instanceData);
                     }
                     $updatedCodeDirs[$codeDir] = true;
                 }
@@ -758,6 +883,7 @@ if(isset($_GET['func'])) {
  * Installer entry point starts below
  */
 ?>
+<LINK rel="icon" id="favicon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZlcnNpb249IjEuMSIgdmlld0JveD0iMCAwIDE3IDE3IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSIxNyIgaGVpZ2h0PSIxNyIgcng9IjEuMSIgcnk9IjEuMSIgZmlsbD0iIzNmNzRkNSIvPjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAsMSkiPjxwYXRoIGQ9Im0xMC43IDEuMy0wLjI5IDAuMjljLTAuMDQ3IDAuMDQ3LTAuMDczIDAuMTEtMC4wNzIgMC4xOHYxLjFjLTEuMS0wLjktMi43LTAuODMtMy43IDAuMTRsLTAuNC0wLjR2LTAuOTdjMC4zNS0wLjI1IDAuMi0wLjgyLTAuMjMtMC44My0wLjQzLTAuMDE0LTAuNjMgMC41My0wLjI3IDAuODJ2MS4xYzAgMC4wNjcgMC4wMjcgMC4xMyAwLjA3NCAwLjE4bDAuNDkgMC40OWMtMC40MyAwLjU5LTAuNjMgMS4zLTAuNTQgMi4xdjAuMDA3MmwtMC44My0wLjgzYy0wLjA0Ny0wLjA0Ny0wLjExLTAuMDczLTAuMTgtMC4wNzJoLTJjLTAuMjctMC4zNi0wLjgzLTAuMTktMC44MyAwLjI1IDAuMDAxMiAwLjQ0IDAuNTYgMC42MiAwLjgyIDAuMjVoMS45bDEuMyAxLjNjMC40MyAwLjM4IDAuNzQgMS4yIDAuNTkgMS42aC0yLjVjLTAuMDY2IDAgLTAuMTMgMC4wMjctMC4xOCAwLjA3NGwtMS40IDEuNGMtMC4zOS0wLjA4OS0wLjcyIDAuMzQtMC40OCAwLjY5czAuODYgMC4yIDAuODItMC4zM2wxLjMtMS4zaDIuNmMwLjI2IDAuMTUgMC41MSAwLjQgMC42NyAwLjY1djEuOWwtMS41IDEuNWMtMC4wNDcgMC4wNDctMC4wNzMgMC4xMS0wLjA3NCAwLjE4djAuMjhjLTAuNDUgMC4zLTAuMTUgMC44MyAwLjIzIDAuODMgMC4zOCAwIDAuNjMtMC40NyAwLjI3LTAuODF2LTAuMjFsMS41LTEuNWMwLjA0Ny0wLjA0NiAwLjA3NC0wLjExIDAuMDc0LTAuMTh2LTEuN2MwLjI0LTAuMzIgMS4xLTAuNCAxLjQtMC4wM3YxLjJjIDAgMC4wNjYgMC4wMjcgMC4xMyAwLjA3NCAwLjE4bDEuNSAxLjV2MC42OWMtMC4zNiAwLjI0LTAuMjMgMC44MSAwLjI3IDAuODIgMC40OSAwLjAwMjEgMC41NC0wLjY0IDAuMjMtMC44MnYtMC43OWMgMCAtMC4wNjYtMC4wMjctMC4xMy0wLjA3NC0wLjE4bC0xLjUtMS41di0xLjRjMC4xNS0wLjIgMC4zLTAuMjUgMC41My0wLjI0aDMuMmwwLjkxIDAuOTFjLTAuMDk5IDAuNDQgMC40OCAwLjcyIDAuNzcgMC40IDAuMjgtMC4zMiAwLjA3Mi0wLjc5LTAuNDItMC43NmwtMC45OC0wLjk4Yy0wLjA0Ny0wLjA0Ny0wLjExLTAuMDcyLTAuMTgtMC4wNzJoLTNjLTAuMjEtMC4zMiAwLjI0LTEuNSAwLjY3LTEuOWwyLjIgMC4wMDU5YzAuMDY3IDAgMC4xMy0wLjAyNiAwLjE4LTAuMDcybDEuMS0xLjFjMC4zOSAwLjA5NiAwLjczLTAuNCAwLjQ0LTAuNzNzLTAuODctMC4xLTAuNzggMC4zNmwtMS4xIDEuMWgtMmMwLjI3LTAuOTUgMC4wMDY3LTEuOS0wLjQzLTIuNXYtMS41bDAuMjEtMC4yMWMwLjM4IDAuMDgyIDAuNzEtMC4zMyAwLjQ2LTAuNjlzLTAuODctMC4xOS0wLjggMC4zM3ptLTMuMiA0LjljMC44NC0wLjAyOSAwLjk2IDEuNSAwLjIgMS41LTAuNzYtMC4wMTQtMS0xLjQtMC4yLTEuNXptMi4xIDBjMC43NSAwLjA4NCAwLjYxIDEuNS0wLjIgMS41LTAuODEgMC4wMDMzLTAuNTUtMS41IDAuMi0xLjV6IiBmaWxsPSIjZmZmIi8+PGVsbGlwc2UgY3g9IjkuNCIgY3k9IjcuNCIgcng9Ii4zNCIgcnk9Ii4zMyIgZmlsbD0iI2ZmZiIvPjxlbGxpcHNlIGN4PSI3LjciIGN5PSI3LjQiIHJ4PSIuMzQiIHJ5PSIuMzMiIGZpbGw9IiNmZmYiLz48L2c+PHBhdGggZD0ibTkuOCAwIDcuMiA3LjJ2LTRsLTMuMi0zLjJ6IiBmaWxsPSIjOThmYjk4Ii8+PGcgZmlsbD0iIzQ0NCIgc3Ryb2tlLXdpZHRoPSIxIj48cGF0aCBkPSJtMTIuNyAxLjYzIDAuNDktMS4xIDAuMTkgMC4xOS0wLjMzIDAuNzQgMC43NS0wLjMyIDAuMTIgMC4xMi0wLjMyIDAuNzUgMC43My0wLjM0IDAuMTcgMC4xNy0xLjEgMC40OS0wLjEyLTAuMTIgMC4zMy0wLjc3LTAuNzcgMC4zM3oiLz48cGF0aCBkPSJtMTMuOCAyLjc5IDAuNzktMC43OSAwLjgyIDAuODItMC4xNCAwLjE0LTAuNjQtMC42NC0wLjE4IDAuMTggMC4zNiAwLjM2LTAuMTQgMC4xNC0wLjM2LTAuMzYtMC4xOSAwLjE5IDAuNjQgMC42NC0wLjE1IDAuMTV6Ii8+PHBhdGggZD0ibTE2LjEgMy44LTAuNDItMC40Mi0wLjE5IDAuMTkgMC40MiAwLjQycTAuMDQ5IDAuMDQ5IDAuMDc5IDAuMDUzIDAuMDMyIDAgMC4wNjQtMC4wMjZsMC4wNzUtMC4wNzVxMC4wMzEtMC4wMzEgMC4wMjUtMC4wNjItMC4wMDQ1LTAuMDMyLTAuMDUyLTAuMDc5em0tMC4zMiAwLjMyLTAuNDItMC40Mi0wLjIgMC4yIDAuNDIgMC40MnEwLjA1MiAwLjA1MyAwLjA4NiAwLjA1NCAwLjAzNSAwLjAwMzEgMC4wNzUtMC4wMzdsMC4wNi0wLjA2cTAuMDQtMC4wNCAwLjAzNi0wLjA3NC0wLjAwMjMtMC4wMzQtMC4wNTQtMC4wODZ6bS0wLjk1LTAuMjYgMC43OS0wLjc5IDAuNjggMC42OHEwLjA5NCAwLjA5NCAwLjEgMC4xNyAwLjAwNTMgMC4wNzktMC4wNzUgMC4xNmwtMC4wOTggMC4wOThxLTAuMDU3IDAuMDU3LTAuMTIgMC4wNTctMC4wNjktMC4wMDE1LTAuMTUtMC4wNTkgMC4wNTkgMC4wNzcgMC4wNTcgMC4xNi0wLjAwMjMgMC4wNzctMC4wNjYgMC4xNGwtMC4xIDAuMXEtMC4wNzkgMC4wNzktMC4xNyAwLjA1OS0wLjA5Ni0wLjAxOS0wLjIyLTAuMTR6Ii8+PC9nPjwvc3ZnPg=="/>
 <script>
     function installLog(...theArgs)
     {
@@ -813,9 +939,9 @@ if(isset($_GET['func'])) {
 
     function ReportError()
     {
-        let trace = JSON.stringify(window.InstallationLogs);
+        let trace = JSON.stringify(window.InstallationLogs, null, 2);
         let textArea = wdg('debugData');
-        textArea.innerText = trace;
+        textArea.value = trace;
         show('popupWindow');
         textArea.focus();
         textArea.setSelectionRange(0, trace.length);
@@ -925,8 +1051,24 @@ if(isset($_GET['func'])) {
         if(testURL.errors.length > 0) return;
         let testPHP = await tryFunc('?func=testPHP');
         if(testPHP.errors.length > 0) return;
+        if(testPHP.props.phpIntBits < 64) {
+            showError('badbits', 'This software requires 64-bit PHP support',
+                'This software relies on proper handling of integers larger than 32-bit. All recent '+
+                'versions of PHP (7.4 and above) are available with true 64-bit support. Check your'+
+                'PHP hosting configuration panel for a way to switch to a more decent version.');
+            return;
+        }
+        await tryFunc('?func=removeTestDir');
         let testRW = await tryFunc('?func=testRW');
         if(testRW.errors.length > 0) return;
+        await tryFunc('?func=removeTestDir');
+        let testQuotaA = await tryFunc('?func=testQuotaA');
+        if(testQuotaA.errors.length > 0) return;
+        await tryFunc('?func=removeTestDir');
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        let testQuotaB = await tryFunc('?func=testQuotaB');
+        if(testQuotaB.errors.length > 0) return;
+        await tryFunc('?func=removeTestDir');
         let testExisting = await tryFunc('?func=testExisting');
         if(testExisting.errors.length > 0) return;
         if(testExisting.props.alreadyInstalled === 'no') {
@@ -1013,13 +1155,23 @@ if(isset($_GET['func'])) {
             }
 
             // Still working, perfect ! We can now remove the test directory, as we will not need it anymore
-            hideClass('phase1more');
-            wdg('readyToInstall').style.display = 'block';
             await tryFunc('?func=removeTestDir');
+            show('chkMore');
+            hideClass('phase1more');
 
             // Everything is now in place to make a real install
+            let zones = await tryFunc('?func=getTimezones');
+            let zoneCombo = '';
+            for(let zone of zones.props.timezones) {
+                zoneCombo += '<option value="'+zone+'">'+zone+'</option>';
+            }
+            wdg('timezoneSelector').innerHTML = zoneCombo;
+            wdg('timezoneSelector').value = zones.props.defaultTimezone;
+            wdg('readyToInstall').style.display = 'block';
             shtml('basicCodeDir', testURL.props.accessURL);
             shtml('basicDataDir', testURL.props.accessURL+'/[instanceName]');
+            shtml('advancedInstallPath2', testURL.props.advancedInstallPath);
+            shtml('advancedInstallPath3', testURL.props.advancedInstallPath);
             let accessRootURL = window.location.href.replace(/[^\/]*$/,'');
             shtml('commonAccessURL', accessRootURL + '[instanceName]');
             for(let el of document.getElementsByClassName('commonAccessRootURL')) {
@@ -1027,6 +1179,7 @@ if(isset($_GET['func'])) {
             }
         } else {
             // Existing install found: don't touch the server configuration, just prepare for the upgrade
+            show('chkMore');
             hideClass('phase1more');
             wdg('readyToUpdate').style.display = 'block';
             shtml('installedVersion', testExisting.props.installedVersion);
@@ -1205,7 +1358,8 @@ if(isset($_GET['func'])) {
                 instances.push(name);
             }
         }
-        let args = '&installType='+(isBasic ? 'basic' : 'adv')+'&instances='+encodeURIComponent(JSON.stringify(instances));
+        let args = '&installType='+(isBasic ? 'basic' : 'adv')+'&timezone='+encodeURIComponent(wdg('timezoneSelector').value)+
+            '&instances='+encodeURIComponent(JSON.stringify(instances));
         let install = await tryFunc('?func=install'+args);
         if(install.errors.length > 0) {
             for(let error of install.errors) {
@@ -1361,7 +1515,8 @@ if(isset($_GET['func'])) {
                 instances.push(name);
             }
         }
-        let args = '&instances='+encodeURIComponent(JSON.stringify(instances));
+        let isBasic = (wdg('changeLabel').innerText === 'Delete');
+        let args = '&installType='+(isBasic ? 'basic' : 'adv')+'&instances='+encodeURIComponent(JSON.stringify(instances));
         let addInstances = await tryFunc('?func=install'+args);
         if(addInstances.errors.length > 0) {
             for(let error of addInstances.errors) {
@@ -1518,6 +1673,7 @@ if(isset($_GET['func'])) {
     .table { display: grid; margin: 3px 0 3px 0; width: 100%; grid-template-columns: 240px 1fr; }
     .th { grid-column: 1; border: 1px solid black; padding: 3px 10px 3px 10px; background-color: #c7dcf6; margin:0 -1px -1px 0; }
     .td { grid-column: 2; border: 1px solid black; padding: 3px 10px 3px 10px; background-color: #c7dcf6; margin:0 -1px -1px 0; }
+    select { border: 1px solid black; border-radius: 3px; font-size: 16px; }
     button { border: 1px solid black; border-radius: 5px; font-size: large; cursor: pointer; padding: 3px 8px 3px 8px; }
     #errors { border: 1px solid black; padding: 5px; background-color: lightcoral; width: 650px; margin: 30px; }
     #installErrors { border: 1px solid black; padding: 5px; background-color: lightcoral; width: 650px; margin: 30px; }
@@ -1532,7 +1688,7 @@ if(isset($_GET['func'])) {
     .SelectedTab { background-color: aliceblue; border-bottom: 1px solid aliceblue; }
     .UnselectedTab { background-color: lightgray; border-bottom: 1px solid black; }
     .Tab { border: 1px solid black; border-radius: 10px; background-color: aliceblue; padding: 0 10px 0 10px; }
-    .instanceTable { display: grid; margin: 3px 0 3px 0; grid-template-columns: 250px 200px 200px; }
+    .instanceTable { display: grid; margin: 3px 0 3px 0; grid-template-columns: 250px 180px 220px; }
     .instanceTH { border: 1px solid black; padding: 3px 10px 3px 10px; background-color: #c7dcf6; margin:0 -1px -1px 0; font-weight: bold; }
     .instanceTD { border: 1px solid black; padding: 3px 10px 3px 10px; background-color: #c7dcf6; margin:0 -1px -1px 0; }
     @keyframes fadeOut { 0% {opacity: 1;} 100% {opacity: 0;} }
@@ -1546,18 +1702,19 @@ if(isset($_GET['func'])) {
         </div>
         <h3>1. Checking server configuration</h3>
         <div class="table">
-            <div class="th important">Installation file URL path:</div><div id="accessURL" class="td stt important"></div>
-            <div class="th phase1more">Corresponding system path:</div><div id="systemPath" class="td stt phase1more"></div>
-            <div class="th phase1more">File write access ?</div><div id="writeAccess" class="td phase1more"></div>
-            <div class="th important">Existing .htaccess file found ?</div><div id="htAccessFound" class="td important"></div>
-            <div class="th important">Existing installation found ?</div><div id="alreadyInstalled" class="td important"></div>
             <div class="th important">Current PHP version</div><div id="phpVersion" class="td important"></div>
             <div class="th phase1more">Allow URL fopen</div><div id="allowUrlFopen" class="td phase1more"></div>
             <div class="th phase1more">Enable POST data reading</div><div id="enablePostDataReading" class="td phase1more"></div>
             <div class="th phase1more">POST max size</div><div id="postMaxSize" class="td phase1more"></div>
             <div class="th phase1more">Upload max filesize</div><div id="uploadMaxFilesize" class="td phase1more"></div>
+            <div class="th important">Installation file URL path:</div><div id="accessURL" class="td stt important"></div>
+            <div class="th phase1more">Corresponding system path:</div><div id="systemPath" class="td stt phase1more"></div>
+            <div class="th phase1more">File write access ?</div><div id="writeAccess" class="td phase1more"></div>
+            <div class="th phase1more">At least 30 MB available ?</div><div id="testQuota" class="td phase1more"></div>
+            <div class="th important">Existing .htaccess file found ?</div><div id="htAccessFound" class="td important"></div>
+            <div class="th important">Existing installation found ?</div><div id="alreadyInstalled" class="td important"></div>
         </div>
-        <div id="chkMore" style="width: 100%; text-align: right; font-size:small;"><a href="javascript:showClass('phase1more');hide('chkMore')">show more...</a></div>
+        <div id="chkMore" style="width: 100%; text-align: right; font-size:small;display:none;"><a href="javascript:showClass('phase1more');hide('chkMore');">show more...</a></div>
         <div id="errors" style="display:none">
             <h3>Oops, we have a problem...</h3>
             <ul id="errorList"></ul>
@@ -1565,7 +1722,12 @@ if(isset($_GET['func'])) {
             <div class="WizButtons"><button onclick="window.location.reload(true)">Retry</button></div>
         </div>
         <div id="readyToInstall" style="display:none">
-            <h4>Everything OK for install, press Next to start configuring...</h4>
+            <h4>Everything OK for install...</h4>
+            <p>
+                <span style="font-size: x-large; font-weight: bold;">&#8680;</span>
+                Select the timezone to be used for VirtualHub-4web log files:
+                <select id="timezoneSelector"></select>
+            </p>
             <div class="WizButtons">
                 <button onclick="wizNext(1,2)">Next &gt;</button>
             </div>
@@ -1684,7 +1846,7 @@ if(isset($_GET['func'])) {
             In both cases, the URL to access VirtualHub-4web instances will be:
         </p>
         <div style="text-align: center" class="stt" id="commonAccessURL"></div>
-        <p style="position: absolute; bottom: 50px;">
+        <p style="position: absolute; bottom: 20px;">
             <span style="font-size: x-large; font-weight: bold;">&#8680;</span> Select install mode:
             <label><input type="radio" id="basicRadio" name="installType" onclick="selectInstallType('basic')"/> Basic</label> &nbsp;
             <label><input type="radio" id="advancedRadio" name="installType" onclick="selectInstallType('advanced')"/> Advanced</label>
