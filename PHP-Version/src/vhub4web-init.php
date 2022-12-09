@@ -19,9 +19,10 @@ date_default_timezone_set('Europe/Paris');
 // Other global settings, usually safe to keep as-is
 const UIFILE = __DIR__ . '/YFSImg.yfs';
 const DEFAULT_LOGLEVEL = 3;          // Standard level of details in VirtualHub-4web file
-const FILES_MAX_SIZE = 0x1ff0000;    // Max total size of user files is ~16 MB
+const FILES_MAX_SIZE = 0x3ff0000;    // Absolute maximal size of TAR files is ~64 MB
 const USERFILE_MAX_SIZE = 0x7f0000;  // Max user file is ~8 MB
-const DATAFILE_MAX_SIZE = 0x100000;  // Max datalogger file (before splitting) is 1MB
+const DATAFILE_MAX_SIZE = 0x100000;  // Datalogger file chunk size is 1MB
+const DATAFILE_MAX_COUNT = 30;       // Max 30 datalogger files per device before recycling old ones
 const SERVERLOGS_MAX_SIZE = 512000;  // Up to 512KB of server logs before rotating
 const DEVICELOGS_MAX_SIZE = 32768;   // Keep up to 32KB of device logs
 const DEVICESTATS_MAX_DAYS = 400;    // Keep up to 400 days of summarized statistics about hub callbacks

@@ -56,7 +56,8 @@ const TAROP_LOAD_FILE = 0;      // first functions require shared Read-only acce
 const TAROP_LIST_FILES = 1;
 const TAROP_WORKON_FILES = 2;   // must stay the first TAR op requiring Read-write access
 const TAROP_UPDATE_FILE = 3;    // must stay the first TAR op requiring Read-write access and causing file rewrite
-const TAROP_DELETE_FILE = 4;
+const TAROP_REPLACE_FILE = 4;
+const TAROP_DELETE_FILE = 5;
 
 /*
  * Binary (little-endian) encoding/decoding
@@ -254,6 +255,17 @@ class TarFile
         return sizeof($this->userFiles);
     }
 
+    public function knownFilesMatching(string $pattern): array
+    {
+        $res = [];
+        foreach($this->userFiles as $ufile) {
+            if(fnmatch($pattern, $ufile->path, 0)) {
+                $res[] = $ufile;
+            }
+        }
+        return $res;
+    }
+
     public function tarSize(): int
     {
         if($this->tarfilesize > 0) {
@@ -272,6 +284,7 @@ class TarFile
      *     TAROP_LIST_FILES - no change, list all files matching <targetpath> and compute CRC
      *     TAROP_WORKON_FILES - get file positions matching <targetpath>, keep the exclusive lock
      *     TAROP_UPDATE_FILE - add file named <targetpath> with content <newContent>
+     *     TAROP_REPLACE_FILE - put a file named <targetpath[2]> with content <newContent> in place of <targetpath[1]>
      *     TAROP_DELETE_FILE - delete file named <targetpath>
      *  Returns the target file record
      */
@@ -285,13 +298,21 @@ class TarFile
             return $res;
         }
         if($operation < TAROP_WORKON_FILES) {
-            // non-exclusive access
+            // non-exclusive access is required
             $fp = $this->server->fopen_ro($httpReq, $this->tarfile);
             $newfile = null;
         } else {
             // exclusive read-write access for update
+            if($operation == TAROP_REPLACE_FILE) {
+                $names = explode('|', $targetPath);
+                $targetPath = $names[0];
+                $newPath = $names[1];
+                $operation = TAROP_UPDATE_FILE;
+            } else {
+                $newPath = $targetPath;
+            }
             if($operation == TAROP_UPDATE_FILE) {
-                $newfile = new TarObject($httpReq, -1, strlen($newContent), $targetPath);
+                $newfile = new TarObject($httpReq, -1, strlen($newContent), $newPath);
                 $newfile->content = $newContent;
                 $newfile->crc = crc32($newfile->content);
             } else {
@@ -435,7 +456,7 @@ class TarFile
             // append updated file at the end if not updated on the file
             if($operation == TAROP_UPDATE_FILE && !is_null($newfile)) {
                 if($tarOffset + $newfile->storageSize > FILES_MAX_SIZE) {
-                    VHubServer::Log($httpReq, LOG_TARFILE, 2, "Not enough space in allowed in filesystem to upload new file");
+                    VHubServer::Log($httpReq, LOG_TARFILE, 2, "TAR file is too big to add a new file");
                 } else {
                     if ($rewriteFrom < 0) {
                         $rewriteFrom = sizeof($this->userFiles);

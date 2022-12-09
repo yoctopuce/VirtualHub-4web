@@ -215,6 +215,7 @@ class DataFrequency
 class DataFile
 {
     public int $startstamp;
+    public int $stopstamp;
     public string $functionid;
     public string $unit;
     public TarObject $tarObject;
@@ -230,6 +231,7 @@ class DataFile
             $this->functionid = '???';
             $this->unit = '';
         }
+        $this->stopstamp = time(); // default value, will be overriden when better known
         $this->tarObject = $tarObject;
     }
 }
@@ -570,7 +572,7 @@ class DataSeq
         $this->nRows += $skipRows + 1;
         $this->tarFile->tarWorkWriteUint($this->tarObj, $this->seqOfs + 14, $this->nRows, 2);
         if($endTime >= $nextSeqStamp) {
-            VHubServer::Log($httpReq, LOG_DATALOGGER, 3, "This is the last measure of the sequence ({$endTime} >= {$nextSeqStamp})");
+            VHubServer::Log($httpReq, LOG_DATALOGGER, 4, "This is the last measure of the sequence ({$endTime} >= {$nextSeqStamp})");
             $this->closeSeq($httpReq);
         }
         return true;
@@ -637,7 +639,7 @@ class DataLogger
     {
         $this->tarfile = $this->filesrv->accessDeviceFiles($httpReq, $this->serial);
         $tarObjects = $this->tarfile->processTarFile($httpReq, 'datalogger/'.$fnpattern, TAROP_WORKON_FILES);
-        usort($tarObjects, fn(TarObject $a, TarObject $b) => strcmp($a->path, $b->path));
+        usort($tarObjects, function(TarObject $a, TarObject $b) { return strcmp($a->path, $b->path); });
         $res = [];
         foreach($tarObjects as $tarObj) {
             $df = new DataFile($tarObj);
@@ -647,7 +649,29 @@ class DataLogger
                 $res[$df->functionid][] = $df;
             }
         }
+        // determine the last usage date of each datafile based on startstamp of next file
+        foreach($res as $functionid => $functionFiles) {
+            for($i = 1; $i < sizeof($functionFiles); $i++) {
+                $functionFiles[$i-1]->stopstamp = $functionFiles[$i]->startstamp;
+            }
+        }
         return $res;
+    }
+
+    protected function canAddDataFile(VHubServerHTTPRequest $httpReq, array $dataFiles, ?DataFile &$oldestDataFile): bool
+    {
+        $nFiles = 0;
+        $oldestDataFile = null;
+        $oldestStamp = time();
+        foreach($dataFiles as $functionid => $functionFiles) {
+            $nFiles += sizeof($functionFiles);
+            $df = $functionFiles[0];
+            if($oldestStamp > $df->stopstamp) {
+                $oldestStamp = $df->stopstamp;
+                $oldestDataFile = $df;
+            }
+        }
+        return $nFiles < DATAFILE_MAX_COUNT;
     }
 
     protected function loadSeq(VHubServerHTTPRequest $httpReq, DataFile $dataFile, int $seqOfs, bool $withData = true): DataSeq
@@ -748,8 +772,16 @@ class DataLogger
             $dataSeq->initialize($freq, $measure);
             $content = encodeUint($seqOfs, 4).$dataSeq->getRawBytes();
             $content .= substr($datapad, strlen($content));
-            VHubServer::Log($httpReq, LOG_DATALOGGER, 4, "Creating {$subfile} for {$this->serial}");
-            $this->tarfile->processTarFile($httpReq, $subfile, TAROP_UPDATE_FILE, $content);
+            if($this->canAddDataFile($httpReq, $dataFiles, $oldestDataFile)) {
+                VHubServer::Log($httpReq, LOG_DATALOGGER, 3, "Creating {$subfile} for {$this->serial}");
+                $this->tarfile->processTarFile($httpReq, $subfile, TAROP_UPDATE_FILE, $content);
+            } else {
+                $oldsubfile = $oldestDataFile->tarObject->path;
+                VHubServer::Log($httpReq, LOG_DATALOGGER, 3, "Creating {$subfile} for {$this->serial}, replacing oldest file {$oldsubfile}");
+                $this->tarfile->processTarFile($httpReq, $oldsubfile.'|'.$subfile, TAROP_REPLACE_FILE, $content);
+            }
+            // refresh file list
+            $dataFiles = $this->accessData($httpReq);
         }
     }
 

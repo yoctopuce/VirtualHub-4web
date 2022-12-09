@@ -158,7 +158,8 @@ class APINode
                     // Automatically instantiate typed dynamic nodes
                     switch($name) {
                         case 'dataLogger':
-                            $this->subnodes[$name] = new APIDataLoggerNode($httpReq, $this->server, $name);
+                            $moduleData = (isset($data->module) ? $data->module : $data['module']);
+                            $this->subnodes[$name] = new APIDataLoggerNode($httpReq, $this->server, $name, $moduleData);
                             break;
                         case 'services':
                             $this->subnodes[$name] = new APIServicesNode($httpReq, $this->server, $name);
@@ -707,22 +708,85 @@ class APICloudFilesNode extends APIFunctionNode
 
 class APIDataLoggerNode extends APIFunctionNode
 {
-    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $name)
+    protected string $serial;
+    protected array $deviceValues;    // actual values on the device
+
+    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $name, mixed $moduleData)
     {
         parent::__construct($httpReq, $server, $name);
-        $this->values['currentRunIndex'] = 0;
+        // Setup emulated values
+        $this->serial = (isset($moduleData->serialNumber) ? $moduleData->serialNumber : $moduleData['serialNumber']);
+        $this->values['logicalName'] = '';
+        $this->values['advertisedValue'] = 'ON';
+        $this->values['currentRunIndex'] = 1;
         $this->values['timeUTC'] = 0;
-        $this->values['recording'] = 0;
-        $this->values['autoStart'] = 0;
+        $this->values['recording'] = 1;
+        $this->values['autoStart'] = 1;
         $this->values['beaconDriven'] = 0;
-        $this->values['usage'] = 0;
+        $this->values['usage'] = 1;
         $this->values['clearHistory'] = 0;
+        $this->setupTypes($httpReq);
+        // Setup default device values as well
+        $this->deviceValues['logicalName'] = '';
+        $this->deviceValues['advertisedValue'] = '';
+        $this->deviceValues['currentRunIndex'] = 0;
+        $this->deviceValues['timeUTC'] = 0;
+        $this->deviceValues['recording'] = 0;
+        $this->deviceValues['autoStart'] = 0;
+        $this->deviceValues['beaconDriven'] = 0;
+        $this->deviceValues['usage'] = 0;
+        $this->deviceValues['clearHistory'] = 0;
         $this->setupTypes($httpReq);
     }
 
-    public function get_timeUTC(): int
+    // We cache the device values for use in very specific cases
+    public function loadState(VHubServerHTTPRequest $httpReq, mixed $data, bool $detectChanges): bool
     {
-        return $this->values['timeUTC'];
+        if(!$detectChanges) {
+            // This is an emulated datalogger, only reload the last known device UTC time
+            $this->values['timeUTC'] = (isset($data->timeUTC) ? $data->timeUTC : $data['timeUTC']);
+
+            // Compute current datalogger usage based on file list
+            $tarfile = $this->server->files->accessDeviceFiles($httpReq, $this->serial);
+            $knownFiles = $tarfile->knownFilesMatching('datalogger/*');
+            $usage = 0;
+            if(sizeof($knownFiles) == 0) {
+                foreach ($knownFiles as $tarObj) {
+                    $usage += $tarObj->contentSize;
+                }
+                $usage = intVal(round($usage / (DATAFILE_MAX_COUNT * DATAFILE_MAX_SIZE)));
+                if($usage < 1) {
+                    $usage = 1;
+                }
+            }
+            $this->values['usage'] = $usage;
+
+            return false;
+        }
+        foreach($data as $name => $value) {
+            $decoded = ApiJsonDecodeAttribute($value, $this->types[$name]);
+            if($this->deviceValues[$name] != $decoded) {
+                if($detectChanges) $this->modified = true;
+                $this->deviceValues[$name] = $decoded;
+            }
+        }
+        // When updating from device, mirror the last known device UTC time as well
+        $this->values['timeUTC'] = $this->deviceValues['timeUTC'];
+
+        return $this->modified;
+    }
+
+    // We cache the device values for later use
+    public function saveState(): array
+    {
+        $res = [];
+        foreach($this->deviceValues as $name => $value) {
+            $pseudoHttpReq = new VHubServerHTTPRequest(true);
+            $pseudoHttpReq->setAuthUser('admin');
+            $res[$name] = ApiJsonEncodeAttribute($pseudoHttpReq, $value, $this->types[$name]);
+        }
+        $this->modified = false;
+        return $res;
     }
 }
 
@@ -809,7 +873,7 @@ class APIWhitePagesNode extends APIArrayNode
 
     public function sortServices(VHubServerHTTPRequest $httpReq)
     {
-        usort($this->subnodes, fn(APIWPRecordNode $a,APIWPRecordNode $b) => ($a->values['index']-$b->values['index']));
+        usort($this->subnodes, function(APIWPRecordNode $a,APIWPRecordNode $b) { return $a->values['index'] - $b->values['index']; });
     }
 
     public function saveStateForSerial(string $serial): array

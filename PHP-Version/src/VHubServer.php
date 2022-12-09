@@ -244,7 +244,7 @@ class VHubServerHTTPRequest
 
     public function getServerIP(): string
     {
-        return $_SERVER['SERVER_ADDR'];
+        return (isset($_SERVER['SERVER_ADDR']) ? $_SERVER['SERVER_ADDR'] : '0.0.0.0');
     }
 
     public function getClientIP(): string
@@ -968,6 +968,9 @@ class VHubServer
                     $server->files->filesCmd($httpReq, $action, $fname);
                     $server->saveState($httpReq);
                     return;
+                case 'Yv4wI.js':
+                    $server->serveYV4webInstaller($httpReq);
+                    return;
                 default:
                     $server->files->sendFile($httpReq, $reqpath, $extension);
                     return;
@@ -997,6 +1000,10 @@ class VHubServer
                     $fname = ($httpReq->getArg('f') ?: '*');
                     $server->files->deviceFilesCmd($httpReq, $nodepath[1], $action, $fname);
                     $server->saveState($httpReq);
+                    return;
+                case 'edithtml.js':         // edit.thml is the same for all devices (our own generated file)
+                    global $ApiAttrEdit;
+                    $server->files->sendFileContent($httpReq, $ApiAttrEdit, 'js');
                     return;
             }
             $server->files->sendDeviceFile($httpReq, $nodepath[1], implode('/', array_slice($nodepath, 2)).'.'.$extension, $extension);
@@ -1899,6 +1906,10 @@ class VHubServer
                     // not real attributes change, shortcut
                     continue;
                 }
+                if($ctxnode->fclass == 'DataLogger') {
+                    // Do not forward any datalogger requests for now
+                    continue;
+                }
                 if($setattr == 'persistentSettings' && $setval == '2') {
                     // pseudo-change to trigger an immediate config change callback on client
                     // no need to propagate this change to the client
@@ -2129,6 +2140,8 @@ class VHubServer
                 $this->apiroot->cloudConf->freeDevYdx($serial);
                 $cloudapiobj = $this->apiroot->saveState();
                 $this->saveFile($httpReq, STATE_FILE, json_encode($cloudapiobj, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES), $fp);
+                $cloudSerial = $this->server->apiroot->cloudConf->serialNumber;
+                $this->notif->appendModuleRemovalNotifications($httpReq, $cloudSerial, $serial);
                 $res['deleteDevice']['done'] = 1;
             } else {
                 $res['deleteDevice']['errmsg'] = 'unknown device '.$serial;
@@ -2152,6 +2165,24 @@ class VHubServer
         }
         $this->files->sendContentHeader($httpReq, 'json');
         $httpReq->put(json_encode($res, JSON_UNESCAPED_SLASHES));
+    }
+
+    /**
+     * Send Yocto-Visualization-4web installer (tunelling), to work around cross-origin restrictions
+     */
+    public function serveYV4webInstaller(VHubServerHTTPRequest $httpReq): void
+    {
+        try {
+            $installer = @file_get_contents('http://www.yoctopuce.com/Yv4wI.js');
+            if(ord($installer[0]) == 0x1f && ord($installer[1]) == 0x8b) {
+                $httpReq->putHeader('Content-encoding: gzip');
+            }
+            $this->files->sendContentHeader($httpReq, 'js');
+            $httpReq->put($installer);
+        } catch(Throwable $e) {
+            $httpReq->putStatus(404);
+            $httpReq->put("Failed to fetch Yocto-Visualization-4web installer from www.yoctopuce.com: {$e->getMessage()}\r\n");
+        }
     }
 
     /**
@@ -2283,7 +2314,7 @@ class VHubServer
             }
         } else if(str_contains($utc, ',')) {
             // Dump multiple streams in details (bulk transfer)
-            $utcStamps = array_map(fn($value): int => intval($value), explode(',', $utc));
+            $utcStamps = array_map(function($value) { return intval($value); }, explode(',', $utc));
             $httpReq->put('[');
             $logger->printRun($httpReq, $functionid, $run, $utcStamps, $verbose);
             $httpReq->put(']');

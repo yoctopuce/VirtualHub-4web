@@ -193,7 +193,7 @@ class NotifStream
             $this->abspos = $this->filepos + $endpos;
             $this->curpos = $endpos;
         }
-        if($endpos > $this->curpos) {
+        if($endpos > $this->curpos && !is_null($this->fd)) {
             fseek($this->fd, $this->curpos, SEEK_SET);
             $this->avail = $endpos;
         }
@@ -325,6 +325,14 @@ class NotifStream
         $this->appendNotif($httpReq, NOTIF_CHILD.$cloudSerial.','.$serial.',1');
         $this->appendModuleNotification($httpReq, $wpVal);
         $this->appendNotif($httpReq, NOTIF_PRODINFO.$serial.','.sprintf('%04x', $wpVal['productId']));
+    }
+
+    /*
+     * Add the set of notifications corresponding to a new whitepage entry
+     */
+    public function appendModuleRemovalNotifications(VHubServerHTTPRequest $httpReq, string $cloudSerial, string $serial): void
+    {
+        $this->appendNotif($httpReq, NOTIF_CHILD.$cloudSerial.','.$serial.',0');
     }
 
     /*

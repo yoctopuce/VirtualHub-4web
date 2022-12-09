@@ -19,9 +19,9 @@ messages from the modules, and even the files needed for the user interface.
 
 To simplify the installation of this tool as much as possible, we have created a small
 stand-alone PHP installer. You will find it in the subdirectory **PHP-Version/installer**.
-Upload it on your web server in the subdirectory where you
-want to see the VirtualHub (for Web). Then open a browser window pointing to this file
-and follow the few steps of the installation wizard.
+Upload it on your web server in the subdirectory where you want to see the VirtualHub 
+(for Web). If you do this using FTP, make sure to use <i>binary</i> mode. Then open a 
+browser window pointing to this file and follow the few steps of the installation wizard.
 
 It is not necessary to have a database on the Web server to use the VirtualHub (for Web): 
 all the data retrieved from the Yoctopuce modules are stored by the PHP code directly in 
@@ -32,6 +32,9 @@ The installer offers you to create several instances of the VirtualHub (for Web)
 if you wish. Without duplicating the code on the web server, this option allows 
 you to separate several subsystems of Yoctopuce modules that are displayed 
 separately, and their data are stored in separate directories.
+
+As of today, we have tested the installer and the software on PHP 7.3, 7.4, 8.0 and 8.1,
+running in the following modes: apache2handler, fpm-fcgi, cgi-fcgi and lightspeed.
 
 ### Configuration of HTTP callbacks on YoctoHub or VirtualHub
 

@@ -1,0 +1,29 @@
+:8088 {
+    root www
+    log {
+        level DEBUG
+        output file caddy_debug.log {
+            roll_size 10MiB
+            roll_keep 10
+            roll_keep_for 336h
+        }
+    }
+    php_fastcgi {
+            to localhost:9001
+            to localhost:9002
+            to localhost:9003
+            to localhost:9004
+            to localhost:9005
+            to localhost:9006
+            to localhost:9007
+            to localhost:9008
+    }
+	@vhub4web {
+	    path_regexp static ^(/VirtualHub-4web/[^/]*)/(.*)$
+	}
+	@vhub4web_dev {
+	    path_regexp static ^(/VirtualHub-4web-dev)/(.*)$
+	}
+	rewrite @vhub4web {re.static.1}/index.php?{query}&node={re.static.2}
+	rewrite @vhub4web_dev {re.static.1}/index.php?{query}&node={re.static.2}
+}
