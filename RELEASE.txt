@@ -1,7 +1,16 @@
-VirtualHub-4web v1.10.52282
+VirtualHub-4web v1.10.52382
 
 - Add support for launching Yocto-Visualization-4web installer
+- Add datalogger usage reporting
 - Add support for limiting datalogger storage
 - Add backward-compatibility with PHP 7.3
-- Fix API browser for VirtualHub-4web
+- Use simpler rewrite rule that does not require Apache-specific QSA
+- Trim callback URL from spurious spaces if any
+- Improve HTTP callback test UI
+- Improve support for launching Yocto-Visualization-4web installer
+- Improve support for installing on non-Apache servers
+- Improve build scripts
+- Fix in support for limiting datalogger storage
+- Fix API browser
 - Fix possible undefined reference to SERVER_ADDR when using Caddy web server
+- Simplify sample Caddyfile

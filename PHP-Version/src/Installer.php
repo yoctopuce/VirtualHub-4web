@@ -4,12 +4,12 @@ include_once("runtime-checks.php");
 const HTACCESS_REWRITE_RULES_SINGLE =
     "# Redirect all URLs to index.php for VirtualHub-4web processing\r\n" .
     "RewriteEngine on\r\n" .
-    "RewriteRule ^.*$ index.php?node=$0 [L,QSA]\r\n";
+    "RewriteRule ^.*$ index.php [END]\r\n";
 
 const HTACCESS_PHP_VALUES =
     "# PHP settings for VirtualHub-4web\r\n" .
-    "php_value post_max_size             \"4M\"\r\n" .
-    "php_value upload_max_filesize       \"4M\"\r\n" .
+    "php_value post_max_size             \"8M\"\r\n" .
+    "php_value upload_max_filesize       \"8M\"\r\n" .
     "php_value enable_post_data_reading  0\r\n" .
     "# this one is not supposed to work per-dir, but sometimes it does...\r\n" .
     "php_value allow_url_fopen           1\r\n";
@@ -20,8 +20,8 @@ const USER_INI_VALUES =
     "; note: this file is always present, even when running as Apache module,\r\n" .
     ";       because it is harmless and may become useful one day if the server\r\n" .
     ";       configuration ever changes to (Fast)CGI\r\n" .
-    "post_max_size=\"4M\"\r\n" .
-    "upload_max_filesize=\"4M\"\r\n" .
+    "post_max_size=\"8M\"\r\n" .
+    "upload_max_filesize=\"8M\"\r\n" .
     "enable_post_data_reading=\"0\"\r\n" .
     "; this one is not supposed to work per-dir, but sometimes it does...\r\n" .
     "allow_url_fopen=\"1\"\r\n";
@@ -29,13 +29,45 @@ const USER_INI_VALUES =
 const HTACCESS_REWRITE_RULES_MULTI =
     "# Redirect all URLs to index.php for VirtualHub-4web processing\r\n" .
     "RewriteEngine on\r\n" .
-    "RewriteRule ^([^/]*)/(.*)$ $1/index.php?node=$2 [QSA,END]\r\n";
+    "RewriteRule ^([^/]*)/.*$ $1/index.php [END]\r\n";
+
+// Note: in the constant below, quotes are replaced by back-quotes to avoid back-quoting!
+const ROOT_INDEX_PHP = '<?php // VirtualHub-4web pseudo-rewrite handler
+//
+// This file acts as single point of entry for Web servers that
+// do not have an equivalent to the following Apache rewrite rule:
+//      RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI} !-f
+//      RewriteRule ^/?([^/]*)(/|$) $1/index.php [PT]
+//
+$baseURI = preg_replace(`~/$~`, ``, dirname($_SERVER[`SCRIPT_NAME`]));
+$relURI = substr(parse_url($_SERVER[`REQUEST_URI`], PHP_URL_PATH), strlen($baseURI)+1);
+if(preg_match(`~^([\w-][\w\-.]*)(/|$)~`, $relURI, $matches)) {
+    // Route query to instance-specific index.php
+    $nextHop = $matches[1].`/index.php`;
+} else if(preg_match(`~^([\w-][\w\-.]*.php)$~`,$relURI, $matches)) {
+    // Route query to another script in this folder (i.e. installer)
+    $nextHop = $matches[1];
+} else {
+    // Invalid request
+    $nextHop = ``;
+}
+$nextHopAbsPath = __DIR__.`/`.$nextHop;
+if($nextHop == `` || !file_exists($nextHopAbsPath)) {
+    http_response_code(404);
+    die(`Invalid VirtualHub-4web request accessing relative URI [`.$relURI.`]`);
+}
+
+// Update SCRIPT_NAME as if found via URL rewriting
+$_SERVER[`SCRIPT_NAME`] = $baseURI.`/`.$nextHop;
+inc'.'lude_once($nextHopAbsPath);
+';
 
 const HTACCESS_TEST_INDEX_PHP = '<?php 
 $max_post_kb = str_replace(["K", "M", "G", "T"], ["", "000", "000000", "000000000"], ini_get("post_max_size"));
 $max_upload = str_replace(["K", "M", "G", "T"], ["", "000", "000000", "000000000"], ini_get("upload_max_filesize"));
 Print(json_encode([ "props" => [
-    "node" => $_GET["node"],
+    "request_uri" => $_SERVER["REQUEST_URI"],
+    "script_name" => $_SERVER["SCRIPT_NAME"],
     "allowUrlFopen" => ini_get("allow_url_fopen"),
     "enablePostDataReading" => ini_get("enable_post_data_reading"),
     "postMaxSize" => $max_post_kb,
@@ -411,6 +443,7 @@ function processInstall(string $func): array
     $advInstallPath = substr($serverRoot, 0, -strlen($wwwdir)).'vhub4web';
     $testdirName = 'installer-testdir';
     $testdir = __DIR__.'/'.$testdirName;
+    $rootindex = __DIR__.'/index.php';
     switch($func) {
         case 'testURL': // basic URL test, to make sure the installer is running as expected
             $properties['accessURL'] = $accessURL;
@@ -420,6 +453,7 @@ function processInstall(string $func): array
             break;
         case 'testPHP': // test important PHP serrtings
             $bitSize = round(log(PHP_INT_MAX) / log(2) / 8) * 8;
+            $properties['serverSoftware'] = $_SERVER['SERVER_SOFTWARE'];
             $properties['phpVersion'] = 'PHP '.phpversion().' '.php_sapi_name()." (with {$bitSize} bit integers)&nbsp;&nbsp;".
                 "<a href='?func=phpinfo' target='_blank' style='font-size: smaller;'>phpinfo</a>";
             $properties['phpIntBits'] = $bitSize;
@@ -536,23 +570,23 @@ function processInstall(string $func): array
             }
             break;
         case 'testExisting': // detect any existing .htaccess files and look for existing Virtualhub-4web instances
-            $directories = [];
             $properties['htAccessFound'] = 'no';
+            $properties['rootIndexFound'] = 'no';
             if(file_exists(__DIR__.'/.htaccess')) {
                 $properties['htAccessFound'] = 'yes';
-                foreach(scandir(__DIR__) as $entry) {
-                    if($entry[0] == '.') continue;
-                    if($entry == $testdirName) continue;
-                    if(!is_dir(__DIR__.'/'.$entry)) continue;
-                    $directories[] = $entry;
-                }
+            }
+            if(file_exists($rootindex)) {
+                $properties['rootIndexFound'] = 'yes';
             }
             $properties['instances'] = [];
-            foreach($directories as $dir) {
-                $dirPath = __DIR__.'/'.$dir;
+            foreach(scandir(__DIR__) as $entry) {
+                if($entry[0] == '.') continue;
+                if($entry == $testdirName) continue;
+                $dirPath = __DIR__.'/'.$entry;
+                if(!is_dir($dirPath)) continue;
                 $entryPoint = $dirPath.'/index.php';
                 if(file_exists($entryPoint)) {
-                    $properties['instances'][$dir] = getVhub4webConfig($entryPoint);
+                    $properties['instances'][$entry] = getVhub4webConfig($entryPoint);
                 }
             }
             $installed = "no";
@@ -589,7 +623,9 @@ function processInstall(string $func): array
             $properties['installedVersion'] = $installedVersion;
             $properties['basicInstall'] = ($isBasic ? 'yes' : 'no');
             break;
-        case 'createTestDir': // create a subdirectory to test .htaccess without risk
+        case 'createTestDir': // create a subdirectory to test redirection to nested index.php
+        case 'createTestDirWithHTAccess':  // same, but including an .htaccess to check for support
+        case 'createTestDirWithRootIndex': // same, but including a root index.php for simpler rewrite scheme
             $properties['dirname'] = $testdirName;
             try {
                 if(!is_dir($testdir)) {
@@ -602,15 +638,26 @@ function processInstall(string $func): array
                         break;
                     }
                     $properties['testDir'] = 'created';
-                } else if(file_exists($testdir.'/.user.ini')) {
-                    @unlink($testdir.'/.user.ini');
+                } else {
+                    if(file_exists($testdir.'/.user.ini')) {
+                        @unlink($testdir . '/.user.ini');
+                    }
+                    if(file_exists($testdir.'/.htaccess')) {
+                        @unlink($testdir . '/.htaccess');
+                    }
                 }
                 file_put_contents($testdir.'/index.php', normalizeLineEndings(HTACCESS_TEST_INDEX_PHP));
                 $properties['testIndex'] = 'created';
                 file_put_contents($testdir.'/.user.ini', normalizeLineEndings(USER_INI_VALUES));
                 $properties['testUserIni'] = 'created';
-                file_put_contents($testdir.'/.htaccess', normalizeLineEndings(HTACCESS_REWRITE_RULES_SINGLE));
-                $properties['testHTAccess'] = 'created';
+                if($func == 'createTestDirWithHTAccess') {
+                    file_put_contents($testdir.'/.htaccess', normalizeLineEndings(HTACCESS_REWRITE_RULES_SINGLE));
+                    $properties['testHTAccess'] = 'created';
+                }
+                if($func == 'createTestDirWithRootIndex') {
+                    file_put_contents($rootindex, normalizeLineEndings(str_replace('`', "'", ROOT_INDEX_PHP)));
+                    $properties['testRootIndex'] = 'created';
+                }
             } catch(Throwable $e) {
                 $errors[] = [
                     'error' => 'createTestDir',
@@ -627,6 +674,7 @@ function processInstall(string $func): array
             break;
         case 'setupWithPhpValue':    // setup final configuration
         case 'setupWithoutPhpValue':
+        case 'setupWithoutHTAccess':
             // setup php config files in the common install directory
             if(file_exists(__DIR__.'/.user.ini')) {
                 $newUserIni = file_get_contents(__DIR__.'/.user.ini');
@@ -636,26 +684,28 @@ function processInstall(string $func): array
             } else {
                 $newUserIni = USER_INI_VALUES;
             }
-            if(file_exists(__DIR__.'/.htaccess')) {
-                $newHtAccess = file_get_contents(__DIR__.'/.htaccess');
-                if(!preg_match('/VirtualHub-4web/', $newHtAccess)) {
-                    if ($func == 'setupWithPhpValue') {
-                        $newHtAccess .= "\r\n" . HTACCESS_PHP_VALUES.HTACCESS_REWRITE_RULES_MULTI;
-                    } else {
-                        $newHtAccess .= "\r\n" . HTACCESS_REWRITE_RULES_MULTI;
-                    }
-                }
-            } else {
-                if ($func == 'setupWithPhpValue') {
-                    $newHtAccess = HTACCESS_PHP_VALUES.HTACCESS_REWRITE_RULES_MULTI;
-                } else {
-                    $newHtAccess = HTACCESS_REWRITE_RULES_MULTI;
-                }
-            }
             file_put_contents(__DIR__.'/.user.ini', normalizeLineEndings($newUserIni));
             $properties['commonUserIni'] = 'created';
-            file_put_contents(__DIR__.'/.htaccess', normalizeLineEndings($newHtAccess));
-            $properties['commonHTAccess'] = 'created';
+            if($func != 'setupWithoutHTAccess') {
+                if (file_exists(__DIR__ . '/.htaccess')) {
+                    $newHtAccess = file_get_contents(__DIR__ . '/.htaccess');
+                    if (!preg_match('/VirtualHub-4web/', $newHtAccess)) {
+                        if ($func == 'setupWithPhpValue') {
+                            $newHtAccess .= "\r\n" . HTACCESS_PHP_VALUES . HTACCESS_REWRITE_RULES_MULTI;
+                        } else {
+                            $newHtAccess .= "\r\n" . HTACCESS_REWRITE_RULES_MULTI;
+                        }
+                    }
+                } else {
+                    if ($func == 'setupWithPhpValue') {
+                        $newHtAccess = HTACCESS_PHP_VALUES . HTACCESS_REWRITE_RULES_MULTI;
+                    } else {
+                        $newHtAccess = HTACCESS_REWRITE_RULES_MULTI;
+                    }
+                }
+                file_put_contents(__DIR__ . '/.htaccess', normalizeLineEndings($newHtAccess));
+                $properties['commonHTAccess'] = 'created';
+            }
             // remove the test configuration files in testdir to use the common files only
             foreach([ '.user.ini', '.htaccess' ] as $fname) {
                 if (file_exists("{$testdir}/${fname}")) {
@@ -996,7 +1046,7 @@ if(isset($_GET['func'])) {
         }
     }
 
-    async function tryFunc(query)
+    async function tryFunc(query,mayFail)
     {
         let ident = query.replace(/[^\w]/g,'');
         let fetchUrl = <?php Print(json_encode($SCRIPT_NAME)); ?>;
@@ -1036,10 +1086,25 @@ if(isset($_GET['func'])) {
                 };
             }
         }
-        for(let error of res.errors) {
-            showError(error.error, error.msg, error.cause);
+        if(!mayFail) {
+            for(let error of res.errors) {
+                showError(error.error, error.msg, error.cause);
+            }
         }
         return res;
+    }
+
+    function getNode(testResult)
+    {
+        let uri = testResult.props.request_uri;
+        let script = testResult.props.script_name;
+        let rpos = script.lastIndexOf('/');
+        let baseUrl = script.substr(0, rpos) + '/';
+        let baseLen = baseUrl.length;
+        if(uri.slice(0, baseLen) === baseUrl) {
+            return uri.slice(baseLen);
+        }
+        return uri;
     }
 
     /*
@@ -1072,41 +1137,64 @@ if(isset($_GET['func'])) {
         let testExisting = await tryFunc('?func=testExisting');
         if(testExisting.errors.length > 0) return;
         if(testExisting.props.alreadyInstalled === 'no') {
-            // New install, we must test mod_rewrite
+            // New install, we must test mod_rewrite or check if any alternate solution exists
+            // First try without doing anything on our own
+            let useHTAccess = false;
             let createTestDir = await tryFunc('?func=createTestDir');
             if(createTestDir.errors.length > 0) return;
-            let testIndexPHP = await tryFunc(createTestDir.props.dirname+'/index.php?node=Subdir');
-            if(testIndexPHP.props.status === 500) {
-                setErrorDetails(testIndexPHP.errors[0].error, 'Most probably your Web server does not have '+
-                    '<b>mod_rewrite</b> enabled, or <b>AllowOverride</b> is not set for this directory tree.'+
-                    'This is a fatal error, as this software relies on URL rewriting to work properly.');
+            let testIndexPHP = await tryFunc(createTestDir.props.dirname+'/Test/RewriteRules', true);
+            if(testIndexPHP.errors.length > 0 || this.getNode(testIndexPHP) !== 'Test/RewriteRules') {
+                if(testExisting.props.htAccessFound === 'no') {
+                    // retry using an .htaccess
+                    createTestDir = await tryFunc('?func=createTestDirWithHTAccess');
+                    if(createTestDir.errors.length > 0) return;
+                    testIndexPHP = await tryFunc(createTestDir.props.dirname+'/Test/RewriteRules', true);
+                    if(testIndexPHP.errors.length === 0) {
+                        useHTAccess = true;
+                    }
+                }
             }
-            if(testIndexPHP.errors.length > 0) return;
-            if(testIndexPHP.props.node !== 'Subdir') {
-                showError('nonode', 'Test index.php does not work as expected',
-                    'The test script '+createTestDir.props.dirname+'/index.php created by the installer did not '+
-                    'produce the expected result. This is so odd that you will need to contact Yoctopuce support...');
+            if(testIndexPHP.errors.length > 0 || this.getNode(testIndexPHP) !== 'Test/RewriteRules') {
+                if(testExisting.props.rootIndexFound === 'no') {
+                    // retry using a root index
+                    createTestDir = await tryFunc('?func=createTestDirWithRootIndex');
+                    if (createTestDir.errors.length > 0) return;
+                    testIndexPHP = await tryFunc(createTestDir.props.dirname + '/Test/RewriteRules', true);
+                }
+            }
+            if(testIndexPHP.errors.length > 0 || this.getNode(testIndexPHP) !== 'Test/RewriteRules') {
+                if(String(testPHP.props.serverSoftware).match(/Apache/i)) {
+                    showError('apacheRewrite', 'Your Apache server requires a specific URL rewriting configuration',
+                        'Most probably your Apache web server does not have <b>AllowOverride All</b> set for '+
+                        'this directory tree. You should either fix this, or add the following rewrite rules '+
+                        'in the host configuration:<br><br>' +
+                        'RewriteEngine on<br>' +
+                        'RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI} !-f<br>' +
+                        'RewriteRule ^(' + testURL.props.accessURL + '/[^/]*)/.*$ $1/index.php [PT]');
+                } else if(String(testPHP.props.serverSoftware).match(/nginx/i)) {
+                    showError('nginxRewrite', 'Your nginx server requires a specific URL rewriting configuration',
+                        'You should add the following rewrite rule in the host configuration:<br><br>'+
+                        'rewrite ^('+testURL.props.accessURL+'/[^/]*)/.*$ $1/index.php;');
+                } else if(String(testPHP.props.serverSoftware).match(/IIS/i)) {
+                    showError('iisRewrite', 'Your IIS server requires a specific URL rewriting configuration',
+                        'You should add the following rewrite rule in the host configuration:<br><br>'+
+                        '<rule name="VirtualHub-4web" stopProcessing="true"><br>'+
+                        '&nbsp;&nbsp;<match url="^('+testURL.props.accessURL.slice(1)+'/[^/]*)/.*$"/><br>'+
+                        '&nbsp;&nbsp;<action type="Rewrite" url="{R:1}/index.php;"/><br>'+
+                        '</rule>');
+                } else if(String(testPHP.props.serverSoftware).match(/Caddy/i)) {
+                    showError('caddyRewrite', 'Your Caddy server requires a specific URL rewriting configuration',
+                        'You should add the following rewrite rule in the host configuration:<br><br>'+
+                        '@vhub4web {<br>'+
+                        '&nbsp;&nbsp;&nbsp;&nbsp;path_regexp static ^(/VirtualHub-4web/[^/]*)/.*$<br>'+
+                        '}<br>'+
+                        'rewrite @vhub4web {re.static.1}/index.php');
+                } else {
+                    showError('unknownRewrite', 'Your web server requires a specific URL rewriting configuration',
+                        'Unfortunately this installer does not recognize the type of web server you are using, so you '+
+                        'should probably contact support@yoctopuce.com to ask for assistance. Don\'t be shy!');
+                }
                 return;
-            }
-            let testModRewrite = await tryFunc(createTestDir.props.dirname+'/Subdir/Node/Test/RewriteRules');
-            if(testModRewrite.props.status === 404) {
-                setErrorDetails(testModRewrite.errors[0].error,
-                    'The file '+createTestDir.props.dirname+'/.htaccess created by the installer did not '+
-                    'produce the expected result. Most probably your Web server does not have '+
-                    '<b>mod_rewrite</b> enabled, or <b>AllowOverride</b> is not set for this directory tree.'+
-                    'This is a fatal error, as this software relies on URL rewriting to work properly.');
-            }
-            if(testModRewrite.errors.length > 0) return;
-            if(testModRewrite.props.node !== 'Subdir/Node/Test/RewriteRules') {
-                showError('nonode', 'Rewrite rules in .htaccess do not work as expected',
-                    'The file '+createTestDir.props.dirname+'/.htaccess created by the installer did not '+
-                    'produce the expected result. This is so odd that you will need to contact Yoctopuce support...');
-                return;
-            }
-            if(testExisting.props.htAccessFound === 'no') {
-                shtml('htAccessFound', 'no, but mod_rewrite is working as expected');
-            } else {
-                shtml('htAccessFound', 'yes, and mod_rewrite is working as expected');
             }
 
             // try to fix php settings via .htaccess if needed
@@ -1118,36 +1206,58 @@ if(isset($_GET['func'])) {
             let perDirSettingsNeeded = (postMaxSize < 4000 || uploadMaxFilesize < 4000 || postDataReading);
             installLog('Settings: ', allowUrlFopen, postDataReading, postMaxSize, uploadMaxFilesize);
             if(!allowUrlFopen || perDirSettingsNeeded) {
-                let createPhpValue = await tryFunc('?func=createPhpValue');
-                if(createPhpValue.errors.length > 0) return;
-                let testPhpValue = await tryFunc(createTestDir.props.dirname+'/index.php?node=Subdir');
-                if(testPhpValue.props.status === 500) {
-                    if(perDirSettingsNeeded) {
-                        setErrorDetails(testPhpValue.errors[0].error, 'Your Web server does not appear to '+
-                            'process per-dir PHP settings in <b>.user.ini</b>. The installer tried to use '+
-                            '<b>php_value</b> in the <b>.htaccess</b> file as a backup solution, but this '+
-                            'is causing a Server Error. You should therefore find out how to set per-dir ' +
-                            'PHP setting on this hosting platform, and let Yoctopuce support know...');
+                if(String(testPHP.props.serverSoftware).match(/Apache/i) && useHTAccess) {
+                    let createPhpValue = await tryFunc('?func=createPhpValue');
+                    if(createPhpValue.errors.length > 0) return;
+                    let testPhpValue = await tryFunc(createTestDir.props.dirname+'/index.php');
+                    if(testPhpValue.props.status === 500) {
+                        if(perDirSettingsNeeded) {
+                            setErrorDetails(testPhpValue.errors[0].error, 'Your Apache server does not appear to '+
+                                'process per-dir PHP settings in <b>.user.ini</b>. The installer tried to use '+
+                                '<b>php_value</b> in the <b>.htaccess</b> file as a backup solution, but this '+
+                                'is causing a Server Error. You should therefore add the following line to your '+
+                                'global server configuration, for this directory tree:<br><br>'+
+                                'php_value enable_post_data_reading  0');
+                        } else {
+                            setErrorDetails(testPhpValue.errors[0].error, 'Your Apache server does not enable '+
+                                'PHP <b>allow_url_fopen</b> setting, as required by this software. '+
+                                'The installer has tried to enable it locally using <b>.htaccess</b>, but '+
+                                'this did not work. You should therefore find out how to enable this '+
+                                'PHP setting in the global server configuration.');
+                        }
+                        if(testIndexPHP.props.testHTAccess && testIndexPHP.props.testHTAccess === 'created') {
+                            // Restore the first version of .htaccess without php_value tags
+                            await tryFunc('?func=createTestDirWithHTAccess');
+                        }
+                        return;
                     } else {
-                        setErrorDetails(testPhpValue.errors[0].error, 'Your Web server does not enable '+
-                            'PHP <b>allow_url_fopen</b> setting, as required by this software. '+
-                            'The installer has tried to enable it locally using <b>.htaccess</b>, but '+
-                            'this did not work. You should therefore find out how to enable this '+
+                        usePhpValueInHTAccess = true;
+                    }
+                } else {
+                    if(perDirSettingsNeeded) {
+                        showError('unknownPerDir', 'Unable to configure per-dir PHP settings',
+                            'Your Web server does not appear to process per-dir PHP settings in <b>.user.ini</b>. '+
+                            'You should therefore find another way to set in your server configuration the '+
+                            'following PHP per-directory setting:<br><br>'+
+                            'enable_post_data_reading=0<br><br>'+
+                            'For Apache, this would typically be done using the following host configuration:<br><br>'+
+                            'php_value enable_post_data_reading 0');
+                    } else {
+                        showError('unknownUrlFopen', 'This software requires PHP allow_url_fopen to be active',
+                            'Your Web server does not enable PHP <b>allow_url_fopen</b> setting, '+
+                            'as required by this software. You should therefore find out how to enable this '+
                             'PHP setting in the global server configuration.');
                     }
-                    // Restore the first version of .htaccess without php_value tags
-                    await tryFunc('?func=createTestDir');
                     return;
-                } else {
-                    usePhpValueInHTAccess = true;
                 }
             }
 
             // Everything appears to work in test directory, move configuration to common directory
-            let setupConf = await tryFunc('?func='+(usePhpValueInHTAccess ? 'setupWithPhpValue' : 'setupWithoutPhpValue'));
+            let setupConf = await tryFunc('?func='+(useHTAccess ?
+                (usePhpValueInHTAccess ? 'setupWithPhpValue' : 'setupWithoutPhpValue') : 'setupWithoutHTAccess'));
             if(setupConf.errors.length > 0) return;
             let testCommonConf = await tryFunc(createTestDir.props.dirname+'/Common/Node/Test/RewriteRules');
-            if(testCommonConf.errors.length > 0 || testCommonConf.props.node !== 'Common/Node/Test/RewriteRules') {
+            if(testCommonConf.errors.length > 0 || this.getNode(testCommonConf) !== 'Common/Node/Test/RewriteRules') {
                 showError('commonConf', 'VirtualHub-4web RewriteRule does not work as expected',
                     'Although the URL RewriteRule worked in a test directory, the production version does not seems to '+
                     'produce the expected result. This is so odd that you will need to contact Yoctopuce support...');
@@ -1702,6 +1812,7 @@ if(isset($_GET['func'])) {
         </div>
         <h3>1. Checking server configuration</h3>
         <div class="table">
+            <div class="th important">Type of Web server</div><div id="serverSoftware" class="td important"></div>
             <div class="th important">Current PHP version</div><div id="phpVersion" class="td important"></div>
             <div class="th phase1more">Allow URL fopen</div><div id="allowUrlFopen" class="td phase1more"></div>
             <div class="th phase1more">Enable POST data reading</div><div id="enablePostDataReading" class="td phase1more"></div>
@@ -1711,7 +1822,8 @@ if(isset($_GET['func'])) {
             <div class="th phase1more">Corresponding system path:</div><div id="systemPath" class="td stt phase1more"></div>
             <div class="th phase1more">File write access ?</div><div id="writeAccess" class="td phase1more"></div>
             <div class="th phase1more">At least 30 MB available ?</div><div id="testQuota" class="td phase1more"></div>
-            <div class="th important">Existing .htaccess file found ?</div><div id="htAccessFound" class="td important"></div>
+            <div class="th phase1more">Existing .htaccess file found ?</div><div id="htAccessFound" class="td phase1more"></div>
+            <div class="th phase1more">Existing root index found ?</div><div id="rootIndexFound" class="td phase1more"></div>
             <div class="th important">Existing installation found ?</div><div id="alreadyInstalled" class="td important"></div>
         </div>
         <div id="chkMore" style="width: 100%; text-align: right; font-size:small;display:none;"><a href="javascript:showClass('phase1more');hide('chkMore');">show more...</a></div>

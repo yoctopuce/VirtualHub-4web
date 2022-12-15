@@ -71,6 +71,7 @@ class VHubServerHTTPRequest
     protected string $clientIP;
     protected string $clientId;
     protected string $method;
+    protected string $requestURI;
     protected string $userAgent;
     protected string $node;
     protected string $rawPostData;
@@ -92,8 +93,9 @@ class VHubServerHTTPRequest
         $this->clientSn = '';
         $this->clientId = $this->clientIP;
         $this->method = $_SERVER['REQUEST_METHOD'];
+        $this->requestURI = $_SERVER['REQUEST_URI'];
         $this->userAgent = (isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : 'unspecified');
-        $this->node = (isset($_GET['node']) ? $_GET['node'] : '');
+        $this->node = '';
         $this->args = [];
         $this->authParams = [];
         $this->rawPostData = '';
@@ -109,7 +111,7 @@ class VHubServerHTTPRequest
             $this->reqProcessTime = intval(round(1000 * microtime(true)));
             if(str_starts_with($this->rawPostData, '{')) {
                 // Most likely JSON post data (not Form-encoded)
-                if(preg_match('~^HTTPCallback$~i', $this->node)) {
+                if(str_starts_with($this->requestURI, 'HTTPCallback')) {
                     $this->jsonPostData = json_decode(iconv("ISO-8859-1", "UTF-8", $this->rawPostData), true);
                     //file_put_contents(VHUB4WEB_DATA.'/VHUB4WEB-postCbData.json', json_encode($this->jsonPostData, JSON_PRETTY_PRINT));
                 } else {
@@ -138,44 +140,35 @@ class VHubServerHTTPRequest
         if(isset($this->authParams['uri'])) {
             // If an authentication is provided, make sure to use the authenticated URI instead of
             // then unverified parameters possibly passed in the query
-            $baseurl = dirname($_SERVER['PHP_SELF']);
-            if(!str_ends_with($baseurl, '/')) {
-                $baseurl .= '/';
+            $this->requestURI = $this->authParams['uri'];
+        }
+        $this->parseRequestURI($this->requestURI);
+    }
+
+    protected function parseRequestURI(string $uri): void
+    {
+        $baseURI = preg_replace('~/$~', '', dirname($_SERVER["SCRIPT_NAME"]));
+        if(str_starts_with($uri, $baseURI)) {
+            // get relative URI (remove heading slash as well, if any)
+            $uri = substr($uri, strlen($baseURI)+1);
+        }
+        $this->node = $uri;
+        $this->shortReq = false;
+        $this->args = [];
+        $qpos = strpos($uri, '?');
+        if($qpos !== FALSE) {
+            $this->node = substr($uri, 0, $qpos);
+            $query = substr($uri, $qpos+1);
+            if(str_ends_with($query, '&.')) {
+                $this->shortReq = true;
+                $query = substr($query, 0, -2);
             }
-            $url = $this->authParams['uri'];
-            if(str_starts_with($url, $baseurl)) {
-                $url = substr($url, strlen($baseurl));
-            }
-            $qpos = strpos($url, '?');
-            if($qpos === FALSE) {
-                $this->node = $url;
-            } else {
-                $this->node = substr($url, 0, $qpos);
-                $query = substr($url, $qpos+1);
-                if(str_ends_with($query, '&.')) {
-                    $this->shortReq = true;
-                    $query = substr($query, 0, -2);
-                }
-                parse_str($query, $arguments);
-                foreach($arguments as $name => $value) {
-                    if(is_string($value)) {
-                        $this->args[$name] = $value;
-                    }
-                }
-            }
-        } else {
-            // Otherwise, we can fallback to standard $_GET variables
-            foreach($_GET as $name => $value) {
+            parse_str($query, $arguments);
+            foreach($arguments as $name => $value) {
                 if(is_string($value)) {
                     $this->args[$name] = $value;
                 }
             }
-            if(str_ends_with($_SERVER['REQUEST_URI'], '&.')) {
-                $this->shortReq = true;
-            }
-        }
-        if(!$this->node) {
-            $this->node = '';
         }
     }
 
@@ -229,7 +222,7 @@ class VHubServerHTTPRequest
 
     public function getRequestURL(): string
     {
-        return $_SERVER['REQUEST_URI'];
+        return $this->requestURI;
     }
 
     public function getFullClientRequest(): string
@@ -1886,7 +1879,7 @@ class VHubServer
         [ $apinode, $ctxnode, $subkey ] = $this->apiroot->search($nodepath, $ctxpath);
         if(is_null($apinode)) {
             $httpReq->putStatus(404);
-            $httpReq->put("Sorry, the requested node ".htmlspecialchars(implode('/',$nodepath))." does not exist\r\n");
+            $httpReq->put("Sorry, the requested node ".htmlspecialchars(implode('/',$nodepath))." does not exist [vhub4web]\r\n");
             return;
         }
         if(!is_null($ctxnode)) {

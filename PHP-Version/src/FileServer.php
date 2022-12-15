@@ -1103,7 +1103,7 @@ class FileServer
         if(is_null($obj)) {
             // file not found
             $httpReq->putStatus(404);
-            Print("Sorry, the requested device file ".htmlspecialchars($subfile)." does not exist on ".htmlspecialchars($serial));
+            Print("Sorry, the requested device file ".htmlspecialchars($subfile)." does not exist on ".htmlspecialchars($serial)." [vhub4web]\r\n");
             return;
         }
         $content = $obj->content;

@@ -261,26 +261,25 @@ let args: string[] = process.argv.slice(2);
 if(args.length == 0) {
     console.log("command expected")
 } else {
+    let json: { version: string } = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+    let banner: string = 'VirtualHub-4web (version '+json.version+')';
+    // Create data directory used for debugging
+    if(!fs.existsSync('data')) {
+        fs.mkdirSync('data');
+    }
     switch(args[0]) {
         case "newbuild":
             setVersion(args[1]);
             break;
-        case "build":
-            let json: { version: string } = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-            let banner: string = 'VirtualHub-4web (version '+json.version+')';
-            console.log('Building version ' + json.version);
-
-            // Build PHP version
+        case "build_php":
+            console.log('Building version ' + json.version + ' for PHP');
             createPHPinstaller('PHP-Version/src', 'PHP-Version/dist', 'PHP-Version/installer', 'vhub4web', json.version, banner);
             setupPHPtestEnv('PHP-Version/installer/vhub4web-installer.php', 'PHP-Version/www/VirtualHub-4web');
-
-            // Build NodeJS version when ready
+            break;
+        case "build_nodejs":
+            console.log('Sorry, Node.js version is not yet available...');
+            //-- console.log('Building version ' + json.version + ' for Node.js');
             //-- createJSinstaller('NodeJS-Version/src', 'NodeJS-Version/obj', 'NodeJS-Version/dist', 'vhub4web', banner);
-
-            // Create data directory used for debugging
-            if(!fs.existsSync('data')) {
-                fs.mkdirSync('data');
-            }
             break;
     }
 }

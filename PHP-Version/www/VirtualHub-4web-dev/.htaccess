@@ -6,4 +6,4 @@ php_value enable_post_data_reading  0
 php_value allow_url_fopen           1
 # Redirect all URLs to index.php for VirtualHub-4web processing
 RewriteEngine on
-RewriteRule ^.*$ index.php?node=$0 [QSA,END]
+RewriteRule ^.*$ index.php [END]
