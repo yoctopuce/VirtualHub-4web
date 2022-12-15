@@ -111,7 +111,7 @@ class VHubServerHTTPRequest
             $this->reqProcessTime = intval(round(1000 * microtime(true)));
             if(str_starts_with($this->rawPostData, '{')) {
                 // Most likely JSON post data (not Form-encoded)
-                if(str_starts_with($this->requestURI, 'HTTPCallback')) {
+                if(str_ends_with($this->requestURI, 'HTTPCallback')) {
                     $this->jsonPostData = json_decode(iconv("ISO-8859-1", "UTF-8", $this->rawPostData), true);
                     //file_put_contents(VHUB4WEB_DATA.'/VHUB4WEB-postCbData.json', json_encode($this->jsonPostData, JSON_PRETTY_PRINT));
                 } else {
@@ -730,6 +730,10 @@ class VHubServer
         // The input stream was already consumed, we need to make it available to the YoctoLib API
         $_SERVER['HTTP_RAW_POST_DATA'] = $httpReq->getRawPostData();
         $_SERVER['HTTP_JSON_POST_DATA'] = $jsonPostData = $httpReq->getJsonPostData();
+
+        if(is_null($jsonPostData)) {
+            VHubServer::Abort($httpReq, 'Cannot parse Yocto-API POST data');
+        }
 
         // Identify the network hub first
         if(isset($jsonPostData['serial'])) {
