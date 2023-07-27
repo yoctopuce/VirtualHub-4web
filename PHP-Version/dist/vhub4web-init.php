@@ -31,6 +31,7 @@ const STATE_FILE = 'VHUB4WEB.json';  // Name of our own configuration file
 const NOTIF_KEEPALIVE_DELAY = 3;     // Max long-polling time in sec. before close-to-flush
 const SESSION_MAX_INACTIVITY = 15;   // Max inactivity timeout [s] before dropping a session
 const SESSION_MAX_PENDING = 100;     // Max number of pending new sessions
+const LASTQUERIES_MAX_SIZE = 32768;  // Keep up to 32KB of history of past queries sent to hubs
 ////-- MARKER: New constants will be added here by the installer when upgrading VirtualHub-4web
 
 include_once(__DIR__.'/vhub4web-php'.PHP_MAJOR_VERSION.'.php');

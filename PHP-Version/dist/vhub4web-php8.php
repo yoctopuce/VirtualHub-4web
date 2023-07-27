@@ -1,44 +1,51 @@
-<?php /* VirtualHub-4web (version 1.10.52409) - www.yoctopuce.com */
-declare(strict_types=1);
-const VERSION = "1.10.52409";
-function check_php_conf(bool $checkDataFolder = false): array{    $res = [];    if(PHP_MAJOR_VERSION < 7) {        $res[] = [            'error' => 'PHP_MAJOR_VERSION',            'msg' => 'This software requires PHP version version 7.x or 8.x.',            'cause' => 'This server is running PHP version '.phpversion().', which is out of support for several years. '.                'You should seriously consider tp upgrade your server.'        ];    }    if(PHP_INT_MAX < 0x100000000) {        $res[] = [            'error' => 'PHP_INT_MAX',            'msg' => 'This software requires 64-bit integers.',            'cause' => 'On this server, <b>PHP_INT_MAX</b> = 0x'.dechex(PHP_INT_MAX).', which is less than 64 bit. '.                'This is not enough for this software to work properly.'        ];    }    $url_fopen = ini_get('allow_url_fopen');    if ($url_fopen !== 'On' && $url_fopen !== '1') {        $res[] = [            'error' => 'allow_url_fopen',            'msg' => 'This software requires <b>allow_url_fopen</b> to be enabled.',            'cause' => '<b>allow_url_fopen</b> is currenlty set to '.$url_fopen.'. '.                'Depending on your server setup, this can be fixed by adding a line in the directory-specific '.                'configuration files .user.ini or .htaccess, or might require a change to the global server configuration.',            '.user.ini' => 'allow_url_fopen="1"',            '.htaccess' => 'php_value allow_url_fopen 1'        ];    }    $post_reading = ini_get('enable_post_data_reading');    if ($post_reading !== '0') {        $res[] = [            'error' => 'enable_post_data_reading',            'msg' => 'This software requires <b>enable_post_data_reading</b> to be set to 0.',            'cause' => '<b>enable_post_data_reading</b> is currenlty set to '.$post_reading.'. '.                'Depending on your server setup, this can be fixed by adding a line in the directory-specific '.                'configuration files .user.ini or .htaccess, or might require a change to the global server configuration.',            '.user.ini' => 'enable_post_data_reading="0"',            '.htaccess' => 'php_value enable_post_data_reading 0'        ];    }    $max_post = ini_get('post_max_size');    $max_post_kb = intval(str_replace(['K', 'M', 'G'], ['', '000', '000000'], $max_post));    if ($max_post_kb < 2000) {        $res[] = [            'error' => 'post_max_size',            'msg' => 'This software requires <b>post_max_size</b> to be at least 2 MB (ideally at least 4 MB).',            'cause' => '<b>post_max_size</b> is currenlty set to '.$max_post.'. '.                'Depending on your server setup, this can be fixed by adding a line in the directory-specific '.                'configuration files .user.ini or .htaccess, or might require a change to the global server configuration.',            '.user.ini' => 'post_max_size="4M"',            '.htaccess' => 'php_value post_max_size 4M'        ];    }    $max_upload = ini_get('upload_max_filesize');    $max_upload_kb = intval(str_replace(['K', 'M', 'G'], ['', '000', '000000'], $max_upload));    if ($max_upload_kb < 2000) {        $res[] = [            'error' => 'upload_max_filesize',            'msg' => 'This software requires <b>upload_max_filesize</b> to be at least 2 MB (ideally at least 4 MB).',            'cause' => '<b>upload_max_filesize</b> is currenlty set to '.$max_upload.'. '.                'Depending on your server setup, this can be fixed by adding a line in the directory-specific '.                'configuration files .user.ini or .htaccess, or might require a change to the global server configuration.',            '.user.ini' => 'upload_max_filesize="4M"',            '.htaccess' => 'php_value upload_max_filesize 4M'        ];    }    if($checkDataFolder) {        // make sure the caller has defined a VHUB4WEB_DATA        if (!defined('VHUB4WEB_DATA')) {            $res[] = [                'error' => 'VHUB4WEB_DATA-undefined',                'msg' => 'This software requires a constant VHUB4WEB_DATA pointing to the directory where data should be stored.',                'cause' => 'The entry point (currently set to '.$_SERVER['SCRIPT_NAME'].') should be a simple script that '.                    'defines VHUB4WEB_DATA before including <b>vhub4web-init.php</b>. '.                    'This looks like an installation error, check the documentation or re-run the easy installer process.'            ];            return $res;        }        // check for data subfolder and server configuration        if (!file_exists(VHUB4WEB_DATA) || !is_dir(VHUB4WEB_DATA)) {            $res[] = [                'error' => 'VHUB4WEB_DATA-missing',                'msg' => 'This software was configured to store data in directory <b>'.VHUB4WEB_DATA.'</b>, which cannot be found.',                'cause' => 'Folder <b>'.VHUB4WEB_DATA.'</b> does not seems to be a valid path this server. '.                    'This looks like an installation error, check the documentation or re-run the easy installer process.'            ];            return $res;        }        if (!is_writable(VHUB4WEB_DATA)) {            $res[] = [                'error' => 'VHUB4WEB_DATA-readonly',                'msg' => 'This software was configured to store data in directory <b>'.VHUB4WEB_DATA.'</b>, which is write-protected.',                'cause' => 'Folder <b>'.VHUB4WEB_DATA.'</b> does not seems to be a writable for this PHP script. '.                    'This looks like an installation error, check the documentation or re-run the easy installer process.'            ];            return $res;        }    }    return $res;}
+<?php /* VirtualHub-4web (version 1.10.55677) - www.yoctopuce.com */
+const VERSION = "1.10.55677";
+function check_php_conf(bool $checkDataFolder = false): array{    $res = [];    if(PHP_MAJOR_VERSION < 7) {        $res[] = [            'error' => 'PHP_MAJOR_VERSION',            'msg' => 'This software requires PHP version version 7.x or 8.x.',            'cause' => 'This server is running PHP version '.phpversion().', which is out of support for several years. '.                'You should seriously consider tp upgrade your server.'        ];    }    if(PHP_INT_MAX < 0x100000000) {        $res[] = [            'error' => 'PHP_INT_MAX',            'msg' => 'This software requires 64-bit integers.',            'cause' => 'On this server, <b>PHP_INT_MAX</b> = 0x'.dechex(PHP_INT_MAX).', which is less than 64 bit. '.                'This is not enough for this software to work properly.'        ];    }    $url_fopen = ini_get('allow_url_fopen');    if ($url_fopen !== 'On' && $url_fopen !== '1') {        $res[] = [            'error' => 'allow_url_fopen',            'msg' => 'This software requires <b>allow_url_fopen</b> to be enabled.',            'cause' => '<b>allow_url_fopen</b> is currenlty set to '.$url_fopen.'. '.                'Depending on your server setup, this can be fixed by adding a line in the directory-specific '.                'configuration files .user.ini or .htaccess, or might require a change to the global server configuration.',            '.user.ini' => 'allow_url_fopen="1"',            '.htaccess' => 'php_value allow_url_fopen 1'        ];    }    $max_post = ini_get('post_max_size');    $max_post_kb = intval(str_replace(['K', 'M', 'G'], ['', '000', '000000'], $max_post));    if ($max_post_kb < 4000) {        $res[] = [            'error' => 'post_max_size',            'msg' => 'This software requires <b>post_max_size</b> to be at least 4 MB (ideally at least 8 MB).',            'cause' => '<b>post_max_size</b> is currenlty set to '.$max_post.'. '.                'Depending on your server setup, this can be fixed by adding a line in the directory-specific '.                'configuration files .user.ini or .htaccess, or might require a change to the global server configuration.',            '.user.ini' => 'post_max_size="8M"',            '.htaccess' => 'php_value post_max_size 8M'        ];    }    if($checkDataFolder) {        // make sure the caller has defined a VHUB4WEB_DATA        if (!defined('VHUB4WEB_DATA')) {            $res[] = [                'error' => 'VHUB4WEB_DATA-undefined',                'msg' => 'This software requires a constant VHUB4WEB_DATA pointing to the directory where data should be stored.',                'cause' => 'The entry point (currently set to '.$_SERVER['SCRIPT_NAME'].') should be a simple script that '.                    'defines VHUB4WEB_DATA before including <b>vhub4web-init.php</b>. '.                    'This looks like an installation error, check the documentation or re-run the easy installer process.'            ];            return $res;        }        // check for data subfolder and server configuration        if (!file_exists(VHUB4WEB_DATA) || !is_dir(VHUB4WEB_DATA)) {            $res[] = [                'error' => 'VHUB4WEB_DATA-missing',                'msg' => 'This software was configured to store data in directory <b>'.VHUB4WEB_DATA.'</b>, which cannot be found.',                'cause' => 'Folder <b>'.VHUB4WEB_DATA.'</b> does not seems to be a valid path this server. '.                    'This looks like an installation error, check the documentation or re-run the easy installer process.'            ];            return $res;        }        if (!is_writable(VHUB4WEB_DATA)) {            $res[] = [                'error' => 'VHUB4WEB_DATA-readonly',                'msg' => 'This software was configured to store data in directory <b>'.VHUB4WEB_DATA.'</b>, which is write-protected.',                'cause' => 'Folder <b>'.VHUB4WEB_DATA.'</b> does not seems to be a writable for this PHP script. '.                    'This looks like an installation error, check the documentation or re-run the easy installer process.'            ];            return $res;        }    }    return $res;}
 //--- (generated code: YFunction definitions)
 // Yoctopuce error codes, also used by default as function return value
-define('YAPI_SUCCESS',                 0);     // everything worked all right
-define('YAPI_NOT_INITIALIZED',         -1);    // call yInitAPI() first !
-define('YAPI_INVALID_ARGUMENT',        -2);    // one of the arguments passed to the function is invalid
-define('YAPI_NOT_SUPPORTED',           -3);    // the operation attempted is (currently) not supported
-define('YAPI_DEVICE_NOT_FOUND',        -4);    // the requested device is not reachable
-define('YAPI_VERSION_MISMATCH',        -5);    // the device firmware is incompatible with this API version
-define('YAPI_DEVICE_BUSY',             -6);    // the device is busy with another task and cannot answer
-define('YAPI_TIMEOUT',                 -7);    // the device took too long to provide an answer
-define('YAPI_IO_ERROR',                -8);    // there was an I/O problem while talking to the device
-define('YAPI_NO_MORE_DATA',            -9);    // there is no more data to read from
-define('YAPI_EXHAUSTED',               -10);   // you have run out of a limited resource, check the documentation
-define('YAPI_DOUBLE_ACCES',            -11);   // you have two process that try to access to the same device
-define('YAPI_UNAUTHORIZED',            -12);   // unauthorized access to password-protected device
-define('YAPI_RTC_NOT_READY',           -13);   // real-time clock has not been initialized (or time was lost)
-define('YAPI_FILE_NOT_FOUND',          -14);   // the file is not found
-define('YAPI_SSL_ERROR',               -15);   // Error reported by mbedSSL
-define('YAPI_INVALID_INT',             0x7fffffff);
-define('YAPI_INVALID_UINT',            -1);
-define('YAPI_INVALID_LONG',            0x7fffffffffffffff);
-define('YAPI_INVALID_DOUBLE',          -66666666.66666666);
-define('YAPI_INVALID_STRING',          "!INVALID!");
-define('Y_FUNCTIONDESCRIPTOR_INVALID', YAPI_INVALID_STRING);
-define('Y_HARDWAREID_INVALID',         YAPI_INVALID_STRING);
-define('Y_FUNCTIONID_INVALID',         YAPI_INVALID_STRING);
-define('Y_FRIENDLYNAME_INVALID',       YAPI_INVALID_STRING);
-if(!defined('Y_LOGICALNAME_INVALID'))        define('Y_LOGICALNAME_INVALID',       YAPI_INVALID_STRING);
-if(!defined('Y_ADVERTISEDVALUE_INVALID'))    define('Y_ADVERTISEDVALUE_INVALID',   YAPI_INVALID_STRING);
+const YAPI_SUCCESS                     = 0; // everything worked all right
+const YAPI_NOT_INITIALIZED             = -1; // call yInitAPI() first !
+const YAPI_INVALID_ARGUMENT            = -2; // one of the arguments passed to the function is invalid
+const YAPI_NOT_SUPPORTED               = -3; // the operation attempted is (currently) not supported
+const YAPI_DEVICE_NOT_FOUND            = -4; // the requested device is not reachable
+const YAPI_VERSION_MISMATCH            = -5; // the device firmware is incompatible with this API version
+const YAPI_DEVICE_BUSY                 = -6; // the device is busy with another task and cannot answer
+const YAPI_TIMEOUT                     = -7; // the device took too long to provide an answer
+const YAPI_IO_ERROR                    = -8; // there was an I/O problem while talking to the device
+const YAPI_NO_MORE_DATA                = -9; // there is no more data to read from
+const YAPI_EXHAUSTED                   = -10; // you have run out of a limited resource, check the documentation
+const YAPI_DOUBLE_ACCES                = -11; // you have two process that try to access to the same device
+const YAPI_UNAUTHORIZED                = -12; // unauthorized access to password-protected device
+const YAPI_RTC_NOT_READY               = -13; // real-time clock has not been initialized (or time was lost)
+const YAPI_FILE_NOT_FOUND              = -14; // the file is not found
+const YAPI_SSL_ERROR                   = -15; // Error reported by mbedSSL
+const YAPI_INVALID_INT = YAPI::INVALID_INT;
+const YAPI_INVALID_UINT = YAPI::INVALID_UINT;
+const YAPI_INVALID_LONG = YAPI::INVALID_LONG;
+const YAPI_INVALID_DOUBLE = YAPI::INVALID_DOUBLE;
+const YAPI_INVALID_STRING = YAPI::INVALID_STRING;
+const Y_FUNCTIONDESCRIPTOR_INVALID = YAPI::INVALID_STRING;
+const Y_HARDWAREID_INVALID = YAPI::INVALID_STRING;
+const Y_FUNCTIONID_INVALID = YAPI::INVALID_STRING;
+const Y_FRIENDLYNAME_INVALID = YAPI::INVALID_STRING;
+if (!defined('Y_LOGICALNAME_INVALID')) {
+    define('Y_LOGICALNAME_INVALID', YAPI_INVALID_STRING);
+}
+if (!defined('Y_ADVERTISEDVALUE_INVALID')) {
+    define('Y_ADVERTISEDVALUE_INVALID', YAPI_INVALID_STRING);
+}
 //--- (end of generated code: YFunction definitions)
-define('YAPI_HASH_BUF_SIZE', 28);
-define('YAPI_MIN_DOUBLE', -INF);
-define('YAPI_MAX_DOUBLE', INF);
+const YAPI_HASH_BUF_SIZE = 28;
+const YAPI_MIN_DOUBLE = -INF;
+const YAPI_MAX_DOUBLE = INF;
 //--- (generated code: YMeasure definitions)
 //--- (end of generated code: YMeasure definitions)
-if (!defined('Y_DATA_INVALID')) define('Y_DATA_INVALID', YAPI_INVALID_DOUBLE);
-if (!defined('Y_DURATION_INVALID')) define('Y_DURATION_INVALID', YAPI_INVALID_INT);
+if (!defined('Y_DATA_INVALID')) {
+    define('Y_DATA_INVALID', YAPI::INVALID_DOUBLE);
+}
+if (!defined('Y_DURATION_INVALID')) {
+    define('Y_DURATION_INVALID', YAPI_INVALID_INT);
+}
 //--- (generated code: YFirmwareUpdate definitions)
 //--- (end of generated code: YFirmwareUpdate definitions)
 //--- (generated code: YDataStream definitions)
@@ -48,120 +55,127 @@ if (!defined('Y_DURATION_INVALID')) define('Y_DURATION_INVALID', YAPI_INVALID_IN
 //--- (generated code: YConsolidatedDataSet definitions)
 //--- (end of generated code: YConsolidatedDataSet definitions)
 //--- (generated code: YSensor definitions)
-if(!defined('Y_ADVMODE_IMMEDIATE'))          define('Y_ADVMODE_IMMEDIATE',         0);
-if(!defined('Y_ADVMODE_PERIOD_AVG'))         define('Y_ADVMODE_PERIOD_AVG',        1);
-if(!defined('Y_ADVMODE_PERIOD_MIN'))         define('Y_ADVMODE_PERIOD_MIN',        2);
-if(!defined('Y_ADVMODE_PERIOD_MAX'))         define('Y_ADVMODE_PERIOD_MAX',        3);
-if(!defined('Y_ADVMODE_INVALID'))            define('Y_ADVMODE_INVALID',           -1);
-if(!defined('Y_UNIT_INVALID'))               define('Y_UNIT_INVALID',              YAPI_INVALID_STRING);
-if(!defined('Y_CURRENTVALUE_INVALID'))       define('Y_CURRENTVALUE_INVALID',      YAPI_INVALID_DOUBLE);
-if(!defined('Y_LOWESTVALUE_INVALID'))        define('Y_LOWESTVALUE_INVALID',       YAPI_INVALID_DOUBLE);
-if(!defined('Y_HIGHESTVALUE_INVALID'))       define('Y_HIGHESTVALUE_INVALID',      YAPI_INVALID_DOUBLE);
-if(!defined('Y_CURRENTRAWVALUE_INVALID'))    define('Y_CURRENTRAWVALUE_INVALID',   YAPI_INVALID_DOUBLE);
-if(!defined('Y_LOGFREQUENCY_INVALID'))       define('Y_LOGFREQUENCY_INVALID',      YAPI_INVALID_STRING);
-if(!defined('Y_REPORTFREQUENCY_INVALID'))    define('Y_REPORTFREQUENCY_INVALID',   YAPI_INVALID_STRING);
-if(!defined('Y_CALIBRATIONPARAM_INVALID'))   define('Y_CALIBRATIONPARAM_INVALID',  YAPI_INVALID_STRING);
-if(!defined('Y_RESOLUTION_INVALID'))         define('Y_RESOLUTION_INVALID',        YAPI_INVALID_DOUBLE);
-if(!defined('Y_SENSORSTATE_INVALID'))        define('Y_SENSORSTATE_INVALID',       YAPI_INVALID_INT);
+if (!defined('Y_ADVMODE_IMMEDIATE')) {
+    define('Y_ADVMODE_IMMEDIATE', 0);
+}
+if (!defined('Y_ADVMODE_PERIOD_AVG')) {
+    define('Y_ADVMODE_PERIOD_AVG', 1);
+}
+if (!defined('Y_ADVMODE_PERIOD_MIN')) {
+    define('Y_ADVMODE_PERIOD_MIN', 2);
+}
+if (!defined('Y_ADVMODE_PERIOD_MAX')) {
+    define('Y_ADVMODE_PERIOD_MAX', 3);
+}
+if (!defined('Y_ADVMODE_INVALID')) {
+    define('Y_ADVMODE_INVALID', -1);
+}
+if (!defined('Y_UNIT_INVALID')) {
+    define('Y_UNIT_INVALID', YAPI_INVALID_STRING);
+}
+if (!defined('Y_CURRENTVALUE_INVALID')) {
+    define('Y_CURRENTVALUE_INVALID', YAPI_INVALID_DOUBLE);
+}
+if (!defined('Y_LOWESTVALUE_INVALID')) {
+    define('Y_LOWESTVALUE_INVALID', YAPI_INVALID_DOUBLE);
+}
+if (!defined('Y_HIGHESTVALUE_INVALID')) {
+    define('Y_HIGHESTVALUE_INVALID', YAPI_INVALID_DOUBLE);
+}
+if (!defined('Y_CURRENTRAWVALUE_INVALID')) {
+    define('Y_CURRENTRAWVALUE_INVALID', YAPI_INVALID_DOUBLE);
+}
+if (!defined('Y_LOGFREQUENCY_INVALID')) {
+    define('Y_LOGFREQUENCY_INVALID', YAPI_INVALID_STRING);
+}
+if (!defined('Y_REPORTFREQUENCY_INVALID')) {
+    define('Y_REPORTFREQUENCY_INVALID', YAPI_INVALID_STRING);
+}
+if (!defined('Y_CALIBRATIONPARAM_INVALID')) {
+    define('Y_CALIBRATIONPARAM_INVALID', YAPI_INVALID_STRING);
+}
+if (!defined('Y_RESOLUTION_INVALID')) {
+    define('Y_RESOLUTION_INVALID', YAPI_INVALID_DOUBLE);
+}
+if (!defined('Y_SENSORSTATE_INVALID')) {
+    define('Y_SENSORSTATE_INVALID', YAPI_INVALID_INT);
+}
 //--- (end of generated code: YSensor definitions)
 //--- (generated code: YModule definitions)
-if(!defined('Y_PERSISTENTSETTINGS_LOADED'))  define('Y_PERSISTENTSETTINGS_LOADED', 0);
-if(!defined('Y_PERSISTENTSETTINGS_SAVED'))   define('Y_PERSISTENTSETTINGS_SAVED',  1);
-if(!defined('Y_PERSISTENTSETTINGS_MODIFIED')) define('Y_PERSISTENTSETTINGS_MODIFIED', 2);
-if(!defined('Y_PERSISTENTSETTINGS_INVALID')) define('Y_PERSISTENTSETTINGS_INVALID', -1);
-if(!defined('Y_BEACON_OFF'))                 define('Y_BEACON_OFF',                0);
-if(!defined('Y_BEACON_ON'))                  define('Y_BEACON_ON',                 1);
-if(!defined('Y_BEACON_INVALID'))             define('Y_BEACON_INVALID',            -1);
-if(!defined('Y_PRODUCTNAME_INVALID'))        define('Y_PRODUCTNAME_INVALID',       YAPI_INVALID_STRING);
-if(!defined('Y_SERIALNUMBER_INVALID'))       define('Y_SERIALNUMBER_INVALID',      YAPI_INVALID_STRING);
-if(!defined('Y_PRODUCTID_INVALID'))          define('Y_PRODUCTID_INVALID',         YAPI_INVALID_UINT);
-if(!defined('Y_PRODUCTRELEASE_INVALID'))     define('Y_PRODUCTRELEASE_INVALID',    YAPI_INVALID_UINT);
-if(!defined('Y_FIRMWARERELEASE_INVALID'))    define('Y_FIRMWARERELEASE_INVALID',   YAPI_INVALID_STRING);
-if(!defined('Y_LUMINOSITY_INVALID'))         define('Y_LUMINOSITY_INVALID',        YAPI_INVALID_UINT);
-if(!defined('Y_UPTIME_INVALID'))             define('Y_UPTIME_INVALID',            YAPI_INVALID_LONG);
-if(!defined('Y_USBCURRENT_INVALID'))         define('Y_USBCURRENT_INVALID',        YAPI_INVALID_UINT);
-if(!defined('Y_REBOOTCOUNTDOWN_INVALID'))    define('Y_REBOOTCOUNTDOWN_INVALID',   YAPI_INVALID_INT);
-if(!defined('Y_USERVAR_INVALID'))            define('Y_USERVAR_INVALID',           YAPI_INVALID_INT);
+if (!defined('Y_PERSISTENTSETTINGS_LOADED')) {
+    define('Y_PERSISTENTSETTINGS_LOADED', 0);
+}
+if (!defined('Y_PERSISTENTSETTINGS_SAVED')) {
+    define('Y_PERSISTENTSETTINGS_SAVED', 1);
+}
+if (!defined('Y_PERSISTENTSETTINGS_MODIFIED')) {
+    define('Y_PERSISTENTSETTINGS_MODIFIED', 2);
+}
+if (!defined('Y_PERSISTENTSETTINGS_INVALID')) {
+    define('Y_PERSISTENTSETTINGS_INVALID', -1);
+}
+if (!defined('Y_BEACON_OFF')) {
+    define('Y_BEACON_OFF', 0);
+}
+if (!defined('Y_BEACON_ON')) {
+    define('Y_BEACON_ON', 1);
+}
+if (!defined('Y_BEACON_INVALID')) {
+    define('Y_BEACON_INVALID', -1);
+}
+if (!defined('Y_PRODUCTNAME_INVALID')) {
+    define('Y_PRODUCTNAME_INVALID', YAPI_INVALID_STRING);
+}
+if (!defined('Y_SERIALNUMBER_INVALID')) {
+    define('Y_SERIALNUMBER_INVALID', YAPI_INVALID_STRING);
+}
+if (!defined('Y_PRODUCTID_INVALID')) {
+    define('Y_PRODUCTID_INVALID', YAPI_INVALID_UINT);
+}
+if (!defined('Y_PRODUCTRELEASE_INVALID')) {
+    define('Y_PRODUCTRELEASE_INVALID', YAPI_INVALID_UINT);
+}
+if (!defined('Y_FIRMWARERELEASE_INVALID')) {
+    define('Y_FIRMWARERELEASE_INVALID', YAPI_INVALID_STRING);
+}
+if (!defined('Y_LUMINOSITY_INVALID')) {
+    define('Y_LUMINOSITY_INVALID', YAPI_INVALID_UINT);
+}
+if (!defined('Y_UPTIME_INVALID')) {
+    define('Y_UPTIME_INVALID', YAPI_INVALID_LONG);
+}
+if (!defined('Y_USBCURRENT_INVALID')) {
+    define('Y_USBCURRENT_INVALID', YAPI_INVALID_UINT);
+}
+if (!defined('Y_REBOOTCOUNTDOWN_INVALID')) {
+    define('Y_REBOOTCOUNTDOWN_INVALID', YAPI_INVALID_INT);
+}
+if (!defined('Y_USERVAR_INVALID')) {
+    define('Y_USERVAR_INVALID', YAPI_INVALID_INT);
+}
 //--- (end of generated code: YModule definitions)
 // yInitAPI constants (not really useful in PHP, but defined for code portability)
-define('Y_DETECT_NONE', 0);
-define('Y_DETECT_USB', 1);
-define('Y_DETECT_NET', 2);
-define('Y_DETECT_ALL', Y_DETECT_USB | Y_DETECT_NET);
-// Calibration types
-define('YOCTO_CALIB_TYPE_OFS', 30);
-// Maximum device request timeout
-define('YAPI_BLOCKING_REQUEST_TIMEOUT', 20000);
-define('YIO_DEFAULT_TCP_TIMEOUT',20000);
-define('YIO_1_MINUTE_TCP_TIMEOUT',60000);
-define('YIO_10_MINUTES_TCP_TIMEOUT',600000);
-define('NOTIFY_NETPKT_NAME', '0');
-define('NOTIFY_NETPKT_CHILD', '2');
-define('NOTIFY_NETPKT_FUNCNAME', '4');
-define('NOTIFY_NETPKT_FUNCVAL', '5');
-define('NOTIFY_NETPKT_LOG', '7');
-define('NOTIFY_NETPKT_FUNCNAMEYDX', '8');
-define('NOTIFY_NETPKT_CONFCHGYDX', 's');
-define('NOTIFY_NETPKT_FLUSHV2YDX', 't');
-define('NOTIFY_NETPKT_FUNCV2YDX', 'u');
-define('NOTIFY_NETPKT_TIMEV2YDX', 'v');
-define('NOTIFY_NETPKT_DEVLOGYDX', 'w');
-define('NOTIFY_NETPKT_TIMEVALYDX', 'x');
-define('NOTIFY_NETPKT_FUNCVALYDX', 'y');
-define('NOTIFY_NETPKT_TIMEAVGYDX', 'z');
-define('NOTIFY_NETPKT_NOT_SYNC', '@');
-define('NOTIFY_NETPKT_STOP', 10); // =\n
-define('NOTIFY_V2_LEGACY', 0);       // unused (reserved for compatibility with legacy notifications)
-define('NOTIFY_V2_6RAWBYTES', 1);    // largest type: data is always 6 bytes
-define('NOTIFY_V2_TYPEDDATA', 2);    // other types: first data byte holds the decoding format
-define('NOTIFY_V2_FLUSHGROUP', 3);   // no data associated
-define('PUBVAL_LEGACY', 0);   // 0-6 ASCII characters (normally sent as YSTREAM_NOTICE)
-define('PUBVAL_1RAWBYTE', 1);   // 1 raw byte  (=2 characters)
-define('PUBVAL_2RAWBYTES', 2);   // 2 raw bytes (=4 characters)
-define('PUBVAL_3RAWBYTES', 3);   // 3 raw bytes (=6 characters)
-define('PUBVAL_4RAWBYTES', 4);   // 4 raw bytes (=8 characters)
-define('PUBVAL_5RAWBYTES', 5);   // 5 raw bytes (=10 characters)
-define('PUBVAL_6RAWBYTES', 6);   // 6 hex bytes (=12 characters) (sent as V2_6RAWBYTES)
-define('PUBVAL_C_LONG', 7);   // 32-bit C signed integer
-define('PUBVAL_C_FLOAT', 8);   // 32-bit C float
-define('PUBVAL_YOCTO_FLOAT_E3', 9);   // 32-bit Yocto fixed-point format (e-3)
-define('PUBVAL_YOCTO_FLOAT_E6', 10);   // 32-bit Yocto fixed-point format (e-6)
-define('YOCTO_PUBVAL_LEN', 16);
-define('YOCTO_PUBVAL_SIZE', 6);
-define('YOCTO_SERIAL_LEN', 20);
-define('YOCTO_BASE_SERIAL_LEN', 8);
-//
-// Class used to report exceptions within Yocto-API
-// Do not instantiate directly
-//
+const Y_DETECT_NONE = 0;
+const Y_DETECT_USB = 1;
+const Y_DETECT_NET = 2;
+const Y_DETECT_ALL = Y_DETECT_USB | Y_DETECT_NET;
+//vvvv YAPI_Exception.php
+//use Exception;
 class YAPI_Exception extends Exception
 {
 }
-// Pseudo class used to create structures in PHP
-class YAggregate
-{
-}
-// numeric strpos helper
-function Ystrpos($haystack, $needle)
-{
-    $res = strpos($haystack, $needle);
-    if ($res === false) $res = -1;
-    return $res;
-}
-//
-// Structure used internally to report results of a query. It only uses public attributes.
-// Do not instantiate directly
-//
+//^^^^ YAPI_Exception.php
+//vvvv YAPI_YReq.php
 class YAPI_YReq
 {
-    public $hwid       = "";
-    public $deviceid   = "";
-    public $functionid = "";
-    public $errorType;
-    public $errorMsg;
-    public $result;
-    public $obj_result = NULL;
-    function __construct($str_hwid, $int_errType, $str_errMsg, $bin_result, $obj_result = null)
+    public string $hwid = "";
+    public string $deviceid = "";
+    public string $functionid = "";
+    public int $errorType;
+    public string $errorMsg;
+    public mixed $result;
+    public mixed $obj_result = null;
+    function __construct(string $str_hwid, int $int_errType, string $str_errMsg, mixed $bin_result, mixed $obj_result = null)
     {
         $sep = strpos($str_hwid, ".");
         if ($sep !== false) {
@@ -175,48 +189,57 @@ class YAPI_YReq
         $this->obj_result = $obj_result;
     }
 }
-//
-// YTcpHub Class (used internally)
-//
-// Instances of this class represent a VirtualHub or a networked Yoctopuce device
-// to which we can connect to get access to device functions. For historical reasons,
-// this class is mostly used like a structure, rather than a real object.
-//
+//^^^^ YAPI_YReq.php
+if (!function_exists('array_key_first')) {
+    function array_key_first(array $arr)
+    {
+        foreach ($arr as $key => $unused) {
+            return $key;
+        }
+        return null;
+    }
+}
+//vvvv YTcpHub.php
 class YTcpHub
 {
     // attributes
-    public $rooturl;                    // root url of the hub (without auth parameters)
-    public $streamaddr;                 // stream address of the hub ("tcp://addr:port")
-    public $url_info;                   // $url parsed
-    public $notifurl;                   // notification file used by this hub
-    public $use_pure_http;              // boolean that is true if the hub is VirtualHub-4web
-    public $notifReq;                   // notification request, or null if not open
-    public $notifPos;                   // absolute position in notification stream
-    public $isNotifWorking;            // boolean that is true when we receive ping notification
-    public $devListExpires;             // timestamp of next useful updateDeviceList
-    public    $devListReq;                 // updateDeviceList request, or null if not open
-    public    $serialByYdx;                // serials by hub-specific devYdx
-    public    $retryDelay;                 // delay before reconnecting in case of error
-    public    $retryExpires;               // timestamp of next reconnection attempt
-    public    $missing;                    // list of missing devices during updateDeviceList
-    public    $writeProtected;             // true if an adminPassword is set
-    public    $user;                       // user for authentication
-    public    $callbackData;               // raw HTTP callback data received
-    public    $callbackCache;              // pre-parsed cache for callback-based API
-    public    $reuseskt;                   // keep-alive socket to be reused
-    protected $realm;                   // hub authentication realm
-    protected $pwd;                     // password for authentication
-    protected $nonce;                   // lasPrint(t received nonce
-    protected $opaque;                  // last received opaque
-    protected $ha1;                     // our authentication ha1 string
-    protected $nc;                      // nounce usage count
-    function __construct($url_info)
+    public string $rooturl;                    // root url of the hub (without auth parameters)
+    public string $streamaddr;                 // stream address of the hub ("tcp://addr:port")
+    public array $url_info;                   // $url parsed
+    public string $notifurl;                   // notification file used by this hub
+    public bool $use_pure_http;              // boolean that is true if the hub is VirtualHub-4web
+    public ?YTcpReq $notifReq;                   // notification request, or null if not open
+    public int $notifPos;                   // absolute position in notification stream
+    public bool $isNotifWorking;            // boolean that is true when we receive ping notification
+    public float $devListExpires;             // timestamp of next useful updateDeviceList
+    public ?YTcpReq $devListReq;                 // updateDeviceList request, or null if not open
+    public array $serialByYdx;                // serials by hub-specific devYdx
+    public float $retryDelay;                 // delay before reconnecting in case of error
+    public float $retryExpires;               // timestamp of next reconnection attempt
+    public array $missing;                    // list of missing devices during updateDeviceList
+    public bool $writeProtected;             // true if an adminPassword is set
+    public string $user;                       // user for authentication
+    public mixed $callbackData;               // raw HTTP callback data received
+    public ?array $callbackCache;              // pre-parsed cache for callback-based API
+    public mixed $reuseskt;                   // keep-alive socket to be reused
+    protected string $realm;                   // hub authentication realm
+    protected string $pwd;                     // password for authentication
+    protected string $nonce;                   // lasPrint(t received nonce
+    protected string $opaque;                  // last received opaque
+    protected string $ha1;                     // our authentication ha1 string
+    protected string $nc;                      // nounce usage count
+    protected string $serial;                  // the serial number of the hub
+    private int $networkTimeout;
+    private array $knownUrls = [];
+    private bool $mandatory;
+    private bool $enabled;
+    function __construct(array $url_info, bool $mandatory)
     {
         $this->rooturl = $url_info['rooturl'];
         $this->url_info = $url_info;
         $this->streamaddr = str_replace('http://', 'tcp://', $this->rooturl);
         $this->streamaddr = str_replace('https://', 'tls://', $this->streamaddr);
-        $colon = strpos( $url_info['auth'], ':');
+        $colon = strpos($url_info['auth'], ':');
         if ($colon === false) {
             $this->user = $url_info['auth'];
             $this->pwd = '';
@@ -224,18 +247,29 @@ class YTcpHub
             $this->user = substr($url_info['auth'], 0, $colon);
             $this->pwd = substr($url_info['auth'], $colon + 1);
         }
+        $this->knownUrls[] = $url_info['org_url'];
         $this->notifurl = 'not.byn';
-        $this->notifHandle = null;
         $this->notifPos = -1;
         $this->isNotifWorking = false;
         $this->devListExpires = 0;
-        $this->serialByYdx = Array();
+        $this->serialByYdx = array();
         $this->retryDelay = 15;
         $this->retryExpires = 0;
         $this->writeProtected = false;
         $this->use_pure_http = false;
+        $this->reuseskt = null;
+        $this->notifReq = null;
+        $this->realm = '';
+        $this->serial = '';
+        $this->networkTimeout = YAPI::$_yapiContext->_networkTimeoutMs;
+        $this->mandatory = $mandatory;
+        $this->enabled = true;
     }
-    static function decodeJZONReq($jzon, $ref)
+    function isEnable(): bool
+    {
+        return $this->enabled;
+    }
+    static function decodeJZONReq(mixed $jzon, mixed $ref): mixed
     {
         $res = array();
         $ofs = 0;
@@ -243,7 +277,7 @@ class YTcpHub
             foreach ($ref as $key => $value) {
                 if (key_exists($key, $jzon)) {
                     $res[$key] = self::decodeJZONReq($jzon[$key], $value);
-                } else if (isset($jzon[$ofs])) {
+                } elseif (isset($jzon[$ofs])) {
                     $res[$key] = self::decodeJZONReq($jzon[$ofs], $value);
                 }
                 $ofs++;
@@ -252,42 +286,42 @@ class YTcpHub
         }
         return $jzon;
     }
-    static function decodeJZONService($jzon, $ref)
+    static function decodeJZONService(array $jzon, array $ref): array
     {
         $wp = array();
         $yp = array();
-        foreach($jzon[0] as $wp_entry) {
+        foreach ($jzon[0] as $wp_entry) {
             $wp[] = self::decodeJZONReq($wp_entry, $ref['whitePages'][0]);
         }
         $yp_entry_ref = $ref['yellowPages'][array_key_first($ref['yellowPages'])][0];
-        foreach($jzon[1] as $yp_type => $yp_entries) {
+        foreach ($jzon[1] as $yp_type => $yp_entries) {
             $yp[$yp_type] = array();
-            foreach($yp_entries as $yp_entry) {
+            foreach ($yp_entries as $yp_entry) {
                 $yp[$yp_type][] = self::decodeJZONReq($yp_entry, $yp_entry_ref);
             }
         }
-        return ['whitePages' => $wp, 'yellowPages'=>$yp];
+        return ['whitePages' => $wp, 'yellowPages' => $yp];
     }
-    static function decodeJZON($jzon, $ref)
+    static function decodeJZON(array $jzon, array $ref): mixed
     {
         $decoded = self::decodeJZONReq($jzon, $ref);
         if (array_key_exists('services', $ref)) {
             $ofs = sizeof($jzon) - 1;
-            if(isset($jzon[$ofs])) {
+            if (isset($jzon[$ofs])) {
                 $decoded['services'] = self::decodeJZONService($jzon[$ofs], $ref['services']);
             }
         }
         return $decoded;
     }
-    static function cleanJsonRef($ref)
+    static function cleanJsonRef(array $ref): array
     {
         $res = array();
         foreach ($ref as $key => $value) {
             if (is_array($value)) {
                 $res[$key] = self::cleanJsonRef($value);
-            } else if ($key == "serialNumber") {
+            } elseif ($key == "serialNumber") {
                 $res[$key] = substr($value, 0, YOCTO_BASE_SERIAL_LEN);
-            } else if ($key == "firmwareRelease") {
+            } elseif ($key == "firmwareRelease") {
                 $res[$key] = $value;
             } else {
                 $res[$key] = "";
@@ -295,33 +329,33 @@ class YTcpHub
         }
         return $res;
     }
-    function verfiyStreamAddr($fullTest = true, &$errmsg = '')
+    function verfiyStreamAddr(bool $fullTest = true, string &$errmsg = ''): int
     {
         if ($this->streamaddr == 'tcp://CALLBACK') {
             if (!isset($_SERVER['REQUEST_METHOD']) || $_SERVER['REQUEST_METHOD'] != 'POST') {
                 $errmsg = "invalid request method";
-                $this->callbackCache = Array();
-                return YAPI_IO_ERROR;
+                $this->callbackCache = array();
+                return YAPI::IO_ERROR;
             }
             if (!isset($_SERVER['CONTENT_TYPE']) || $_SERVER['CONTENT_TYPE'] != 'application/json') {
                 $errmsg = "invalid content type";
-                $this->callbackCache = Array();
-                return YAPI_IO_ERROR;
+                $this->callbackCache = array();
+                return YAPI::IO_ERROR;
             }
             if (!isset($_SERVER['HTTP_USER_AGENT'])) {
                 $errmsg = "not agent provided";
-                $this->callbackCache = Array();
-                return YAPI_IO_ERROR;
+                $this->callbackCache = array();
+                return YAPI::IO_ERROR;
             }
             $useragent = strtolower($_SERVER['HTTP_USER_AGENT']);
             $patern = 'yoctohub';
             if ($useragent != 'virtualhub' && substr($useragent, 0, strlen($patern)) != $patern) {
                 $errmsg = "no user agent provided";
-                $this->callbackCache = Array();
-                return YAPI_IO_ERROR;
+                $this->callbackCache = array();
+                return YAPI::IO_ERROR;
             }
             if ($fullTest) {
-                if(isset($_SERVER['HTTP_RAW_POST_DATA'])) {
+                if (isset($_SERVER['HTTP_RAW_POST_DATA'])) {
                     $data = $_SERVER['HTTP_RAW_POST_DATA'];
                 } else {
                     $data = file_get_contents('php://input');
@@ -329,11 +363,11 @@ class YTcpHub
                 $this->callbackData = $data;
                 if ($data == "") {
                     $errmsg = "RegisterHub(callback) used without posting YoctoAPI data";
-                    Print("\n!YoctoAPI:$errmsg\n");
-                    $this->callbackCache = Array();
-                    return YAPI_IO_ERROR;
+                    print("\n!YoctoAPI:$errmsg\n");
+                    $this->callbackCache = array();
+                    return YAPI::IO_ERROR;
                 } else {
-                    if(isset($_SERVER['HTTP_JSON_POST_DATA'])) {
+                    if (isset($_SERVER['HTTP_JSON_POST_DATA'])) {
                         $this->callbackCache = $_SERVER['HTTP_JSON_POST_DATA'];
                     } else {
                         $utf8_encode = utf8_encode($data);
@@ -341,30 +375,32 @@ class YTcpHub
                     }
                     if (is_null($this->callbackCache)) {
                         $errmsg = "invalid data:[\n$data\n]";
-                        Print("\n!YoctoAPI:$errmsg\n");
-                        $this->callbackCache = Array();
-                        return YAPI_IO_ERROR;
+                        print("\n!YoctoAPI:$errmsg\n");
+                        $this->callbackCache = array();
+                        return YAPI::IO_ERROR;
                     }
                     if ($this->pwd != '') {
                         // callback data signed, verify signature
                         if (!isset($this->callbackCache['sign'])) {
                             $errmsg = "missing signature from incoming YoctoHub (callback password required)";
-                            Print("\n!YoctoAPI:$errmsg\n");
-                            $this->callbackCache = Array();
-                            return YAPI_UNAUTHORIZED;
+                            print("\n!YoctoAPI:$errmsg\n");
+                            $this->callbackCache = array();
+                            return YAPI::UNAUTHORIZED;
                         }
                         $sign = $this->callbackCache['sign'];
                         $salt = $this->pwd;
-                        if (strlen($salt) != 32) $salt = md5($salt);
+                        if (strlen($salt) != 32) {
+                            $salt = md5($salt);
+                        }
                         $data = str_replace($sign, strtolower($salt), $data);
                         $check = strtolower(md5($data));
                         if ($check != $sign) {
                             //Print("Computed signature: $check\n");
                             //Print("Received signature: $sign\n");
                             $errmsg = "invalid signature from incoming YoctoHub (invalid callback password)";
-                            Print("\n!YoctoAPI:$errmsg\n");
-                            $this->callbackCache = Array();
-                            return YAPI_UNAUTHORIZED;
+                            print("\n!YoctoAPI:$errmsg\n");
+                            $this->callbackCache = array();
+                            return YAPI::UNAUTHORIZED;
                         }
                     }
                     if (isset($this->callbackCache['serial']) && !is_null(YAPI::$_jzonCacheDir)) {
@@ -373,10 +409,10 @@ class YTcpHub
                         $upToDate = true;
                         foreach ($this->callbackCache as $req => $value) {
                             $pos = strpos($req, "/api.json");
-                            if ($pos !== False) {
+                            if ($pos !== false) {
                                 $fwpos = strpos($req, "?fw=", $pos);
                                 $isJZON = false;
-                                if ($fwpos !== False) {
+                                if ($fwpos !== false) {
                                     if (key_exists('module', $value)) {
                                         // device did not return JZON (probably due to fw update)
                                         $req = substr($req, 0, $fwpos);
@@ -391,24 +427,24 @@ class YTcpHub
                                         // "/bySerial/" = 10 chars
                                         $serial = substr($req, 10, $pos - 10);
                                     }
-                                    $firm = str_replace([' ',':'], '_', substr($req, $fwpos + 4));
+                                    $firm = str_replace([' ', ':'], '_', substr($req, $fwpos + 4));
                                     $base = substr($serial, 0, YOCTO_BASE_SERIAL_LEN);
                                     if (!is_file("{$jzonCacheDir}{$base}_{$firm}.json")) {
                                         $errmsg = "No JZON reference file for {$serial}/{$firm}";
-                                        Print("\n!YoctoAPI:$errmsg\n");
-                                        $this->callbackCache = Array();
-                                        Print("\n@YoctoAPI:#!noref\n");
-                                        return YAPI_IO_ERROR;
+                                        print("\n!YoctoAPI:$errmsg\n");
+                                        $this->callbackCache = array();
+                                        print("\n@YoctoAPI:#!noref\n");
+                                        return YAPI::IO_ERROR;
                                     }
                                     $ref = file_get_contents("{$jzonCacheDir}{$base}_{$firm}.json");
                                     $ref = json_decode($ref, true);
                                     $decoded = self::decodeJZON($value, $ref);
                                     if ($ref['module']['firmwareRelease'] != $decoded['module']['firmwareRelease']) {
                                         $errmsg = "invalid JZON data";
-                                        Print("\n!YoctoAPI:$errmsg\n");
-                                        $this->callbackCache = Array();
-                                        Print("\n@YoctoAPI:#!invalid\n");
-                                        return YAPI_IO_ERROR;
+                                        print("\n!YoctoAPI:$errmsg\n");
+                                        $this->callbackCache = array();
+                                        print("\n@YoctoAPI:#!invalid\n");
+                                        return YAPI::IO_ERROR;
                                     }
                                     $req = substr($req, 0, $fwpos);
                                     $mergedCache[$req] = $decoded;
@@ -416,11 +452,11 @@ class YTcpHub
                                 } else {
                                     $serial = $value['module']['serialNumber'];
                                     $base = substr($serial, 0, YOCTO_BASE_SERIAL_LEN);
-                                    $firm = str_replace([' ',':'], '_', $value['module']['firmwareRelease']);
+                                    $firm = str_replace([' ', ':'], '_', $value['module']['firmwareRelease']);
                                     $clean_struct = self::cleanJsonRef($value);
                                     file_put_contents("{$jzonCacheDir}{$base}_{$firm}.json", json_encode($clean_struct));
                                     $mergedCache[$req] = $value;
-                                    Print("\n@YoctoAPI:#{$serial}/{$firm}\n");
+                                    print("\n@YoctoAPI:#{$serial}/{$firm}\n");
                                     $upToDate = false;
                                 }
                             } else {
@@ -428,39 +464,44 @@ class YTcpHub
                             }
                         }
                         if ($upToDate) {
-                            Print("\n@YoctoAPI:#=\n");
+                            print("\n@YoctoAPI:#=\n");
                         }
                         $this->callbackCache = $mergedCache;
                     }
                     // decode binary content
                     foreach ($this->callbackCache as $url => $data) {
-                        if (!is_string($data)){
+                        if (!is_string($data)) {
                             continue;
                         }
                         $len = strlen($url);
                         if ($len > 2 && substr($url, $len - 2) === '.#') {
-                            $this->callbackCache[substr($url,0, $len-2)] = base64_decode($data);
+                            $this->callbackCache[substr($url, 0, $len - 2)] = base64_decode($data);
                         }
                     }
                 }
             }
         } else {
-            $info_json_url = $this->rooturl.$this->url_info['subdomain'].'/info.json';
+            $info_json_url = $this->rooturl . $this->url_info['subdomain'] . '/info.json';
             $info_json = @file_get_contents($info_json_url);
             $jsonData = json_decode($info_json, true);
-            if ($jsonData != null &&array_key_exists('protocol', $jsonData) && $jsonData['protocol'] =='HTTP/1.1') {
-                $this->use_pure_http = true;
+            if ($jsonData != null) {
+                if (array_key_exists('protocol', $jsonData) && $jsonData['protocol'] == 'HTTP/1.1') {
+                    $this->use_pure_http = true;
+                }
+                if (array_key_exists('serialNumber', $jsonData)) {
+                    $this->updateSerial($jsonData['serialNumber']);
+                }
             }
-            $this->callbackCache = NULL;
+            $this->callbackCache = null;
         }
         return 0;
     }
-    // Update the hub internal variables according
-    // to a received header with WWW-Authenticate
-    function parseWWWAuthenticate($header)
+    function parseWWWAuthenticate(string $header): void
     {
         $pos = stripos($header, "\r\nWWW-Authenticate:");
-        if ($pos === false) return;
+        if ($pos === false) {
+            return;
+        }
         $header = substr($header, $pos + 19);
         $eol = strpos($header, "\r");
         if ($eol !== false) {
@@ -471,27 +512,25 @@ class YTcpHub
             return;
         }
         $this->realm = '';
-        $this->qop = '';
         $this->nonce = '';
         $this->opaque = '';
         for ($i = 0; $i < sizeof($tags['tag']); $i++) {
             if ($tags['tag'][$i] == "realm") {
                 $this->realm = $tags['value'][$i];
-            } else if ($tags['tag'][$i] == "qop") {
-                $this->qop = $tags['value'][$i];
-            } else if ($tags['tag'][$i] == "nonce") {
+            } elseif ($tags['tag'][$i] == "nonce") {
                 $this->nonce = $tags['value'][$i];
-            } else if ($tags['tag'][$i] == "opaque") {
+            } elseif ($tags['tag'][$i] == "opaque") {
                 $this->opaque = $tags['value'][$i];
             }
         }
         $this->nc = 0;
         $this->ha1 = md5($this->user . ':' . $this->realm . ':' . $this->pwd);
     }
-    // Return an Authorization header for a given request
-    function getAuthorization($request)
+    function getAuthorization(string $request): string
     {
-        if ($this->user == '' || $this->realm == '') return '';
+        if ($this->user == '' || $this->realm == '') {
+            return '';
+        }
         $this->nc++;
         $pos = strpos($request, ' ');
         $method = substr($request, 0, $pos);
@@ -508,12 +547,12 @@ class YTcpHub
         return "$res\r\n";
     }
     // Return true if a hub is just a virtual cache (for callback mode)
-    function isCachedHub()
+    function isCachedHub(): bool
     {
         return !is_null($this->callbackCache);
     }
     // Execute a query for cached hub (for callback mode)
-    function cachedQuery($str_query, $str_body)
+    function cachedQuery(string $str_query, string $str_body): ?string
     {
         // apply POST remotely
         if (substr($str_query, 0, 5) == 'POST ') {
@@ -525,25 +564,26 @@ class YTcpHub
             Printf("\n@YoctoAPI:$str_query %d:%s\n%s", strlen($str_body), $boundary, $str_body);
             return "OK\r\n\r\n";
         }
-        if (substr($str_query, 0, 4) != 'GET ')
-            return NULL;
+        if (substr($str_query, 0, 4) != 'GET ') {
+            return null;
+        }
         // remove JZON trigger if present (not relevant in callback mode)
         $jzon = strpos($str_query, '?fw=');
-        if ($jzon !== FALSE && strpos($str_query, '&', $jzon) === FALSE) {
+        if ($jzon !== false && strpos($str_query, '&', $jzon) === false) {
             $str_query = substr($str_query, 0, $jzon);
         }
         // dispatch between cached get and remote set
-        if (strpos($str_query, '?') === FALSE ||
-            strpos($str_query, '/@YCB+') !== FALSE ||
-            strpos($str_query, '/logs.txt') !== FALSE ||
-            strpos($str_query, '/tRep.bin') !== FALSE ||
-            strpos($str_query, '/logger.json') !== FALSE ||
-            strpos($str_query, '/ping.txt') !== FALSE ||
-            strpos($str_query, '/files.json?a=dir') !== FALSE) {
+        if (strpos($str_query, '?') === false ||
+            strpos($str_query, '/@YCB+') !== false ||
+            strpos($str_query, '/logs.txt') !== false ||
+            strpos($str_query, '/tRep.bin') !== false ||
+            strpos($str_query, '/logger.json') !== false ||
+            strpos($str_query, '/ping.txt') !== false ||
+            strpos($str_query, '/files.json?a=dir') !== false) {
             // read request, load from cache
             $parts = explode(' ', $str_query);
             $url = $parts[1];
-            $getmodule = (strpos($url, 'api/module.json') !== FALSE);
+            $getmodule = (strpos($url, 'api/module.json') !== false);
             if ($getmodule) {
                 $url = str_replace('api/module.json', 'api.json', $url);
             }
@@ -552,58 +592,127 @@ class YTcpHub
                     // /api.json is not present in cache. Report an error to force the hub
                     // to switch back to json encoding
                     print("\n!YoctoAPI:$url is in cache. Disable JZON encoding");
-                    Print("\n@YoctoAPI:#!invalid\n");
-                    return NULL;
+                    print("\n@YoctoAPI:#!invalid\n");
+                    return null;
                 }
-                if (strpos($url,"@YCB+")!== false) {
+                if (strpos($url, "@YCB+") !== false) {
                     // file has be requested by addFileToHTTPCallback
-                    $url = str_replace('@YCB+', '',$url);
-                    Print("\n@YoctoAPI:+$url\n");
+                    $url = str_replace('@YCB+', '', $url);
+                    print("\n@YoctoAPI:+$url\n");
                     return "OK\r\n\r\n";
-                }else {
+                } else {
                     print("\n!YoctoAPI:$url is not preloaded, adding to list");
-                    Print("\n@YoctoAPI:+$url\n");
-                    return NULL;
+                    print("\n@YoctoAPI:+$url\n");
+                    return null;
                 }
             }
             // Print("\n[$url found]\n");
             $jsonres = $this->callbackCache[$url];
-            if ($getmodule) $jsonres = $jsonres['module'];
-            if (strpos($str_query, '.json') !== FALSE) {
+            if ($getmodule) {
+                $jsonres = $jsonres['module'];
+            }
+            if (strpos($str_query, '.json') !== false) {
                 $jsonres = json_encode($jsonres);
             }
             return "OK\r\n\r\n$jsonres";
         } else {
             // change request, print to output stream
-            Print("\n@YoctoAPI:$str_query \n");
+            print("\n@YoctoAPI:$str_query \n");
             return "OK\r\n\r\n";
         }
     }
+    public function getBaseURL(): string
+    {
+        return $this->url_info['rooturl'] . $this->url_info['subdomain'] . '/';
+    }
+    public function getSerialNumber(): string
+    {
+        return $this->serial;
+    }
+    public function getLastErrorMessage(): string
+    {
+        //fixme:  implement this
+        return "";
+    }
+    public function getRegisteredUrl()
+    {
+        return $this->url_info['org_url'];
+    }
+    public function getConnectionUrl()
+    {
+        return $this->rooturl;
+    }
+    public function isOnline(): bool
+    {
+        //fixme: implement this
+        return true;
+    }
+    public function isReadOnly(): bool
+    {
+        return $this->writeProtected;
+    }
+    public function get_networkTimeout(): int
+    {
+        return $this->networkTimeout;
+    }
+    public function getLastErrorType(): int
+    {
+        // fixme: implement this
+        return YAPI::SUCCESS;
+    }
+    public function set_networkTimeout(int $value): void
+    {
+        $this->networkTimeout = $value;
+    }
+    public function mergeFrom(YTcpHub $tcphub): void
+    {
+        $this->addKnownUrl($tcphub->url_info['org_url']);
+    }
+    public function isURLKnown(string $url): bool
+    {
+        return in_array($url, $this->knownUrls);
+    }
+    public function setMandatory(bool $true)
+    {
+        $this->mandatory = true;
+    }
+    private function updateSerial(mixed $serialNumber): void
+    {
+        $this->serial = $serialNumber;
+        $this->enabled = !YAPI::_checkForDuplicateHub($this);
+    }
+    public function getKnownUrls(): array
+    {
+        return $this->knownUrls;
+    }
+    public function addKnownUrl(string $url): void
+    {
+        if (!in_array($url, $this->knownUrls)) {
+            $this->knownUrls[] = $url;
+        }
+    }
 }
-//
-// YTcpReq Class (used internally)
-//
-// Instances of this class represent an open TCP connection to a HTTP socket.
-// The class handles digest authorization transparently.
-//
+//^^^^ YTcpHub.php
+//vvvv YTcpReq.php
 class YTcpReq
 {
     // attributes
-    public $hub;                        // the YTcpHub to which we connect
-    public $async;                      // true if the request is async
-    public $skt;                        // stream socket
-    public $request;                    // request to be sent
-    public $reqbody;                    // request body to send, if any
-    public $boundary;                   // request body boundary, if used
-    public $meta;                       // HTTP headers received in reply
-    public $reply;                      // reply buffer
-    public $retryCount;                 // number of retries for this request
+    public YTcpHub $hub;                        // the YTcpHub to which we connect
+    public bool $async;                      // true if the request is async
+    public mixed $skt;                        // stream socket
+    public string $request;                    // request to be sent
+    public string $reqbody;                    // request body to send, if any
+    public string $boundary;                   // request body boundary, if used
+    public string $meta;                       // HTTP headers received in reply
+    public string $reply;                      // reply buffer
+    public int $retryCount;                 // number of retries for this request
     // the following attributes should not be taken for granted unless eof() returns true
-    public $errorType;                  // status of current connection
-    public $errorMsg;                   // last error message
-    public $reqcnt;
-    public static $totalTcpReqs = 0;
-    function __construct($hub, $request, $async, $reqbody = '', $mstimeout = YAPI_BLOCKING_REQUEST_TIMEOUT)
+    public int $errorType;                  // status of current connection
+    public string $errorMsg;                   // last error message
+    public int $reqcnt;
+    public static int $totalTcpReqs = 0;
+    private int $mstimeout;
+    function __construct(YTcpHub $hub, string $request, bool $async, string $reqbody = '', int $mstimeout = YAPI_BLOCKING_REQUEST_TIMEOUT)
     {
         $pos = strpos($request, "\r");
         if ($pos !== false) {
@@ -625,29 +734,30 @@ class YTcpReq
         $this->reply = '';
         $this->retryCount = 0;
         $this->mstimeout = $mstimeout;
-        $this->errorType = YAPI_IO_ERROR;
+        $this->errorType = YAPI::IO_ERROR;
         $this->errorMsg = 'could not open connection';
         $this->reqcnt = ++YTcpReq::$totalTcpReqs;
+        $this->skt = null;
     }
-    function eof()
+    function eof(): bool
     {
         if (!is_null($this->skt)) {
             // there is still activity going on
             return false;
         }
-        if ($this->meta != '' && $this->errorType == YAPI_SUCCESS) {
+        if ($this->meta != '' && $this->errorType == YAPI::SUCCESS) {
             // connection was done and ended successfully
             // check we need to unchunk the response
-            $t_ofs = strpos($this->meta,"Transfer-Encoding");
+            $t_ofs = strpos($this->meta, "Transfer-Encoding");
             if ($t_ofs > 0) {
                 $t_ofs += 17;
-                $t_endl = strpos($this->meta,"\r\n", $t_ofs);
-                $t_chunk = strpos($this->meta,"chunked", $t_ofs);
-                if ($t_chunk!==false  && $t_endl!==false && $t_chunk < $t_endl) {
+                $t_endl = strpos($this->meta, "\r\n", $t_ofs);
+                $t_chunk = strpos($this->meta, "chunked", $t_ofs);
+                if ($t_chunk !== false && $t_endl !== false && $t_chunk < $t_endl) {
                     // chuck encoded
                     $new = $this->http_chunked_decode($this->reply);
                     $this->reply = $new;
-                    $this->meta= substr($this->meta, 0 , $t_ofs). substr($this->meta,$t_endl+2);
+                    $this->meta = substr($this->meta, 0, $t_ofs) . substr($this->meta, $t_endl + 2);
                 }
             }
             return true;
@@ -659,7 +769,8 @@ class YTcpReq
         // connection is expected to be reopened
         return false;
     }
-    function http_chunked_decode($data) {
+    function http_chunked_decode(string $data): string
+    {
         $data_length = strlen($data);
         $dechunk = '';
         $ofs = 0;
@@ -667,38 +778,38 @@ class YTcpReq
             $hexstr = '';
             while ($ofs < $data_length && ($c = $data[$ofs]) != "\n") {
                 if (($c >= '0' && $c <= '9') || ($c >= 'A' && $c <= 'F') || ($c >= 'a' && $c <= 'f')) {
-                    $hexstr.=$c;
+                    $hexstr .= $c;
                 }
                 $ofs++;
             }
-            if ($ofs < $data_length){
+            if ($ofs < $data_length) {
                 $len = hexdec($hexstr);
                 if ($ofs + 3 + $len < $data_length) {
                     $ofs++;
-                    $dechunk .= substr($data,$ofs, $len);
-                    $ofs+=2;
-                } else{
-                    $ofs+=1;
+                    $dechunk .= substr($data, $ofs, $len);
+                    $ofs += 2;
+                } else {
+                    $ofs += 1;
                 }
             }
-        } while($ofs < $data_length);
+        } while ($ofs < $data_length);
         return $dechunk;
     }
-    function newsocket(&$errno, &$errstr, $mstimeout)
+    function newsocket(int &$errno, string &$errstr, int $mstimeout): mixed
     {
         // for now, use client socket only since server sockets
         // for callbacks are not reliably available on a public server
         $addr = $this->hub->streamaddr;
         $pos = strpos($addr, '/', 9);
-        if ($pos !== FALSE) {
+        if ($pos !== false) {
             $addr = substr($addr, 0, $pos);
         }
         return @stream_socket_client($addr, $errno, $errstr, $mstimeout / 1000);
     }
-    function process(&$errmsg = '')
+    function process(string &$errmsg = ''): int
     {
         if ($this->eof()) {
-            if ($this->errorType != YAPI_SUCCESS) {
+            if ($this->errorType != YAPI::SUCCESS) {
                 $errmsg = $this->errorMsg;
             }
             return $this->errorType;
@@ -713,20 +824,19 @@ class YTcpReq
                 // special handling for "connection-less" callback mode
                 $data = $this->hub->cachedQuery($this->request, $this->reqbody);
                 if (is_null($data)) {
-                    $this->errorType = YAPI_NOT_SUPPORTED;
+                    $this->errorType = YAPI::NOT_SUPPORTED;
                     $this->errorMsg = "query is not available in callback mode";
                     $this->retryCount = 99;
-                    return YAPI_SUCCESS; // will propagate error later if needed
+                    return YAPI::SUCCESS; // will propagate error later if needed
                 }
                 $skt = fopen('data:text/plain;base64,' . base64_encode($data), 'rb');
                 if ($skt === false) {
-                    $this->errorType = YAPI_IO_ERROR;
+                    $this->errorType = YAPI::IO_ERROR;
                     $this->errorMsg = "failed to open data stream";
                     $this->retryCount = 99;
-                    return YAPI_SUCCESS; // will propagate error later if needed
+                    return YAPI::SUCCESS; // will propagate error later if needed
                 }
                 stream_set_blocking($skt, false);
-                $this->skt = $skt;
             } else {
                 $skt = null;
                 if (!is_null($this->hub->reuseskt)) {
@@ -742,10 +852,10 @@ class YTcpReq
                     $errstr = '';
                     $skt = $this->newsocket($errno, $errstr, $this->mstimeout);
                     if ($skt === false) {
-                        $this->errorType = YAPI_IO_ERROR;
+                        $this->errorType = YAPI::IO_ERROR;
                         $this->errorMsg = "failed to open socket ($errno): $errstr";
                         $this->retryCount++;
-                        return YAPI_SUCCESS; // will retry later
+                        return YAPI::SUCCESS; // will retry later
                     }
                 }
                 stream_set_blocking($skt, false);
@@ -753,25 +863,27 @@ class YTcpReq
                 $reqlen = strlen($request);
                 if (fwrite($skt, $request, $reqlen) != $reqlen) {
                     fclose($skt);
-                    $this->errorType = YAPI_IO_ERROR;
+                    $this->errorType = YAPI::IO_ERROR;
                     $this->errorMsg = "failed to write to socket";
                     $this->retryCount++;
-                    return YAPI_SUCCESS; // will retry later
+                    return YAPI::SUCCESS; // will retry later
                 }
-                $this->skt = $skt;
             }
+            $this->skt = $skt;
         } else {
             // read anything available on current socket, and process authentication headers
             while (true) {
                 $data = fread($this->skt, 8192);
                 if ($data === false) {
-                    $this->errorType = YAPI_IO_ERROR;
+                    $this->errorType = YAPI::IO_ERROR;
                     $this->errorMsg = "failed to read from socket";
                     $this->retryCount++;
-                    return YAPI_SUCCESS; // will retry later
+                    return YAPI::SUCCESS; // will retry later
                 }
                 //Printf("[read %d bytes]\n",strlen($data));
-                if (strlen($data) == 0) break;
+                if (strlen($data) == 0) {
+                    break;
+                }
                 if ($this->reply == '' && strpos($this->meta, "\r\n\r\n") === false) {
                     $this->meta .= $data;
                     $eoh = strpos($this->meta, "\r\n\r\n");
@@ -782,7 +894,7 @@ class YTcpReq
                         $firstline = substr($this->meta, 0, strpos($this->meta, "\r"));
                         if (substr($firstline, 0, 12) == 'HTTP/1.1 401') {
                             // authentication required
-                            $this->errorType = YAPI_UNAUTHORIZED;
+                            $this->errorType = YAPI::UNAUTHORIZED;
                             $this->errorMsg = "Authentication required";
                             fclose($this->skt);
                             $this->skt = null;
@@ -794,17 +906,17 @@ class YTcpReq
                             } else {
                                 $this->retryCount = 99;
                             }
-                            return YAPI_SUCCESS; // will propagate error later if needed
+                            return YAPI::SUCCESS; // will propagate error later if needed
                         }
                     }
                 } else {
                     $this->reply .= $data;
                 }
                 // so far so good
-                $this->errorType = YAPI_SUCCESS;
+                $this->errorType = YAPI::SUCCESS;
             }
             // write request body, if any, once header is fully received
-            if ($this->reqbody != '' && strpos($this->meta, "\r\n\r\n") !== false) {
+            if ($this->reqbody != '') {
                 $bodylen = strlen($this->reqbody);
                 $written = fwrite($this->skt, $this->reqbody, $bodylen);
                 if ($written > 0) {
@@ -814,10 +926,10 @@ class YTcpReq
             if (!is_resource($this->skt)) {
                 // socket dropped dead
                 $this->skt = null;
-            } else if (feof($this->skt)) {
+            } elseif (feof($this->skt)) {
                 fclose($this->skt);
                 $this->skt = null;
-            } else if ($this->meta == "0K\r\n\r\n" && $this->reply == "\r\n") {
+            } elseif ($this->meta == "0K\r\n\r\n" && $this->reply == "\r\n") {
                 if (is_null($this->hub->reuseskt)) {
                     $this->hub->reuseskt = $this->skt;
                 } else {
@@ -826,26 +938,28 @@ class YTcpReq
                 $this->skt = null;
             }
         }
-        return YAPI_SUCCESS;
+        return YAPI::SUCCESS;
     }
-    function  format_request()
+    function format_request(): string
     {
         $parts = explode(' ', $this->request);
-        if (sizeof($parts)==2) {
+        if (sizeof($parts) == 2) {
             $req = $parts[0] . ' ' . $this->hub->url_info['subdomain'] . $parts[1];
-        }else{
+        } else {
             $req = $this->request;
         }
         if ($this->hub->use_pure_http) {
             $request = $req . " HTTP/1.1\r\n";
             $host = $this->hub->url_info['host'];
             $request .= "Host: " . $host . "\r\n";
-        }else {
-            $request = $req. " \r\n"; // no HTTP/1.1 suffix for light queries
+        } else {
+            $request = $req . " \r\n"; // no HTTP/1.1 suffix for light queries
         }
-        $request.=$this->hub->getAuthorization($req);
+        $request .= $this->hub->getAuthorization($req);
         if ($this->boundary != '') {
-            $request .= "Content-Type: multipart/form-data; boundary={$this->boundary}\r\n";
+            $request .= "Content-Type: x-upload; boundary={$this->boundary}\r\n";
+            $body_size = strlen($this->reqbody);
+            $request .= "Content-Length: {$body_size}\r\n";
         }
         if (substr($this->request, -2) == "&." && !$this->hub->use_pure_http) {
             $request .= "\r\n";
@@ -854,45 +968,38 @@ class YTcpReq
         }
         return $request;
     }
-    function close()
+    function close(): void
     {
-        if ($this->skt) fclose($this->skt);
+        if ($this->skt) {
+            fclose($this->skt);
+        }
     }
 }
-//
-// YFunctionType Class (used internally)
-//
-// Instances of this class stores everything we know about a given type of function:
-// Mapping between function logical names and Hardware ID as discovered on hubs,
-// and existing instances of YFunction (either already connected or simply requested).
-// To keep it simple, this implementation separates completely the name resolution
-// mechanism, implemented using the yellow pages, and the storage and retrieval of
-// existing YFunction instances.
-//
+//^^^^ YTcpReq.php
+//vvvv YFunctionType.php
 class YFunctionType
 {
     // private attributes, to be used within yocto_api only
-    protected $_className;
-    protected $_connectedFns;           // functions requested and available, by Hardware Id
-    protected $_requestedFns;           // functions requested but not yet known, by any type of name
-    protected $_hwIdByName;             // hash table of function Hardware Id by logical name
-    protected $_nameByHwId;             // hash table of function logical name by Hardware Id
-    protected $_valueByHwId;            // hash table of function advertised value by logical name
-    protected $_baseType;               // default to no abstract base type (generic YFunction)
-    function __construct($str_classname)
+    protected string $_className;
+    protected array $_connectedFns;           // functions requested and available, by Hardware Id
+    protected array $_requestedFns;           // functions requested but not yet known, by any type of name
+    protected array $_hwIdByName;             // hash table of function Hardware Id by logical name
+    protected array $_nameByHwId;             // hash table of function logical name by Hardware Id
+    protected array $_valueByHwId;            // hash table of function advertised value by logical name
+    protected int $_baseType;               // default to no abstract base type (generic YFunction)
+    function __construct(string $str_classname)
     {
-        if (ord($str_classname[strlen($str_classname) - 1]) <= 57) throw new Exception("Invalid function type", -1);
         $this->_className = $str_classname;
-        $this->_connectedFns = Array();
-        $this->_requestedFns = Array();
-        $this->_hwIdByName = Array();
-        $this->_nameByHwId = Array();
-        $this->_valueByHwId = Array();
+        $this->_connectedFns = array();
+        $this->_requestedFns = array();
+        $this->_hwIdByName = array();
+        $this->_nameByHwId = array();
+        $this->_valueByHwId = array();
         $this->_baseType = 0;
     }
     // Index a single function given by HardwareId and logical name; store any advertised value
     // Return true iff there was a logical name discrepency
-    public function reindexFunction($str_hwid, $str_name, $str_val, $int_basetype)
+    public function reindexFunction(string $str_hwid, string $str_name, ?string $str_val, ?int $int_basetype): bool
     {
         $currname = '';
         $res = false;
@@ -904,9 +1011,10 @@ class YFunctionType
                 $this->_nameByHwId[$str_hwid] = $str_name;
                 $res = true;
             }
-        } else if ($currname != $str_name) {
-            if ($this->_hwIdByName[$currname] == $str_hwid)
+        } elseif ($currname != $str_name) {
+            if ($this->_hwIdByName[$currname] == $str_hwid) {
                 unset($this->_hwIdByName[$currname]);
+            }
             if ($str_name != '') {
                 $this->_nameByHwId[$str_hwid] = $str_name;
             } else {
@@ -932,7 +1040,7 @@ class YFunctionType
         return $res;
     }
     // Forget a disconnected function given by HardwareId
-    public function forgetFunction($str_hwid)
+    public function forgetFunction(string $str_hwid): void
     {
         if (isset($this->_nameByHwId[$str_hwid])) {
             $currname = $this->_nameByHwId[$str_hwid];
@@ -948,7 +1056,7 @@ class YFunctionType
     // Find the exact Hardware Id of the specified function, if currently connected
     // If device is not known as connected, return a clean error
     // This function will not cause any network access
-    public function resolve($str_func)
+    public function resolve(string $str_func): YAPI_YReq
     {
         // Try to resolve str_func to a known Function instance, if possible, without any device access
         $dotpos = strpos($str_func, '.');
@@ -956,7 +1064,7 @@ class YFunctionType
             // First case: str_func is the logicalname of a function
             if (isset($this->_hwIdByName[$str_func])) {
                 return new YAPI_YReq($this->_hwIdByName[$str_func],
-                    YAPI_SUCCESS,
+                    YAPI::SUCCESS,
                     'no error',
                     $this->_hwIdByName[$str_func]);
             }
@@ -969,7 +1077,7 @@ class YFunctionType
         // quick lookup for a known pure hardware id
         if (isset($this->_valueByHwId[$str_func])) {
             return new YAPI_YReq($this->_valueByHwId[$str_func],
-                YAPI_SUCCESS,
+                YAPI::SUCCESS,
                 'no error',
                 $str_func);
         }
@@ -980,7 +1088,7 @@ class YFunctionType
             $dev = YAPI::getDevice($devid);
             if (!$dev) {
                 return new YAPI_YReq($str_func,
-                    YAPI_DEVICE_NOT_FOUND,
+                    YAPI::DEVICE_NOT_FOUND,
                     "Device [$devid] not online",
                     null);
             }
@@ -988,7 +1096,7 @@ class YFunctionType
             $res = "$serial.$funcid";
             if (isset($this->_valueByHwId[$res])) {
                 return new YAPI_YReq($res,
-                    YAPI_SUCCESS,
+                    YAPI::SUCCESS,
                     'no error',
                     $res);
             }
@@ -1000,7 +1108,7 @@ class YFunctionType
                     $name = $this->_nameByHwId[$res];
                     if ($name == $funcid) {
                         return new YAPI_YReq($res,
-                            YAPI_SUCCESS,
+                            YAPI::SUCCESS,
                             'no error',
                             $res);
                     }
@@ -1016,29 +1124,30 @@ class YFunctionType
                 //print("search for $funcid in {$this->_className} $function\n");
                 if ($function == $funcid) {
                     return new YAPI_YReq($hwid_str,
-                        YAPI_SUCCESS,
+                        YAPI::SUCCESS,
                         'no error',
                         $hwid_str);
                 }
             }
         }
         return new YAPI_YReq("$serial.$funcid",
-            YAPI_DEVICE_NOT_FOUND,
+            YAPI::DEVICE_NOT_FOUND,
             "No function [$funcid] found on device [$serial]",
             null);
     }
-    public function getFriendlyName($str_func)
+    public function getFriendlyName(string $str_func): YAPI_YReq
     {
         $resolved = $this->resolve($str_func);
-        if ($resolved->errorType != YAPI_SUCCESS) {
+        if ($resolved->errorType != YAPI::SUCCESS) {
             return $resolved;
         }
         if ($this->_className == "Module") {
             $friend = $resolved->result;
-            if (isset($this->_nameByHwId[$resolved->result]))
+            if (isset($this->_nameByHwId[$resolved->result])) {
                 $friend = $this->_nameByHwId[$resolved->result];
+            }
             return new YAPI_YReq($resolved->result,
-                YAPI_SUCCESS,
+                YAPI::SUCCESS,
                 'no error',
                 $friend);
         } else {
@@ -1048,19 +1157,20 @@ class YFunctionType
             $friend_mod_dot = strpos($friend_mod_full, '.');
             $friend_mod = ($friend_mod_dot ? substr($friend_mod_full, 0, $friend_mod_dot) : $friend_mod_full);
             $friend_func = substr($resolved->result, $pos + 1);
-            if (isset($this->_nameByHwId[$resolved->result]) && $this->_nameByHwId[$resolved->result] != '')
+            if (isset($this->_nameByHwId[$resolved->result]) && $this->_nameByHwId[$resolved->result] != '') {
                 $friend_func = $this->_nameByHwId[$resolved->result];
+            }
             return new YAPI_YReq($resolved->result,
-                YAPI_SUCCESS,
+                YAPI::SUCCESS,
                 'no error',
                 $friend_mod . '.' . $friend_func);
         }
     }
     // Retrieve a function object by hardware id, updating the indexes on the fly if needed
-    public function setFunction($str_func, $obj_func)
+    public function setFunction(string $str_func, YFunction $obj_func): void
     {
         $funres = $this->resolve($str_func);
-        if ($funres->errorType == YAPI_SUCCESS) {
+        if ($funres->errorType == YAPI::SUCCESS) {
             // the function has been located on a device
             $this->_connectedFns[$funres->result] = $obj_func;
         } else {
@@ -1069,13 +1179,14 @@ class YFunctionType
         }
     }
     // Retrieve a function object by hardware id, updating the indexes on the fly if needed
-    public function getFunction($str_func)
+    public function getFunction(string $str_func): ?YFunction
     {
         $funres = $this->resolve($str_func);
-        if ($funres->errorType == YAPI_SUCCESS) {
+        if ($funres->errorType == YAPI::SUCCESS) {
             // the function has been located on a device
-            if (isset($this->_connectedFns[$funres->result]))
+            if (isset($this->_connectedFns[$funres->result])) {
                 return $this->_connectedFns[$funres->result];
+            }
             if (isset($this->_requestedFns[$str_func])) {
                 $req_fn = $this->_requestedFns[$str_func];
                 $this->_connectedFns[$funres->result] = $req_fn;
@@ -1084,13 +1195,14 @@ class YFunctionType
             }
         } else {
             // the function is still abstract
-            if (isset($this->_requestedFns[$str_func]))
+            if (isset($this->_requestedFns[$str_func])) {
                 return $this->_requestedFns[$str_func];
+            }
         }
         return null;
     }
     // Stores a function advertised value by hardware id, queue an event if needed
-    public function setFunctionValue($str_hwid, $str_pubval)
+    public function setFunctionValue(string $str_hwid, string $str_pubval): void
     {
         if (isset($this->_valueByHwId[$str_hwid]) &&
             $this->_valueByHwId[$str_hwid] == $str_pubval) {
@@ -1099,41 +1211,46 @@ class YFunctionType
         $this->_valueByHwId[$str_hwid] = $str_pubval;
         foreach (YFunction::$_ValueCallbackList as $fun) {
             $hwId = $fun->_getHwId();
-            if (!$hwId) continue;
+            if (!$hwId) {
+                continue;
+            }
             if ($hwId == $str_hwid) {
                 YAPI::addValueEvent($fun, $str_pubval);
             }
         }
     }
     // Retrieve a function advertised value by hardware id
-    public function getFunctionValue($str_hwid)
+    public function getFunctionValue(string $str_hwid): string
     {
         return $this->_valueByHwId[$str_hwid];
     }
     // Stores a function advertised value by hardware id, queue an event if needed
-    public function setTimedReport($str_hwid, $float_timestamp, $float_duration, $arr_report)
+    public function setTimedReport(string $str_hwid, float $float_timestamp, float $float_duration, array $arr_report): void
     {
         foreach (YFunction::$_TimedReportCallbackList as $fun) {
             $hwId = $fun->_getHwId();
-            if (!$hwId) continue;
+            if (!$hwId) {
+                continue;
+            }
             if ($hwId == $str_hwid) {
                 YAPI::addTimedReportEvent($fun, $float_timestamp, $float_duration, $arr_report);
             }
         }
     }
     // Return the basetype of this function class
-    public function getBaseType()
+    public function getBaseType(): int
     {
         return $this->_baseType;
     }
-    public function matchBaseType($baseType)
+    public function matchBaseType(int $baseType): bool
     {
-        if ($baseType == 0)
+        if ($baseType == 0) {
             return true;
+        }
         return $this->_baseType == $baseType;
     }
-    // Find the the hardwareId of the first instance of a given function class
-    public function getFirstHardwareId()
+    // Find the hardwareId of the first instance of a given function class
+    public function getFirstHardwareId(): ?string
     {
         foreach (array_keys($this->_valueByHwId) as $res) {
             return $res;
@@ -1141,17 +1258,21 @@ class YFunctionType
         return null;
     }
     // Find the hardwareId for the next instance of a given function class
-    public function getNextHardwareId($str_hwid)
+    public function getNextHardwareId(string $str_hwid): ?string
     {
         foreach (array_keys($this->_valueByHwId) as $iter_hwid) {
-            if ($str_hwid == "!")
+            if ($str_hwid == "!") {
                 return $iter_hwid;
-            if ($str_hwid == $iter_hwid)
+            }
+            if ($str_hwid == $iter_hwid) {
                 $str_hwid = "!";
+            }
         }
         return null; // no more instance found
     }
 }
+//^^^^ YFunctionType.php
+//vvvv YDevice.php
 //
 // YDevice Class (used internally)
 //
@@ -1169,26 +1290,25 @@ class YFunctionType
 class YDevice
 {
     // private attributes, to be used within yocto_api only
-    protected $_rootUrl;
-    protected $_serialNumber;
-    protected $_logicalName;
-    protected $_productName;
-    protected $_productId;
-    protected $_lastTimeRef;
-    protected $_lastDuration;
-    protected $_beacon;
-    protected $_deviceTime;
-    protected $_devYdx;
-    protected $_cache;
-    protected $_functions;
-    protected $_ongoingReq;
-    public    $_lastErrorType;
-    public    $_lastErrorMsg;
-    private   $_logNeedPulling;
-    private   $_logIsPulling;
-    private   $_logCallback;
-    private   $_logpos;
-    function __construct($str_rooturl, $obj_wpRec = null, $obj_ypRecs = null)
+    protected string $_rootUrl;
+    protected string $_serialNumber;
+    protected string $_logicalName;
+    protected string $_productName;
+    protected int $_productId;
+    protected float $_lastTimeRef;
+    protected float $_lastDuration;
+    protected int $_beacon;
+    protected int $_devYdx;
+    protected array $_cache;
+    protected array $_functions;
+    protected ?YTcpReq $_ongoingReq;
+    public int $_lastErrorType;
+    public string $_lastErrorMsg;
+    private bool $_logNeedPulling;
+    private bool $_logIsPulling;
+    private mixed $_logCallback;
+    private int $_logpos;
+    function __construct(string $str_rooturl, ?array $obj_wpRec = null, ?array $obj_ypRecs = null)
     {
         $this->_rootUrl = $str_rooturl;
         $this->_serialNumber = '';
@@ -1197,10 +1317,17 @@ class YDevice
         $this->_productId = 0;
         $this->_beacon = 0;
         $this->_devYdx = -1;
-        $this->_cache = Array('_expiration' => 0, '_json' => '');
-        $this->_functions = Array();
-        $this->_lastErrorType = YAPI_SUCCESS;
+        $this->_cache = array('_expiration' => 0, '_json' => '');
+        $this->_functions = array();
+        $this->_lastErrorType = YAPI::SUCCESS;
         $this->_lastErrorMsg = 'no error';
+        $this->_ongoingReq = null;
+        $this->_logCallback = null;
+        $this->_logIsPulling = false;
+        $this->_lastTimeRef = 0;
+        $this->_lastDuration = 0;
+        $this->_logNeedPulling = false;
+        $this->_logpos = 0;
         if (!is_null($obj_wpRec)) {
             // preload values from white pages, if provided
             $this->_serialNumber = $obj_wpRec['serialNumber'];
@@ -1217,7 +1344,7 @@ class YDevice
         }
     }
     // Throw an exception, keeping track of it in the object itself
-    protected function _throw($int_errType, $str_errMsg, $obj_retVal)
+    protected function _throw(int $int_errType, string $str_errMsg, mixed $obj_retVal): mixed
     {
         $this->_lastErrorType = $int_errType;
         $this->_lastErrorMsg = $str_errMsg;
@@ -1228,7 +1355,7 @@ class YDevice
         throw new YAPI_Exception($str_errMsg, $int_errType);
     }
     // Update device cache and YAPI function lists from yp records
-    protected function _updateFromYP($obj_ypRecs)
+    protected function _updateFromYP(array $obj_ypRecs): void
     {
         $funidx = 0;
         foreach ($obj_ypRecs as $ypRec) {
@@ -1241,63 +1368,65 @@ class YDevice
                     } else {
                         $funydx = $funidx;
                     }
-                    $this->_functions[$funydx] = Array(substr($hwid, $dotpos + 1), $rec["logicalName"]);
+                    $this->_functions[$funydx] = array(substr($hwid, $dotpos + 1), $rec["logicalName"]);
                 }
             }
         }
     }
     // Return the root URL used to access a device (including the trailing slash)
-    public function getRootUrl()
+    public function getRootUrl(): string
     {
         return $this->_rootUrl;
     }
     // Return the serial number of the device, as found during discovery
-    public function getSerialNumber()
+    public function getSerialNumber(): string
     {
         return $this->_serialNumber;
     }
     // Return the logical name of the device, as found during discovery
-    public function getLogicalName()
+    public function getLogicalName(): string
     {
         return $this->_logicalName;
     }
     // Return the product name of the device, as found during discovery
-    public function getProductName()
+    public function getProductName(): string
     {
         return $this->_productName;
     }
     // Return the product Id of the device, as found during discovery
-    public function getProductId()
+    public function getProductId(): int
     {
         return $this->_productId;
     }
     // Return the beacon state of the device, as found during discovery
-    public function getBeacon()
+    public function getBeacon(): int
     {
         return $this->_beacon;
     }
-    public function getLastTimeRef()
+    public function getLastTimeRef(): float
     {
         return $this->_lastTimeRef;
     }
-    public function getLastDuration()
+    public function getLastDuration(): float
     {
         return $this->_lastDuration;
     }
-    public function setTimeRef($float_timestamp, $float_duration)
+    public function setTimeRef(float $float_timestamp, float $float_duration)
     {
         $this->_lastTimeRef = $float_timestamp;
         $this->_lastDuration = $float_duration;
     }
-    public function triggerLogPull()
+    public function triggerLogPull(): void
     {
         if ($this->_logCallback == null || $this->_logIsPulling) {
             return;
         }
         $this->_logIsPulling = true;
-        $request = "GET logs.txt?pos=" . $this->_logpos;
+        $request = "GET /logs.txt?pos=" . $this->_logpos;
         $yreq = YAPI::devRequest($this->_rootUrl, $request);
-        if ($yreq->errorType != YAPI_SUCCESS) return;
+        if ($yreq->errorType != YAPI::SUCCESS) {
+            return;
+        }
         if ($this->_logCallback == null) {
             $this->_logIsPulling = false;
             return;
@@ -1320,11 +1449,11 @@ class YDevice
         }
         $this->_logIsPulling = false;
     }
-    public function setDeviceLogPending()
+    public function setDeviceLogPending(): void
     {
         $this->_logNeedPulling = true;
     }
-    public function registerLogCallback($obj_callback)
+    public function registerLogCallback(?callable $obj_callback): void
     {
         $this->_logCallback = $obj_callback;
         if ($obj_callback != null) {
@@ -1332,12 +1461,12 @@ class YDevice
         }
     }
     // Return the hub-specific devYdx of the device, as found during discovery
-    public function getDevYdx()
+    public function getDevYdx(): int
     {
         return $this->_devYdx;
     }
     // Return a string that describes the device (serial number, logical name or root URL)
-    public function describe()
+    public function describe(): string
     {
         $res = $this->_rootUrl;
         if ($this->_serialNumber != '') {
@@ -1348,7 +1477,7 @@ class YDevice
         }
         return $this->_productName . ' ' . $res;
     }
-    public function prepRequest($tcpreq)
+    public function prepRequest(YTcpReq $tcpreq): void
     {
         if (!is_null($this->_ongoingReq)) {
             while (!$this->_ongoingReq->eof()) {
@@ -1357,11 +1486,11 @@ class YDevice
         }
         $this->_ongoingReq = $tcpreq;
     }
-    public function requestAPI()
+    public function requestAPI(): YAPI_YReq
     {
         if ($this->_cache['_expiration'] > YAPI::GetTickCount()) {
             return new YAPI_YReq($this->_serialNumber . ".module",
-                YAPI_SUCCESS, 'no error', $this->_cache['_json'], $this->_cache['_precooked']);
+                YAPI::SUCCESS, 'no error', $this->_cache['_json'], $this->_cache['_precooked']);
         }
         $req = 'GET /api.json';
         $use_jzon = false;
@@ -1370,11 +1499,13 @@ class YDevice
             $use_jzon = true;
         }
         $yreq = YAPI::devRequest($this->_rootUrl, $req);
-        if ($yreq->errorType != YAPI_SUCCESS) return $yreq;
+        if ($yreq->errorType != YAPI::SUCCESS) {
+            return $yreq;
+        }
         $json_req = json_decode(iconv("ISO-8859-1", "UTF-8", $yreq->result), true);
         if (json_last_error() != JSON_ERROR_NONE) {
-            return $this->_throw(YAPI_IO_ERROR, 'Request failed, could not parse API result for ' . $this->_rootUrl,
-                YAPI_IO_ERROR);
+            return $this->_throw(YAPI::IO_ERROR, 'Request failed, could not parse API result for ' . $this->_rootUrl,
+                YAPI::IO_ERROR);
         }
         if ($use_jzon && !key_exists('module', $json_req)) {
             $decoded = YTcpHub::decodeJZON($json_req, $this->_cache['_precooked']);
@@ -1384,16 +1515,16 @@ class YDevice
             $this->_cache['_json'] = $yreq->result;
             $this->_cache['_precooked'] = $json_req;
         }
-        $this->_cache['_expiration'] = YAPI::GetTickCount() + YAPI::$defaultCacheValidity;
+        $this->_cacheExpiration = YAPI::GetTickCount() + YAPI::$defaultCacheValidity;
         return new YAPI_YReq($this->_serialNumber . ".module",
-            YAPI_SUCCESS, 'no error', $this->_cache['_json'], $this->_cache['_precooked']);
+            YAPI::SUCCESS, 'no error', $this->_cache['_json'], $this->_cache['_precooked']);
     }
     // Reload a device API (store in cache), and update YAPI function lists accordingly
     // Intended to be called within UpdateDeviceList only
-    public function refresh()
+    public function refresh(): int
     {
         $yreq = $this->requestAPI();
-        if ($yreq->errorType != YAPI_SUCCESS) {
+        if ($yreq->errorType != YAPI::SUCCESS) {
             return $this->_throw($yreq->errorType, $yreq->errorMsg, $yreq->errorType);
         }
         $loadval = $yreq->obj_result;
@@ -1407,7 +1538,7 @@ class YDevice
                     $this->_productName = $iface['productName'];
                     $this->_productId = $iface['productId'];
                     $this->_beacon = $iface['beacon'];
-                } else if ($func == 'services') {
+                } elseif ($func == 'services') {
                     $this->_updateFromYP($iface['yellowPages']);
                 }
             }
@@ -1421,11 +1552,12 @@ class YDevice
                         $reindex = true;
                     }
                     $this->_beacon = $iface['beacon'];
-                } else if ($func != 'services') {
-                    if (isset($iface[$func]['logicalName']))
+                } elseif ($func != 'services') {
+                    if (isset($iface[$func]['logicalName'])) {
                         $name = $iface[$func]['logicalName'];
-                    else
+                    } else {
                         $name = $this->_logicalName;
+                    }
                     if (isset($iface[$func]['advertisedValue'])) {
                         $pubval = $iface[$func]['advertisedValue'];
                         YAPI::setFunctionValue($this->_serialNumber . '.' . $func, $pubval);
@@ -1445,25 +1577,25 @@ class YDevice
         if ($reindex) {
             YAPI::reindexDevice($this);
         }
-        return YAPI_SUCCESS;
+        return YAPI::SUCCESS;
     }
     // Force the REST API string in cache to expire immediately
-    public function dropCache()
+    public function dropCache(): void
     {
         $this->_cache['_expiration'] = 0;
     }
-    public function functionCount()
+    public function functionCount(): int
     {
         $funcPos = 0;
-        foreach ($this->_functions as $funydx => $fundef) {
+        foreach ($this->_functions as $fundef) {
             $funcPos++;
         }
         return $funcPos;
     }
-    public function functionId($functionIndex)
+    public function functionId(int $functionIndex): string
     {
         $funcPos = 0;
-        foreach ($this->_functions as $funydx => $fundef) {
+        foreach ($this->_functions as $fundef) {
             if ($functionIndex == $funcPos) {
                 return $fundef[0];
             }
@@ -1471,7 +1603,7 @@ class YDevice
         }
         return '';
     }
-    public function functionBaseType($functionIndex)
+    public function functionBaseType(int $functionIndex): string
     {
         $fid = $this->functionId($functionIndex);
         if ($fid != '') {
@@ -1484,12 +1616,12 @@ class YDevice
         }
         return 'Function';
     }
-    public function functionType($functionIndex)
+    public function functionType(int $functionIndex): string
     {
         $fid = $this->functionId($functionIndex);
         if ($fid != '') {
             for ($i = strlen($fid); $i > 0; $i--) {
-                if ($fid[$i-1] > '9') {
+                if ($fid[$i - 1] > '9') {
                     break;
                 }
             }
@@ -1497,10 +1629,10 @@ class YDevice
         }
         return '';
     }
-    public function functionName($functionIndex)
+    public function functionName(int $functionIndex): string
     {
         $funcPos = 0;
-        foreach ($this->_functions as $funydx => $fundef) {
+        foreach ($this->_functions as $fundef) {
             if ($functionIndex == $funcPos) {
                 return $fundef[1];
             }
@@ -1508,7 +1640,7 @@ class YDevice
         }
         return '';
     }
-    public function functionValue($functionIndex)
+    public function functionValue(int $functionIndex): string
     {
         $fid = $this->functionId($functionIndex);
         if ($fid != '') {
@@ -1516,104 +1648,193 @@ class YDevice
         }
         return '';
     }
-    public function functionIdByFunYdx($funYdx)
+    public function functionIdByFunYdx(int $funYdx): string
     {
-        if(isset($this->_functions[$funYdx])) {
+        if (isset($this->_functions[$funYdx])) {
             return $this->_functions[$funYdx][0];
         }
         return '';
     }
 }
+//^^^^ YDevice.php
 //--- (generated code: YAPIContext definitions)
 //--- (end of generated code: YAPIContext definitions)
 //--- (generated code: YAPIContext declaration)
+//vvvv YAPIContext.php
 class YAPIContext
 {
     //--- (end of generated code: YAPIContext declaration)
-    public $_deviceListValidityMs = 10000;                        // ulong
-    public $_networkTimeoutMs = YAPI_BLOCKING_REQUEST_TIMEOUT;
+    public float $_deviceListValidityMs = 10000;                        // ulong
+    public int $_networkTimeoutMs = YAPI_BLOCKING_REQUEST_TIMEOUT;
     //--- (generated code: YAPIContext attributes)
-    protected $_defaultCacheValidity     = 5;                            // ulong
+    protected float $_defaultCacheValidity = 5;                            // ulong
     //--- (end of generated code: YAPIContext attributes)
+    private array $_yhub_cache = [];
     function __construct()
     {
         //--- (generated code: YAPIContext constructor)
         //--- (end of generated code: YAPIContext constructor)
     }
-    private function AddUdevRule_internal($force)
+    private function AddUdevRule_internal(bool $force): string
     {
         return "error: Not supported in PHP";
     }
     //--- (generated code: YAPIContext implementation)
-    public function SetDeviceListValidity($deviceListValidity)
+    public function SetDeviceListValidity(int $deviceListValidity): void
     {
         $this->SetDeviceListValidity_internal($deviceListValidity);
     }
     //cannot be generated for PHP:
-    //private function SetDeviceListValidity_internal($deviceListValidity)
-    public function GetDeviceListValidity()
+    //private function SetDeviceListValidity_internal(int $deviceListValidity)
+    public function GetDeviceListValidity(): int
     {
         return $this->GetDeviceListValidity_internal();
     }
     //cannot be generated for PHP:
     //private function GetDeviceListValidity_internal()
-    public function AddUdevRule($force)
+    public function AddUdevRule(bool $force): string
     {
         return $this->AddUdevRule_internal($force);
     }
     //cannot be generated for PHP:
-    //private function AddUdevRule_internal($force)
-    public function SetNetworkTimeout($networkMsTimeout)
+    //private function AddUdevRule_internal(bool $force)
+    public function SetNetworkTimeout(int $networkMsTimeout): void
     {
         $this->SetNetworkTimeout_internal($networkMsTimeout);
     }
     //cannot be generated for PHP:
-    //private function SetNetworkTimeout_internal($networkMsTimeout)
-    public function GetNetworkTimeout()
+    //private function SetNetworkTimeout_internal(int $networkMsTimeout)
+    public function GetNetworkTimeout(): int
     {
         return $this->GetNetworkTimeout_internal();
     }
     //cannot be generated for PHP:
     //private function GetNetworkTimeout_internal()
-    public function SetCacheValidity($cacheValidityMs)
+    public function SetCacheValidity(float $cacheValidityMs): void
     {
         $this->_defaultCacheValidity = $cacheValidityMs;
     }
-    public function GetCacheValidity()
+    public function GetCacheValidity(): float
     {
         return $this->_defaultCacheValidity;
     }
+    public function nextHubInUseInternal(int $hubref): ?YHub
+    {
+        return $this->nextHubInUseInternal_internal($hubref);
+    }
+    //cannot be generated for PHP:
+    //private function nextHubInUseInternal_internal(int $hubref)
+    public function getYHubObj(int $hubref): ?YHub
+    {
+        // $obj                    is a YHub;
+        $obj = $this->_findYHubFromCache($hubref);
+        if ($obj == null) {
+            $obj = new YHub($this, $hubref);
+            $this->_addYHubToCache($hubref, $obj);
+        }
+        return $obj;
+    }
     //--- (end of generated code: YAPIContext implementation)
-    public function SetDeviceListValidity_internal($deviceListValidity)
+    private function nextHubInUseInternal_internal(int $hubref): ?YHub
+    {
+        $nextref = YAPI::nextHubRef($hubref);
+        if ($nextref >= 0) {
+            return $this->getYHubObj($nextref);
+        }
+        return null;
+    }
+    private function _findYHubFromCache(int $hubref): ?YHub
+    {
+        if (array_key_exists($hubref, $this->_yhub_cache)) {
+            return $this->_yhub_cache[$hubref];
+        }
+        return null;
+    }
+    private function _addYHubToCache(int $hubref, YHub $obj): void
+    {
+        $this->_yhub_cache[$hubref] = $obj;
+    }
+    public function SetDeviceListValidity_internal(float $deviceListValidity): void
     {
         $this->_deviceListValidityMs = $deviceListValidity * 1000;
     }
-    public function GetDeviceListValidity_internal()
+    public function GetDeviceListValidity_internal(): float
     {
         return intval($this->_deviceListValidityMs / 1000);
     }
-    public function SetNetworkTimeout_internal($networkMsTimeout)
+    public function SetNetworkTimeout_internal(float $networkMsTimeout): void
     {
         $this->_networkTimeoutMs = $networkMsTimeout;
     }
-    public function GetNetworkTimeout_internal()
+    public function GetNetworkTimeout_internal(): int
     {
         return $this->_networkTimeoutMs;
     }
+    public function getTcpHubFromRef(int $hubref): ?YTcpHub
+    {
+        return YAPI::getTcpHubFromRef($hubref);
+    }
 }
+//^^^^ YAPIContext.php
+//vvvv YAPI.php
 //
 // YAPI Context
 //
 // This class provides the high-level entry points to access Functions, stores
 // an indexes instances of the Device object and of FunctionType collections.
 //
+const NOTIFY_NETPKT_NAME = '0';
+const NOTIFY_NETPKT_CHILD = '2';
+const NOTIFY_NETPKT_FUNCNAME = '4';
+const NOTIFY_NETPKT_FUNCVAL = '5';
+const NOTIFY_NETPKT_LOG = '7';
+const NOTIFY_NETPKT_FUNCNAMEYDX = '8';
+const NOTIFY_NETPKT_CONFCHGYDX = 's';
+const NOTIFY_NETPKT_FLUSHV2YDX = 't';
+const NOTIFY_NETPKT_FUNCV2YDX = 'u';
+const NOTIFY_NETPKT_TIMEV2YDX = 'v';
+const NOTIFY_NETPKT_DEVLOGYDX = 'w';
+const NOTIFY_NETPKT_TIMEVALYDX = 'x';
+const NOTIFY_NETPKT_FUNCVALYDX = 'y';
+const NOTIFY_NETPKT_TIMEAVGYDX = 'z';
+const NOTIFY_NETPKT_NOT_SYNC = '@';
+const NOTIFY_NETPKT_STOP = 10; // =\n
+const NOTIFY_V2_LEGACY = 0;       // unused (reserved for compatibility with legacy notifications)
+const NOTIFY_V2_6RAWBYTES = 1;    // largest type: data is always 6 bytes
+const NOTIFY_V2_TYPEDDATA = 2;    // other types: first data byte holds the decoding format
+const NOTIFY_V2_FLUSHGROUP = 3;   // no data associated
+const PUBVAL_LEGACY = 0;   // 0-6 ASCII characters (normally sent as YSTREAM_NOTICE)
+const PUBVAL_1RAWBYTE = 1;   // 1 raw byte  (=2 characters)
+const PUBVAL_2RAWBYTES = 2;   // 2 raw bytes (=4 characters)
+const PUBVAL_3RAWBYTES = 3;   // 3 raw bytes (=6 characters)
+const PUBVAL_4RAWBYTES = 4;   // 4 raw bytes (=8 characters)
+const PUBVAL_5RAWBYTES = 5;   // 5 raw bytes (=10 characters)
+const PUBVAL_6RAWBYTES = 6;   // 6 hex bytes (=12 characters) (sent as V2_6RAWBYTES)
+const PUBVAL_C_LONG = 7;   // 32-bit C signed integer
+const PUBVAL_C_FLOAT = 8;   // 32-bit C float
+const PUBVAL_YOCTO_FLOAT_E3 = 9;   // 32-bit Yocto fixed-point format (e-3)
+const PUBVAL_YOCTO_FLOAT_E6 = 10;   // 32-bit Yocto fixed-point format (e-6)
+// Calibration types
+const YOCTO_CALIB_TYPE_OFS = 30;
+// Maximum device request timeout
+const YAPI_BLOCKING_REQUEST_TIMEOUT = 20000;
+const YIO_DEFAULT_TCP_TIMEOUT = 20000;
+const YIO_1_MINUTE_TCP_TIMEOUT = 60000;
+const YIO_10_MINUTES_TCP_TIMEOUT = 600000;
+const YOCTO_PUBVAL_LEN = 16;
+const YOCTO_PUBVAL_SIZE = 6;
+const YOCTO_SERIAL_LEN = 20;
+const YOCTO_BASE_SERIAL_LEN = 8;
 class YAPI
 {
-    const INVALID_STRING = YAPI_INVALID_STRING;
-    const INVALID_INT = YAPI_INVALID_INT;
-    const INVALID_UINT = YAPI_INVALID_UINT;
-    const INVALID_DOUBLE = YAPI_INVALID_DOUBLE;
-    const INVALID_LONG = YAPI_INVALID_LONG;
+    const INVALID_STRING = "!INVALID!";
+    const INVALID_INT = 0x7fffffff;
+    const INVALID_UINT = -1;
+    const INVALID_DOUBLE = -66666666.66666666;
+    const INVALID_LONG = 0x7fffffffffffffff;
+    const HASH_BUF_SIZE = 28;
+    const MIN_DOUBLE = -INF;
+    const MAX_DOUBLE = INF;
 //--- (generated code: YFunction return codes)
     const SUCCESS               = 0;       // everything worked all right
     const NOT_INITIALIZED       = -1;      // call yInitAPI() first !
@@ -1638,62 +1859,91 @@ class YAPI
     const DETECT_NET = 2;
     const DETECT_ALL = 3;
     // Abstract function BaseTypes
-    public static $BASETYPES = Array('Function' => 0,
-        'Sensor' => 1);
-    protected static $_hubs;           // array of root urls
-    protected static $_devs;           // hash table of devices, by serial number
-    protected static $_snByUrl;        // serial number for each device, by URL
-    protected static $_snByName;       // serial number for each device, by name
-    protected static $_fnByType;       // functions by type
-    protected static $_lastErrorType;
-    protected static $_lastErrorMsg;
-    protected static $_firstArrival;
-    protected static $_pendingCallbacks;
-    protected static $_arrivalCallback;
-    protected static $_namechgCallback;
-    protected static $_removalCallback;
-    protected static $_data_events;
-    protected static $_pendingRequests;
-    protected static $_beacons;
-    protected static $_calibHandlers;
-    protected static $_decExp;
-    static $_jzonCacheDir;
-    static $_yapiContext;
+    public static array $BASETYPES = array(
+        'Function' => 0,
+        'Sensor' => 1
+    );
+    private static ?array $_hubs = null;           // array of root urls
+    protected static array $_devs = [];           // hash table of devices, by serial number
+    protected static array $_snByUrl = [];        // serial number for each device, by URL
+    protected static array $_snByName = [];       // serial number for each device, by name
+    protected static array $_fnByType;       // functions by type
+    protected static int $_lastErrorType;
+    protected static string $_lastErrorMsg;
+    protected static bool $_firstArrival;
+    protected static array $_pendingCallbacks;
+    protected static mixed $_arrivalCallback;
+    protected static mixed $_namechgCallback;
+    protected static mixed $_removalCallback;
+    protected static array $_data_events;
+    protected static array $_pendingRequests;
+    protected static array $_beacons;
+    protected static array $_calibHandlers;
+    protected static array $_decExp;
+    public static ?string $_jzonCacheDir;
+    public static YAPIContext $_yapiContext;
     // PUBLIC GLOBAL SETTINGS
     // Default cache validity (in [ms]) before reloading data from device. This saves a lots of trafic.
     // Note that a value under 2 ms makes little sense since a USB bus itself has a 2ms roundtrip period
-    public static $defaultCacheValidity = 5;
+    public static float $defaultCacheValidity = 5;
     // Switch to turn off exceptions and use return codes instead, for source-code compatibility
     // with languages without exception support like C
-    public static $exceptionsDisabled = false;  // set to true if you want error codes instead of exceptions
-    public static function _init()
+    public static bool $exceptionsDisabled = false;  // set to true if you want error codes instead of exceptions
+    public static function _init(): void
     {
         // private
-        self::$_hubs = Array();
-        self::$_devs = Array();
-        self::$_snByUrl = Array();
-        self::$_snByName = Array();
-        self::$_fnByType = Array();
-        self::$_lastErrorType = YAPI_SUCCESS;
+        self::$_hubs = array();
+        self::$_devs = array();
+        self::$_snByUrl = array();
+        self::$_snByName = array();
+        self::$_fnByType = array();
+        self::$_lastErrorType = YAPI::SUCCESS;
         self::$_lastErrorMsg = 'no error';
         self::$_firstArrival = true;
-        self::$_pendingCallbacks = Array();
+        self::$_pendingCallbacks = array();
         self::$_arrivalCallback = null;
         self::$_namechgCallback = null;
         self::$_removalCallback = null;
-        self::$_data_events = Array();
-        self::$_pendingRequests = Array();
+        self::$_data_events = array();
+        self::$_pendingRequests = array();
         self::$_beacons = array();
         self::$_jzonCacheDir = null;
         self::$_yapiContext = new YAPIContext();
-        self::$_decExp = Array(
-            1.0e-6, 1.0e-5, 1.0e-4, 1.0e-3, 1.0e-2, 1.0e-1, 1.0,
-            1.0e1, 1.0e2, 1.0e3, 1.0e4, 1.0e5, 1.0e6, 1.0e7, 1.0e8, 1.0e9);
+        self::$_decExp = array(
+            1.0e-6,
+            1.0e-5,
+            1.0e-4,
+            1.0e-3,
+            1.0e-2,
+            1.0e-1,
+            1.0,
+            1.0e1,
+            1.0e2,
+            1.0e3,
+            1.0e4,
+            1.0e5,
+            1.0e6,
+            1.0e7,
+            1.0e8,
+            1.0e9
+        );
         self::$_fnByType['Module'] = new YFunctionType('Module');
+        for ($yHdlrIdx = 1; $yHdlrIdx <= 20; $yHdlrIdx++) {
+            YAPI::RegisterCalibrationHandler($yHdlrIdx, 'YAPI::LinearCalibrationHandler');
+        }
+        YAPI::RegisterCalibrationHandler(YOCTO_CALIB_TYPE_OFS, 'YAPI::LinearCalibrationHandler');
         register_shutdown_function('YAPI::flushConnections');
     }
-    // Throw an exception, keeping track of it in the object itself
-    protected static function _throw($int_errType, $str_errMsg, $obj_retVal)
+    // numeric strpos helper
+    public static function Ystrpos(string $haystack, string $needle): int
+    {
+        $res = strpos($haystack, $needle);
+        if ($res === false) {
+            $res = -1;
+        }
+        return $res;
+    }
+    protected static function _throw(int $int_errType, string $str_errMsg, mixed $obj_retVal): mixed
     {
         self::$_lastErrorType = $int_errType;
         self::$_lastErrorMsg = $str_errMsg;
@@ -1704,7 +1954,7 @@ class YAPI
         throw new YAPI_Exception($str_errMsg, $int_errType);
     }
     // Update the list of known devices internally
-    public static function _updateDeviceList_internal($bool_forceupdate, $bool_invokecallbacks)
+    public static function _updateDeviceList_internal(bool $bool_forceupdate, bool $bool_invokecallbacks): YAPI_YReq
     {
         if (self::$_firstArrival && $bool_invokecallbacks && !is_null(self::$_arrivalCallback)) {
             $bool_forceupdate = true;
@@ -1716,20 +1966,26 @@ class YAPI
             }
         }
         // Prepare to scan all expired hubs
-        $hubs = Array();
+        $hubs = array();
         foreach (self::$_hubs as $hub) {
+            if (!$hub->isEnable()) {
+                continue;
+            }
             if ($hub->devListExpires <= $now) {
-                $tcpreq = new YTcpReq($hub, 'GET /api.json', false, '', YAPI::$_yapiContext->_networkTimeoutMs);
+                $tcpreq = new YTcpReq($hub, 'GET /api.json', false, '', $hub->get_networkTimeout());
                 self::$_pendingRequests[] = $tcpreq;
                 $hubs[] = $hub;
                 $hub->devListReq = $tcpreq;
-                $hub->missing = Array();
+                $hub->missing = array();
             }
         }
         // assume all device as unpluged, unless proved wrong
         foreach (self::$_devs as $serial => $dev) {
             $rooturl = $dev->getRootUrl();
             foreach ($hubs as $hub) {
+                if (!$hub->isEnable()) {
+                    continue;
+                }
                 $huburl = $hub->rooturl;
                 if (substr($rooturl, 0, strlen($huburl)) == $huburl) {
                     $hub->missing[$serial] = true;
@@ -1742,22 +1998,25 @@ class YAPI
             self::_handleEvents_internal(100);
             $alldone = true;
             foreach ($hubs as $hub) {
+                if (!$hub->isEnable()) {
+                    continue;
+                }
                 $req = $hub->devListReq;
                 if (!$req->eof()) {
                     $alldone = false;
                     continue;
                 }
-                if ($req->errorType != YAPI_SUCCESS) {
+                if ($req->errorType != YAPI::SUCCESS) {
                     // report problems later
                     continue;
                 }
                 $loadval = json_decode(iconv("ISO-8859-1", "UTF-8", $req->reply), true);
                 if (!$loadval) {
-                    $req->errorType = YAPI_IO_ERROR;
+                    $req->errorType = YAPI::IO_ERROR;
                     continue;
                 }
                 if (!isset($loadval['services']) || !isset($loadval['services']['whitePages'])) {
-                    $req->errorType = YAPI_INVALID_ARGUMENT;
+                    $req->errorType = YAPI::INVALID_ARGUMENT;
                     continue;
                 }
                 if (isset($loadval['network']) && isset($loadval['network']['adminPassword'])) {
@@ -1765,7 +2024,7 @@ class YAPI
                 }
                 $whitePages = $loadval['services']['whitePages'];
                 // Reindex all functions from yellow pages
-                $refresh = Array();
+                $refresh = array();
                 $yellowPages = $loadval["services"]["yellowPages"];
                 foreach ($yellowPages as $classname => $obj_yprecs) {
                     if (!isset(self::$_fnByType[$classname])) {
@@ -1786,13 +2045,17 @@ class YAPI
                 foreach ($whitePages as $devinfo) {
                     $serial = $devinfo['serialNumber'];
                     $rooturl = substr($devinfo['networkUrl'], 0, -3);
-                    if ($rooturl[0] == '/')
+                    if ($rooturl[0] == '/') {
                         $rooturl = $hub->rooturl . $rooturl;
+                    }
                     $currdev = null;
                     if (isset(self::$_devs[$serial])) {
                         $currdev = self::$_devs[$serial];
-                        if (!is_null(self::$_arrivalCallback) && self::$_firstArrival) {
-                            self::$_pendingCallbacks[] = "+$serial";
+                        foreach (YFunction::$_ValueCallbackList as $fun) {
+                            $hwId = $fun->_getHwId();
+                            if (!$hwId) {
+                                YAPI::addRefreshEvent($fun);
+                            }
                         }
                     }
                     if (isset($devinfo['index'])) {
@@ -1805,13 +2068,13 @@ class YAPI
                         if (!is_null(self::$_arrivalCallback)) {
                             self::$_pendingCallbacks[] = "+$serial";
                         }
-                    } else if ($currdev->getLogicalName() != $devinfo['logicalName']) {
+                    } elseif ($currdev->getLogicalName() != $devinfo['logicalName']) {
                         // Reindex device from its own data
                         $currdev->refresh();
                         if (!is_null(self::$_namechgCallback)) {
                             self::$_pendingCallbacks[] = "/$serial";
                         }
-                    } else if (isset($refresh[$serial]) || $currdev->getRootUrl() != $rooturl ||
+                    } elseif (isset($refresh[$serial]) || $currdev->getRootUrl() != $rooturl ||
                         $currdev->getBeacon() != $devinfo['beacon']) {
                         // Reindex device from its own data in case of discrepency
                         $currdev->refresh();
@@ -1836,7 +2099,9 @@ class YAPI
                     $hub->devListExpires = $now + 500;
                 }
             }
-            if ($alldone) break;
+            if ($alldone) {
+                break;
+            }
         }
         // after processing all hubs, invoke pending callbacks if required
         if ($bool_invokecallbacks) {
@@ -1848,19 +2113,19 @@ class YAPI
                     case '+':
                         if (!is_null(self::$_arrivalCallback)) {
                             $cb = self::$_arrivalCallback;
-                            $cb(yFindModule($serial . ".module"));
+                            $cb(YModule::FindModule($serial . ".module"));
                         }
                         break;
                     case '/':
                         if (!is_null(self::$_namechgCallback)) {
                             $cb = self::$_namechgCallback;
-                            $cb(yFindModule($serial . ".module"));
+                            $cb(YModule::FindModule($serial . ".module"));
                         }
                         break;
                     case '-':
                         if (!is_null(self::$_removalCallback)) {
                             $cb = self::$_removalCallback;
-                            $cb(yFindModule($serial . ".module"));
+                            $cb(YModule::FindModule($serial . ".module"));
                         }
                         self::forgetDevice(self::$_devs[$serial]);
                         break;
@@ -1873,20 +2138,26 @@ class YAPI
         }
         // report any error seen during scan
         foreach ($hubs as $hub) {
+            if (!$hub->isEnable()) {
+                continue;
+            }
             $req = $hub->devListReq;
-            if ($req->errorType != YAPI_SUCCESS) {
+            if ($req->errorType != YAPI::SUCCESS) {
                 return new YAPI_YReq("", $req->errorType,
                     'Error while scanning ' . $hub->rooturl . ': ' . $req->errorMsg,
                     $req->errorType);
             }
         }
-        return new YAPI_YReq("", YAPI_SUCCESS, "no error", YAPI_SUCCESS);
+        return new YAPI_YReq("", YAPI::SUCCESS, "no error", YAPI::SUCCESS);
     }
-    public static function _handleEvents_internal($int_maxwait)
+    public static function _handleEvents_internal(int $int_maxwait): bool
     {
         $something_done = false;
         // start event monitoring if needed
         foreach (self::$_hubs as $hub) {
+            if (!$hub->isEnable()) {
+                continue;
+            }
             $req = $hub->notifReq;
             if ($req) {
                 if ($req->eof()) {
@@ -1895,18 +2166,18 @@ class YAPI
                     $hub->notifReq = $req = null;
                     self::monitorEvents($hub);
                 }
-            } else if ($hub->retryExpires > 0 && $hub->retryExpires <= self::GetTickCount()) {
+            } elseif ($hub->retryExpires > 0 && $hub->retryExpires <= self::GetTickCount()) {
                 Printf("RetryExpires, calling monitorEvents\n");
                 $something_done = true;
                 self::monitorEvents($hub);
             }
         }
         // Monitor all pending request for logs
-        foreach (self::$_devs as $serial => $dev) {
+        foreach (self::$_devs as $dev) {
             $dev->triggerLogPull();
         }
         // monitor all pending requests
-        $streams = Array();
+        $streams = array();
         foreach (self::$_pendingRequests as $req) {
             if (is_null($req->skt) || !is_resource($req->skt)) {
                 $req->process();
@@ -1919,8 +2190,8 @@ class YAPI
             usleep($int_maxwait * 1000);
             return false;
         }
-        $wr = NULL;
-        $ex = NULL;
+        $wr = null;
+        $ex = null;
         if (false === ($select_res = stream_select($streams, $wr, $ex, 0, $int_maxwait * 1000))) {
             Printf("stream_select error\n");
             return false;
@@ -1984,7 +2255,7 @@ class YAPI
                                         case NOTIFY_NETPKT_TIMEAVGYDX:
                                         case NOTIFY_NETPKT_TIMEV2YDX:
                                             // timed value report
-                                            $arr = Array($firstCode == 'x' ? 0 : ($firstCode == 'z' ? 1 : 2));
+                                            $arr = array($firstCode == 'x' ? 0 : ($firstCode == 'z' ? 1 : 2));
                                             for ($pos = 0; $pos < strlen($value); $pos += 2) {
                                                 $arr[] = hexdec(substr($value, $pos, 2));
                                             }
@@ -2024,7 +2295,7 @@ class YAPI
                                 }
                             }
                         }
-                    } else if (strlen($ev) > 5 && substr($ev, 0, 4) == 'YN01') {
+                    } elseif (strlen($ev) > 5 && substr($ev, 0, 4) == 'YN01') {
                         $hub->isNotifWorking = true;
                         $hub->retryDelay = 15;
                         if ($hub->notifPos >= 0) {
@@ -2037,7 +2308,7 @@ class YAPI
                             switch (intVal($notype)) {
                                 case 0: // device name change, or arrival
                                     $parts = explode(',', substr($ev, 5));
-                                    YAPI::setBeaconChange($parts[0], $parts[2]);
+                                    YAPI::setBeaconChange($parts[0], intval($parts[2]));
                                 // no break on purpose
                                 case 2: // device plug/unplug
                                 case 4: // function name change
@@ -2062,29 +2333,40 @@ class YAPI
         }
         return $something_done;
     }
-    public static function flushConnections()
+    public static function flushConnections(): void
     {
         foreach (self::$_pendingRequests as $req) {
             if ($req->async) {
                 while (!$req->eof()) {
-                    self::_handleEvents_internal(200);
+                    try {
+                        self::_handleEvents_internal(200);
+                    } catch (YAPI_Exception $ignore) {
+                    }
                 }
             }
         }
     }
-    public static function monitorEvents($hub)
+    public static function monitorEvents(YTcpHub $hub): void
     {
-        if (!is_null($hub->notifReq)) return;
-        if ($hub->retryExpires > self::GetTickCount()) return;
-        if ($hub->isCachedHub()) return;
+        if (!is_null($hub->notifReq)) {
+            return;
+        }
+        if ($hub->retryExpires > self::GetTickCount()) {
+            return;
+        }
+        if ($hub->isCachedHub()) {
+            return;
+        }
         $url = $hub->notifurl . '?len=0';
-        if ($hub->notifPos >= 0) $url .= '&abs=' . $hub->notifPos;
+        if ($hub->notifPos >= 0) {
+            $url .= '&abs=' . $hub->notifPos;
+        }
         $req = new YTcpReq($hub, 'GET /' . $url, false);
         $errmsg = '';
-        if ($req->process($errmsg) != YAPI_SUCCESS) {
+        if ($req->process($errmsg) != YAPI::SUCCESS) {
             if ($hub->retryDelay == 0) {
                 $hub->retryDelay = 15;
-            } else if ($hub->retryDelay < 15000) {
+            } elseif ($hub->retryDelay < 15000) {
                 $hub->retryDelay = 2 * $hub->retryDelay;
             }
             $hub->retryExpires = self::GetTickCount() + $hub->retryDelay;
@@ -2095,15 +2377,17 @@ class YAPI
     }
     // Convert Yoctopuce 16-bit decimal floats to standard double-precision floats
     //
-    public static function _decimalToDouble($val)
+    public static function _decimalToDouble(int $val): float
     {
         $negate = false;
         $mantis = $val & 2047;
-        if ($mantis == 0) return 0.0;
+        if ($mantis == 0) {
+            return 0.0;
+        }
         if ($val > 32767) {
             $negate = true;
             $val = 65536 - $val;
-        } else if ($val < 0) {
+        } elseif ($val < 0) {
             $negate = true;
             $val = -$val;
         }
@@ -2117,7 +2401,7 @@ class YAPI
     }
     // Convert standard double-precision floats to Yoctopuce 16-bit decimal floats
     //
-    public static function _doubleToDecimal($val)
+    public static function _doubleToDecimal(float $val): float
     {
         $negate = false;
         if ($val == 0.0) {
@@ -2140,8 +2424,8 @@ class YAPI
         }
         return ($negate ? -$res : $res);
     }
-    // Return a the calibration handler for a given type
-    public static function _getCalibrationHandler($calibType)
+    // Return the calibration handler for a given type
+    public static function _getCalibrationHandler(int $calibType): ?callable
     {
         if (!isset(self::$_calibHandlers[strVal($calibType)])) {
             return null;
@@ -2149,22 +2433,22 @@ class YAPI
         return self::$_calibHandlers[strVal($calibType)];
     }
     // Parse an array of u16 encoded in a base64-like string with memory-based compresssion
-    public static function _decodeWords($data)
+    public static function _decodeWords(string $data): array
     {
         $datalen = strlen($data);
-        $udata = Array();
+        $udata = array();
         for ($i = 0; $i < $datalen;) {
             $c = $data[$i];
             if ($c == '*') {
                 $val = 0;
                 $i++;
-            } else if ($c == 'X') {
+            } elseif ($c == 'X') {
                 $val = 0xffff;
                 $i++;
-            } else if ($c == 'Y') {
+            } elseif ($c == 'Y') {
                 $val = 0x7fff;
                 $i++;
-            } else if ($c >= 'a') {
+            } elseif ($c >= 'a') {
                 $srcpos = sizeof($udata) - 1 - (ord($data[$i++]) - 97);
                 if ($srcpos < 0) {
                     $val = 0;
@@ -2172,10 +2456,14 @@ class YAPI
                     $val = $udata[$srcpos];
                 }
             } else {
-                if ($i + 2 > $datalen) return YAPI_IO_ERROR;
+                if ($i + 2 > $datalen) {
+                    return [];
+                }
                 $val = ord($data[$i++]) - 48;
                 $val += (ord($data[$i++]) - 48) << 5;
-                if ($data[$i] == 'z') $data[$i] = '\\';
+                if ($data[$i] == 'z') {
+                    $data[$i] = '\\';
+                }
                 $val += (ord($data[$i++]) - 48) << 10;
             }
             $udata[] = $val;
@@ -2183,10 +2471,10 @@ class YAPI
         return $udata;
     }
     // Parse an array of u16 encoded in a base64-like string with memory-based compresssion
-    public static function _decodeFloats($data)
+    public static function _decodeFloats(string $data): array
     {
         $datalen = strlen($data);
-        $idata = Array();
+        $idata = array();
         $p = 0;
         while ($p < $datalen) {
             $val = 0;
@@ -2210,7 +2498,7 @@ class YAPI
             while (($c >= '0' && $c <= '9') || $c == '.') {
                 if ($c == '.') {
                     $decInc = 1;
-                } else if ($dec < 3) {
+                } elseif ($dec < 3) {
                     $val = $val * 10 + (ord($c) - 48);
                     $dec += $decInc;
                 }
@@ -2221,19 +2509,23 @@ class YAPI
                 }
             }
             if ($dec < 3) {
-                if ($dec == 0) $val *= 1000;
-                else if ($dec == 1) $val *= 100;
-                else $val *= 10;
+                if ($dec == 0) {
+                    $val *= 1000;
+                } elseif ($dec == 1) {
+                    $val *= 100;
+                } else {
+                    $val *= 10;
+                }
             }
             $idata[] = $sign * $val;
         }
         return $idata;
     }
-    public static function _bytesToHexStr($data)
+    public static function _bytesToHexStr(string $data): string
     {
         return strtoupper(bin2hex($data));
     }
-    public static function _hexStrToBin($data)
+    public static function _hexStrToBin(string $data): string
     {
         $pos = 0;
         $result = '';
@@ -2244,10 +2536,10 @@ class YAPI
         }
         return $result;
     }
-    public static function getDevice($str_device)
+    public static function getDevice(string $str_device): ?YDevice
     {
         $dev = null;
-        if (substr($str_device, 0, 7) == 'http://') {
+        if (substr($str_device, 0, 7) == 'http://' || substr($str_device, 0, 8) == 'https://') {
             if (isset(self::$_snByUrl[$str_device])) {
                 $serial = self::$_snByUrl[$str_device];
                 if (isset(self::$_devs[$serial])) {
@@ -2270,10 +2562,12 @@ class YAPI
     }
     // Return the class name for a given function ID or full Hardware Id
     // Also make sure that the function type is registered in the API
-    public static function functionClass($str_funcid)
+    public static function functionClass(string $str_funcid): string
     {
         $dotpos = strpos($str_funcid, '.');
-        if ($dotpos !== false) $str_funcid = substr($str_funcid, $dotpos + 1);
+        if ($dotpos !== false) {
+            $str_funcid = substr($str_funcid, $dotpos + 1);
+        }
         $classlen = strlen($str_funcid);
         while (ord($str_funcid[$classlen - 1]) <= 57) {
             $classlen--;
@@ -2285,14 +2579,16 @@ class YAPI
         return $classname;
     }
     // Reindex a device in YAPI after a name change detected by device refresh
-    public static function reindexDevice($obj_dev)
+    public static function reindexDevice(YDevice $obj_dev): void
     {
         $rootUrl = $obj_dev->getRootUrl();
         $serial = $obj_dev->getSerialNumber();
         $lname = $obj_dev->getLogicalName();
         self::$_devs[$serial] = $obj_dev;
         self::$_snByUrl[$rootUrl] = $serial;
-        if ($lname != '') self::$_snByName[$lname] = $serial;
+        if ($lname != '') {
+            self::$_snByName[$lname] = $serial;
+        }
         self::$_fnByType['Module']->reindexFunction("$serial.module", $lname, null, null);
         $count = $obj_dev->functionCount();
         for ($i = 0; $i < $count; $i++) {
@@ -2303,7 +2599,7 @@ class YAPI
         }
     }
     // Remove a device from YAPI after an unplug detected by device refresh
-    public static function forgetDevice($obj_dev)
+    public static function forgetDevice(YDevice $obj_dev): void
     {
         $rootUrl = $obj_dev->getRootUrl();
         $serial = $obj_dev->getSerialNumber();
@@ -2321,138 +2617,146 @@ class YAPI
             self::$_fnByType[$classname]->forgetFunction("$serial.$funcid");
         }
     }
-    public static function resolveFunction($str_className, $str_func)
+    public static function resolveFunction(string $str_className, string $str_func): YAPI_YReq
     {
         if (!isset(self::$BASETYPES[$str_className])) {
             // using a regular function type
-            if (!isset(self::$_fnByType[$str_className]))
+            if (!isset(self::$_fnByType[$str_className])) {
                 self::$_fnByType[$str_className] = new YFunctionType($str_className);
+            }
             return self::$_fnByType[$str_className]->resolve($str_func);
         }
         // using an abstract baseType
         $baseType = self::$BASETYPES[$str_className];
-        $res = null;
         foreach (self::$_fnByType as $str_className => $funtype) {
             if ($funtype->matchBaseType($baseType)) {
                 $res = $funtype->resolve($str_func);
-                if ($res->errorType == YAPI_SUCCESS) return $res;
+                if ($res->errorType == YAPI::SUCCESS) {
+                    return $res;
+                }
             }
         }
         return new YAPI_YReq($str_func,
-            YAPI_DEVICE_NOT_FOUND,
+            YAPI::DEVICE_NOT_FOUND,
             "No $str_className [$str_func] found (old firmware?)",
             null);
     }
     // return a firendly name for of a given function
-    public static function getFriendlyNameFunction($str_className, $str_func)
+    public static function getFriendlyNameFunction(string $str_className, string $str_func): YAPI_YReq
     {
         if (!isset(self::$BASETYPES[$str_className])) {
             // using a regular function type
-            if (!isset(self::$_fnByType[$str_className]))
+            if (!isset(self::$_fnByType[$str_className])) {
                 self::$_fnByType[$str_className] = new YFunctionType($str_className);
+            }
             return self::$_fnByType[$str_className]->getFriendlyName($str_func);
         }
         // using an abstract baseType
         $baseType = self::$BASETYPES[$str_className];
-        $res = null;
         foreach (self::$_fnByType as $str_className => $funtype) {
             if ($funtype->matchBaseType($baseType)) {
                 $res = $funtype->getFriendlyName($str_func);
-                if ($res->errorType == YAPI_SUCCESS) return $res;
+                if ($res->errorType == YAPI::SUCCESS) {
+                    return $res;
+                }
             }
         }
         return new YAPI_YReq($str_func,
-            YAPI_DEVICE_NOT_FOUND,
+            YAPI::DEVICE_NOT_FOUND,
             "No $str_className [$str_func] found (old firmware?)",
             null);
     }
-    // Retrieve a function object by hardware id, updating the indexes on the fly if needed
-    public static function setFunction($str_className, $str_func, $obj_func)
+    public static function setFunction(string $str_className, string $str_func, YFunction $obj_func): void
     {
-        if (!isset(self::$_fnByType[$str_className]))
+        if (!isset(self::$_fnByType[$str_className])) {
             self::$_fnByType[$str_className] = new YFunctionType($str_className);
+        }
         self::$_fnByType[$str_className]->setFunction($str_func, $obj_func);
     }
-    // Retrieve a function object by hardware id, updating the indexes on the fly if needed
-    public static function getFunction($str_className, $str_func)
+    public static function getFunction(string $str_className, string $str_func): ?YFunction
     {
-        if (is_null(self::$_hubs)) self::_init();
-        if (!isset(self::$_fnByType[$str_className]))
+        if (is_null(self::$_hubs)) {
+            self::_init();
+        }
+        if (!isset(self::$_fnByType[$str_className])) {
             self::$_fnByType[$str_className] = new YFunctionType($str_className);
+        }
         return self::$_fnByType[$str_className]->getFunction($str_func);
     }
-    // Set a function advertised value by hardware id
-    public static function setFunctionValue($str_hwid, $str_pubval)
+    public static function setFunctionValue(string $str_hwid, string $str_pubval): void
     {
         $classname = self::functionClass($str_hwid);
         self::$_fnByType[$classname]->setFunctionValue($str_hwid, $str_pubval);
     }
-    // Set add a timed value report for a function
-    public static function setTimedReport($str_hwid, $float_timestamp, $float_duration, $arr_report)
+    public static function setTimedReport(string $str_hwid, float $float_timestamp, float $float_duration, array $arr_report): void
     {
         $classname = self::functionClass($str_hwid);
         self::$_fnByType[$classname]->setTimedReport($str_hwid, $float_timestamp, $float_duration, $arr_report);
     }
-    // Publish a configuration change event
-    public static function setConfChange($str_serial)
+    public static function setConfChange(string $str_serial): void
     {
-        $module = yFindModule($str_serial . ".module");
+        $module = YModule::FindModule($str_serial . ".module");
         $module->_invokeConfigChangeCallback();
     }
     // Publish a configuration change event
-    public static function setBeaconChange($str_serial, $int_beacon)
+    public static function setBeaconChange(string $str_serial, int $int_beacon): void
     {
         if (!array_key_exists($str_serial, self::$_beacons) || self::$_beacons[$str_serial] != $int_beacon) {
             self::$_beacons[$str_serial] = $int_beacon;
-            $module = yFindModule($str_serial . ".module");
+            $module = YModule::FindModule($str_serial . ".module");
             $module->_invokeBeaconCallback($int_beacon);
         }
     }
-    // Retrieve a function advertised value by hardware id
-    public static function getFunctionValue($str_hwid)
+    public static function getFunctionValue(string $str_hwid): string
     {
         $classname = self::functionClass($str_hwid);
         return self::$_fnByType[$classname]->getFunctionValue($str_hwid);
     }
-    // Retrieve a function base type
-    public static function getFunctionBaseType($str_hwid)
+    public static function getFunctionBaseType(string $str_hwid): int
     {
         $classname = self::functionClass($str_hwid);
         return self::$_fnByType[$classname]->getBaseType();
     }
     // Queue a function value event
-    public static function addValueEvent($obj_func, $str_newval)
+    public static function addValueEvent(YFunction $obj_func, string $str_newval): void
     {
-        self::$_data_events[] = Array($obj_func, $str_newval);
+        self::$_data_events[] = array($obj_func, $str_newval);
     }
     // Queue a function value event
-    public static function addTimedReportEvent($obj_func, $float_timestamp, $float_duration, $arr_report)
+    public static function addRefreshEvent(YFunction $obj_func): void
     {
-        self::$_data_events[] = Array($obj_func, $float_timestamp, $float_duration, $arr_report);
+        self::$_data_events[] = array($obj_func);
     }
-    // Find the hardwareId for the first instance of a given function class
-    public static function getFirstHardwareId($str_className)
+    // Queue a function value event
+    public static function addTimedReportEvent(YFunction $obj_func, float $float_timestamp, float $float_duration, array $arr_report): void
     {
-        if (is_null(self::$_hubs)) self::_init();
+        self::$_data_events[] = array($obj_func, $float_timestamp, $float_duration, $arr_report);
+    }
+    public static function getFirstHardwareId(string $str_className): ?string
+    {
+        if (is_null(self::$_hubs)) {
+            self::_init();
+        }
         if (!isset(self::$BASETYPES[$str_className])) {
             // enumeration of a regular function type
-            if (!isset(self::$_fnByType[$str_className]))
+            if (!isset(self::$_fnByType[$str_className])) {
                 self::$_fnByType[$str_className] = new YFunctionType($str_className);
+            }
             return self::$_fnByType[$str_className]->getFirstHardwareId();
         }
         // enumeration of an abstract class
         $baseType = self::$BASETYPES[$str_className];
-        $res = null;
         foreach (self::$_fnByType as $funtype) {
             if ($funtype->matchBaseType($baseType)) {
                 $res = $funtype->getFirstHardwareId();
-                if (!is_null($res)) return $res;
+                if (!is_null($res)) {
+                    return $res;
+                }
             }
         }
         return null;
     }
-    // Find the hardwareId for the next instance of a given function class
-    public static function getNextHardwareId($str_className, $str_hwid)
+    public static function getNextHardwareId(string $str_className, string $str_hwid): ?string
     {
         if (!isset(self::$BASETYPES[$str_className])) {
             // enumeration of a regular function type
@@ -2462,27 +2766,35 @@ class YAPI
         $baseType = self::$BASETYPES[$str_className];
         $prevclass = self::functionClass($str_hwid);
         $res = self::$_fnByType[$prevclass]->getNextHardwareId($str_hwid);
-        if (!is_null($res)) return $res;
+        if (!is_null($res)) {
+            return $res;
+        }
         foreach (self::$_fnByType as $str_className => $funtype) {
             if ($prevclass != "") {
-                if ($str_className != $prevclass) continue;
+                if ($str_className != $prevclass) {
+                    continue;
+                }
                 $prevclass = "";
                 continue;
             }
             if ($funtype->matchBaseType($baseType)) {
                 $res = $funtype->getFirstHardwareId();
-                if (!is_null($res)) return $res;
+                if (!is_null($res)) {
+                    return $res;
+                }
             }
         }
         return $res;
     }
-    public static function devRequest($str_device, $str_request, $async = false, $body = '')
+    public static function devRequest(string $str_device, string $str_request, bool $async = false, string $body = ''): YAPI_YReq
     {
         $lines = explode("\n", $str_request);
         $dev = null;
         $baseUrl = $str_device;
-        if (substr($str_device, 0, 7) == 'http://') {
-            if (substr($baseUrl, -1) != '/') $baseUrl .= '/';
+        if (substr($str_device, 0, 7) == 'http://' || substr($str_device, 0, 8) == 'https://') {
+            if (substr($baseUrl, -1) != '/') {
+                $baseUrl .= '/';
+            }
             if (isset(self::$_snByUrl[$baseUrl])) {
                 $serial = self::$_snByUrl[$baseUrl];
                 if (isset(self::$_devs[$serial])) {
@@ -2492,7 +2804,7 @@ class YAPI
         } else {
             $dev = self::getDevice($str_device);
             if (!$dev) {
-                return new YAPI_YReq("", YAPI_DEVICE_NOT_FOUND,
+                return new YAPI_YReq("", YAPI::DEVICE_NOT_FOUND,
                     "Device [$str_device] not online",
                     null);
             }
@@ -2505,38 +2817,41 @@ class YAPI
         // map str_device to a URL
         $words = explode(' ', $lines[0]);
         if (sizeof($words) < 2) {
-            return new YAPI_YReq("", YAPI_INVALID_ARGUMENT,
+            return new YAPI_YReq("", YAPI::INVALID_ARGUMENT,
                 'Invalid request, not enough words; expected a method name and a URL',
                 null);
-        } else if (sizeof($words) > 2) {
-            return new YAPI_YReq("", YAPI_INVALID_ARGUMENT,
+        } elseif (sizeof($words) > 2) {
+            return new YAPI_YReq("", YAPI::INVALID_ARGUMENT,
                 'Invalid request, too many words; make sure the URL is URI-encoded',
                 null);
         }
         $method = $words[0];
         $devUrl = $words[1];
-        if (substr($devUrl, 0, 1) == '/') $devUrl = substr($devUrl, 1);
-        $baseUrl = str_replace('http://', '', $baseUrl);
-        $pos = strpos($baseUrl, '/');
+        $pos = strpos($baseUrl, '/bySerial');
         if ($pos !== false) {
-            $devUrl = substr($baseUrl, $pos) . $devUrl;
-            $baseUrl = substr($baseUrl, 0, $pos);
+            // $baseURL end with a / and $devUrl start with / -> remove first char or $devUrl
+            $devUrl = substr($baseUrl, $pos) . substr($devUrl, 1);
+            $rooturl = substr($baseUrl, 0, $pos);
         } else {
-            $devUrl = "/$devUrl";
+            $devUrl = "$devUrl";
+            if (substr($baseUrl, -1) == '/') {
+                $rooturl = substr($baseUrl, 0, -1);
+            } else {
+                $rooturl = $baseUrl;
+            }
         }
-        $rooturl = "http://$baseUrl";
         if (!isset(self::$_hubs[$rooturl])) {
-            return new YAPI_YReq("", YAPI_DEVICE_NOT_FOUND, 'No hub registered on ' . $baseUrl, null);
+            return new YAPI_YReq("", YAPI::DEVICE_NOT_FOUND, 'No hub registered on ' . $rooturl, null);
         }
         $hub = self::$_hubs[$rooturl];
         if ($async && $hub->writeProtected && $hub->user != 'admin' && !$hub->isCachedHub()) {
             // async query, make sure the hub is not write-protected
-            return new YAPI_YReq("", YAPI_UNAUTHORIZED,
+            return new YAPI_YReq("", YAPI::UNAUTHORIZED,
                 'Access denied: admin credentials required',
                 null);
         }
-        if (strpos($devUrl,'@YCB+') && !$hub->isCachedHub()) {
-            return new YAPI_YReq("", YAPI_INVALID_ARGUMENT,
+        if (strpos($devUrl, '@YCB+') && !$hub->isCachedHub()) {
+            return new YAPI_YReq("", YAPI::INVALID_ARGUMENT,
                 'Preloading of URL is only supported for HTTP callback.',
                 null);
         }
@@ -2544,89 +2859,92 @@ class YAPI
         if (!is_null($dev)) {
             $dev->prepRequest($tcpreq);
         }
-        if ($tcpreq->process() != YAPI_SUCCESS) {
+        if ($tcpreq->process() != YAPI::SUCCESS) {
             return new YAPI_YReq("", $tcpreq->errorType, $tcpreq->errorMsg, null);
         }
         self::$_pendingRequests[] = $tcpreq;
         if (!$async) {
             // normal query, wait for completion until timeout
             $mstimeout = YIO_DEFAULT_TCP_TIMEOUT;
-            if (strpos($devUrl,'/testcb.txt') !== false) {
+            if (strpos($devUrl, '/testcb.txt') !== false) {
                 $mstimeout = YIO_1_MINUTE_TCP_TIMEOUT;
-            } else if (strpos($devUrl,'/logger.json') !== false) {
+            } elseif (strpos($devUrl, '/logger.json') !== false) {
                 $mstimeout = YIO_1_MINUTE_TCP_TIMEOUT;
-            } else if (strpos($devUrl,'/rxmsg.json') !== false) {
+            } elseif (strpos($devUrl, '/rxmsg.json') !== false) {
                 $mstimeout = YIO_1_MINUTE_TCP_TIMEOUT;
-            } else if (strpos($devUrl,'/rxdata.bin') !== false) {
+            } elseif (strpos($devUrl, '/rxdata.bin') !== false) {
                 $mstimeout = YIO_1_MINUTE_TCP_TIMEOUT;
-            } else if (strpos($devUrl,'/at.txt') !== false) {
+            } elseif (strpos($devUrl, '/at.txt') !== false) {
                 $mstimeout = YIO_1_MINUTE_TCP_TIMEOUT;
-            } else if (strpos($devUrl,'/files.json') !== false) {
+            } elseif (strpos($devUrl, '/files.json') !== false) {
                 $mstimeout = YIO_1_MINUTE_TCP_TIMEOUT;
-            } else if (strpos($devUrl,'/upload.html') !== false) {
+            } elseif (strpos($devUrl, '/upload.html') !== false) {
                 $mstimeout = YIO_10_MINUTES_TCP_TIMEOUT;
-            } else if (strpos($devUrl,'/flash.json') !== false) {
+            } elseif (strpos($devUrl, '/flash.json') !== false) {
                 $mstimeout = YIO_10_MINUTES_TCP_TIMEOUT;
             }
-            if ($mstimeout < YAPI::$_yapiContext->_networkTimeoutMs){
-                $mstimeout = YAPI::$_yapiContext->_networkTimeoutMs;
+            if ($mstimeout < $hub->get_networkTimeout()) {
+                $mstimeout = $hub->get_networkTimeout();
             }
-            $timeout = YAPI::GetTickCount() +  $mstimeout;
+            $timeout = YAPI::GetTickCount() + $mstimeout;
             do {
                 self::_handleEvents_internal(100);
             } while (!$tcpreq->eof() && YAPI::GetTickCount() < $timeout);
             if (!$tcpreq->eof()) {
                 $tcpreq->close();
-                return new YAPI_YReq("", YAPI_TIMEOUT,
+                return new YAPI_YReq("", YAPI::TIMEOUT,
                     'Timeout waiting for device reply',
                     null);
             }
-            if ($tcpreq->errorType == YAPI_UNAUTHORIZED) {
-                return new YAPI_YReq("", YAPI_UNAUTHORIZED,
+            if ($tcpreq->errorType == YAPI::UNAUTHORIZED) {
+                return new YAPI_YReq("", YAPI::UNAUTHORIZED,
                     'Access denied, authorization required',
                     null);
-            } else if ($tcpreq->errorType != YAPI_SUCCESS) {
+            } elseif ($tcpreq->errorType != YAPI::SUCCESS) {
                 return new YAPI_YReq("", $tcpreq->errorType,
                     'Network error while reading from device',
                     null);
             }
             if (strpos($tcpreq->meta, "OK\r\n") === 0) {
-                return new YAPI_YReq("", YAPI_SUCCESS,
+                return new YAPI_YReq("", YAPI::SUCCESS,
                     'no error',
                     $tcpreq->reply);
             }
             if (strpos($tcpreq->meta, "0K\r\n") === 0) {
-                return new YAPI_YReq("", YAPI_SUCCESS,
+                return new YAPI_YReq("", YAPI::SUCCESS,
                     'no error',
                     $tcpreq->reply);
             }
             $matches = null;
             $preg_match = preg_match('/^HTTP[^ ]* (?P<status>\d+) (?P<statusmsg>.)+\r\n/', $tcpreq->meta, $matches);
             if (!$preg_match) {
-                return new YAPI_YReq("", YAPI_IO_ERROR,
+                return new YAPI_YReq("", YAPI::IO_ERROR,
                     'Unexpected HTTP response header: ' . $tcpreq->meta,
                     null);
             }
             if ($matches['status'] != '200' && $matches['status'] != '304') {
-                return new YAPI_YReq("", YAPI_IO_ERROR,
+                return new YAPI_YReq("", YAPI::IO_ERROR,
                     'Received HTTP status ' . $matches['status'] . ' (' . $matches['statusmsg'] . ')',
                     null);
             }
         }
-        return new YAPI_YReq("", YAPI_SUCCESS,
+        return new YAPI_YReq("", YAPI::SUCCESS,
             'no error',
             $tcpreq->reply);
     }
-    public static function isReadOnly($str_device)
+    public static function isReadOnly(string $str_device): bool
     {
         $dev = self::getDevice($str_device);
         if (!$dev) {
             return true;
         }
         $rooturl = $dev->getRootUrl();
-        $pos = strpos($rooturl, '/',7);
+        $pos = strpos($rooturl, '/bySerial', 7);
         if ($pos >= 0) {
-            $rooturl = substr($rooturl,0, $pos+1);
+            $rooturl = substr($rooturl, 0, $pos + 1);
+        }
+        if (substr($rooturl, -1) == '/') {
+            $rooturl = substr($rooturl, 0, -1);
         }
         if (!isset(self::$_hubs[$rooturl])) {
             return true;
@@ -2638,21 +2956,23 @@ class YAPI
         }
         return false;
     }
-    public static function getSubDevicesFrom($str_device)
+    public static function getSubDevicesFrom(string $str_device): array
     {
         $dev = self::getDevice($str_device);
         if (!$dev) {
-            return '';
+            return [];
         }
         $baseUrl = $dev->getRootUrl();
-        $baseUrl = str_replace('http://', '', $baseUrl);
-        $pos = strpos($baseUrl, '/');
+        $pos = strpos($baseUrl, '/bySerial');
         if ($pos !== false) {
             $baseUrl = substr($baseUrl, 0, $pos);
         }
-        $rooturl = "http://$baseUrl/";
+        if (substr($baseUrl, -1) == '/') {
+            $baseUrl = substr($baseUrl, 0, -1);
+        }
+        $rooturl = $baseUrl;
         if (!isset(self::$_hubs[$rooturl])) {
-            return new YAPI_YReq("", YAPI_DEVICE_NOT_FOUND, 'No hub registered on ' . $baseUrl, null);
+            throw new YAPI_Exception('No hub registered on ' . $baseUrl, YAPI::DEVICE_NOT_FOUND);
         }
         $hub = self::$_hubs[$rooturl];
         if ($hub->serialByYdx[0] == $str_device) {
@@ -2660,40 +2980,65 @@ class YAPI
         }
         return array();
     }
-    public static function getHubSerialFrom($str_device)
+    public static function getHubSerialFrom(string $str_device): string
     {
         $dev = self::getDevice($str_device);
         if (!$dev) {
             return '';
         }
         $baseUrl = $dev->getRootUrl();
-        $baseUrl = str_replace('http://', '', $baseUrl);
-        $pos = strpos($baseUrl, '/');
+        $pos = strpos($baseUrl, '/bySerial');
         if ($pos !== false) {
             $baseUrl = substr($baseUrl, 0, $pos);
         }
-        $rooturl = "http://$baseUrl/";
+        if (substr($baseUrl, -1) == '/') {
+            $baseUrl = substr($baseUrl, 0, -1);
+        }
+        $rooturl = $baseUrl;
         if (!isset(self::$_hubs[$rooturl])) {
-            return new YAPI_YReq("", YAPI_DEVICE_NOT_FOUND, 'No hub registered on ' . $baseUrl, null);
+            throw new YAPI_Exception('No hub registered on ' . $baseUrl, YAPI::DEVICE_NOT_FOUND);
         }
         $hub = self::$_hubs[$rooturl];
         return $hub->serialByYdx[0];
     }
-    public static function funcRequest($str_className, $str_func, $str_extra)
+    public static function getHubURLFrom(string $str_device): string
+    {
+        $dev = self::getDevice($str_device);
+        if (!$dev) {
+            return '';
+        }
+        $baseUrl = $dev->getRootUrl();
+        $devurl = "";
+        $pos = strpos($baseUrl, '/bySerial');
+        if ($pos !== false) {
+            $devurl = substr($baseUrl, $pos + 1);
+            $baseUrl = substr($baseUrl, 0, $pos);
+        }
+        if (substr($baseUrl, -1) == '/') {
+            $baseUrl = substr($baseUrl, 0, -1);
+        }
+        if (!isset(self::$_hubs[$baseUrl])) {
+            throw new YAPI_Exception('No hub registered on ' . $baseUrl, YAPI::DEVICE_NOT_FOUND);
+        }
+        $hub = self::$_hubs[$baseUrl];
+        $url = $hub->getBaseURL() . $devurl;
+        return $url;
+    }
+    public static function funcRequest(string $str_className, string $str_func, string $str_extra): YAPI_YReq
     {
         $resolve = self::resolveFunction($str_className, $str_func);
-        if ($resolve->errorType != YAPI_SUCCESS) {
-            if ($resolve->errorType == YAPI_DEVICE_NOT_FOUND && sizeof(self::$_hubs) == 0) {
+        if ($resolve->errorType != YAPI::SUCCESS) {
+            if ($resolve->errorType == YAPI::DEVICE_NOT_FOUND && sizeof(self::$_hubs) == 0) {
                 // when USB is supported, check if no USB device is connected before outputing this message
                 $resolve->errorMsg = "Impossible to contact any device because no hub has been registered";
             } else {
                 $resolve = self::_updateDeviceList_internal(true, false);
-                if ($resolve->errorType != YAPI_SUCCESS) {
+                if ($resolve->errorType != YAPI::SUCCESS) {
                     return $resolve;
                 }
                 $resolve = self::resolveFunction($str_className, $str_func);
             }
-            if ($resolve->errorType != YAPI_SUCCESS) {
+            if ($resolve->errorType != YAPI::SUCCESS) {
                 return $resolve;
             }
         }
@@ -2705,12 +3050,12 @@ class YAPI
         if (!$dev) {
             // try to force a device list update to check if the device arrived in between
             $resolve = self::_updateDeviceList_internal(true, false);
-            if ($resolve->errorType != YAPI_SUCCESS) {
+            if ($resolve->errorType != YAPI::SUCCESS) {
                 return $resolve;
             }
             $dev = self::getDevice($devid);
             if (!$dev) {
-                return new YAPI_YReq("{$devid}.{$funcid}", YAPI_DEVICE_NOT_FOUND,
+                return new YAPI_YReq("{$devid}.{$funcid}", YAPI::DEVICE_NOT_FOUND,
                     "Device [$devid] not online",
                     null);
             }
@@ -2723,13 +3068,15 @@ class YAPI
                 $yreq->hwid = "{$devid}.{$funcid}";
                 $yreq->deviceid = $devid;
                 $yreq->functionid = $funcid;
-                if ($yreq->errorType != YAPI_SUCCESS) return $yreq;
+                if ($yreq->errorType != YAPI::SUCCESS) {
+                    return $yreq;
+                }
                 $loadval = json_decode(iconv("ISO-8859-1", "UTF-8", $yreq->result), true);
                 $loadval = $loadval[$funcid];
             }
         } else {
             $dev->dropCache();
-            $yreq = new YAPI_YReq("{$devid}.{$funcid}", YAPI_NOT_INITIALIZED, "dummy", null);
+            $yreq = new YAPI_YReq("{$devid}.{$funcid}", YAPI::NOT_INITIALIZED, "dummy", null);
         }
         if (!$loadval) {
             // request specified function only to minimize traffic
@@ -2739,7 +3086,9 @@ class YAPI
                 $yreq->hwid = "{$devid}.{$funcid}";
                 $yreq->deviceid = $devid;
                 $yreq->functionid = $funcid;
-                if ($yreq->errorType != YAPI_SUCCESS) return $yreq;
+                if ($yreq->errorType != YAPI::SUCCESS) {
+                    return $yreq;
+                }
                 $loadval = json_decode(iconv("ISO-8859-1", "UTF-8", $yreq->result), true);
             } else {
                 $httpreq = "GET /api/{$funcid}{$str_extra}";
@@ -2751,92 +3100,133 @@ class YAPI
             }
         }
         if (!$loadval) {
-            return new YAPI_YReq("{$devid}.{$funcid}", YAPI_IO_ERROR,
+            return new YAPI_YReq("{$devid}.{$funcid}", YAPI::IO_ERROR,
                 "Request failed, could not parse API value for function $str_func",
                 null);
         }
         $yreq->result = $loadval;
         return $yreq;
     }
-    // Perform an HTTP request on a device and return the result string
-    // Throw an exception (or return YAPI_ERROR_STRING on error)
-    public static function HTTPRequest($str_device, $str_request)
+    public static function HTTPRequest(string $str_device, string $str_request): string
     {
         $res = self::devRequest($str_device, $str_request);
-        if ($res->errorType != YAPI_SUCCESS) {
+        if ($res->errorType != YAPI::SUCCESS) {
             return self::_throw($res->errorType, $res->errorMsg, null);
         }
         return $res->result;
     }
     //--- (generated code: YAPIContext yapiwrapper)
-    public static function SetDeviceListValidity($deviceListValidity)
+    public static function SetDeviceListValidity(int $deviceListValidity): void
     {
+        if (is_null(self::$_hubs)) {
+            self::_init();
+        }
         self::$_yapiContext->SetDeviceListValidity($deviceListValidity);
     }
-    public static function GetDeviceListValidity()
+    public static function GetDeviceListValidity(): int
     {
+        if (is_null(self::$_hubs)) {
+            self::_init();
+        }
         return self::$_yapiContext->GetDeviceListValidity();
     }
-    public static function AddUdevRule($force)
+    public static function AddUdevRule(bool $force): string
     {
+        if (is_null(self::$_hubs)) {
+            self::_init();
+        }
         return self::$_yapiContext->AddUdevRule($force);
     }
-    public static function SetNetworkTimeout($networkMsTimeout)
+    public static function SetNetworkTimeout(int $networkMsTimeout): void
     {
+        if (is_null(self::$_hubs)) {
+            self::_init();
+        }
         self::$_yapiContext->SetNetworkTimeout($networkMsTimeout);
     }
-    public static function GetNetworkTimeout()
+    public static function GetNetworkTimeout(): int
     {
+        if (is_null(self::$_hubs)) {
+            self::_init();
+        }
         return self::$_yapiContext->GetNetworkTimeout();
     }
-    public static function SetCacheValidity($cacheValidityMs)
+    public static function SetCacheValidity(float $cacheValidityMs): void
     {
+        if (is_null(self::$_hubs)) {
+            self::_init();
+        }
         self::$_yapiContext->SetCacheValidity($cacheValidityMs);
     }
-    public static function GetCacheValidity()
+    public static function GetCacheValidity(): float
     {
+        if (is_null(self::$_hubs)) {
+            self::_init();
+        }
         return self::$_yapiContext->GetCacheValidity();
     }
-   #--- (end of generated code: YAPIContext yapiwrapper)
-    public static function GetAPIVersion()
+    public static function nextHubInUseInternal(int $hubref): ?YHub
     {
-        return "1.10.52409";
+        if (is_null(self::$_hubs)) {
+            self::_init();
+        }
+        return self::$_yapiContext->nextHubInUseInternal($hubref);
     }
-    public static function SetHTTPCallbackCacheDir($str_directory)
+    public static function getYHubObj(int $hubref): ?YHub
     {
-        if (is_null(self::$_hubs)) self::_init();
-        if (!is_dir($str_directory)) {
+        if (is_null(self::$_hubs)) {
+            self::_init();
+        }
+        return self::$_yapiContext->getYHubObj($hubref);
+    }
+   #--- (end of generated code: YAPIContext yapiwrapper)
+    public static function GetAPIVersion(): string
+    {
+        return "1.10.55677";
+    }
+    public static function SetHTTPCallbackCacheDir(string $directory): void
+    {
+        if (is_null(self::$_hubs)) {
+            self::_init();
+        }
+        if (!is_dir($directory)) {
             throw new YAPI_Exception("Directory does not exist");
         }
-        if (!is_dir($str_directory)) {
+        if (!is_dir($directory)) {
             throw new YAPI_Exception("Directory does not exist");
         }
-        if (!is_writable($str_directory)) {
+        if (!is_writable($directory)) {
             throw new YAPI_Exception("Directory is not writable");
         }
-        if (substr($str_directory, -1) != '/')
-            $str_directory .= '/';
-        self::$_jzonCacheDir = $str_directory;
+        if (substr($directory, -1) != '/') {
+            $directory .= '/';
+        }
+        self::$_jzonCacheDir = $directory;
     }
-    public static function ClearHTTPCallbackCacheDir($bool_removeFiles)
+    public static function ClearHTTPCallbackCacheDir(bool $removeFiles): void
     {
-        if (is_null(self::$_hubs) or is_null(self::$_jzonCacheDir)) return;
-        if ($bool_removeFiles && is_dir(self::$_jzonCacheDir)) {
+        if (is_null(self::$_hubs) or is_null(self::$_jzonCacheDir)) {
+            return;
+        }
+        if ($removeFiles && is_dir(self::$_jzonCacheDir)) {
             $files = glob(self::$_jzonCacheDir . "{,.}*.json", GLOB_BRACE); // get all file names
             foreach ($files as $file) {
-                if (is_file($file))
+                if (is_file($file)) {
                     unlink($file);
+                }
             }
         }
         self::$_jzonCacheDir = null;
     }
-    public static function InitAPI($mode = Y_DETECT_NET, &$errmsg = '')
+    public static function InitAPI(int $mode = YAPI::DETECT_NONE, string &$errmsg = ''): int
     {
-        if (is_null(self::$_hubs)) self::_init();
+        if (is_null(self::$_hubs)) {
+            self::_init();
+        }
         $errmsg = '';
-        return YAPI_SUCCESS;
+        return YAPI::SUCCESS;
     }
-    public static function FreeAPI()
+    public static function FreeAPI(): void
     {
         // leave max 10 second to finish pending requests
         $timeout = YAPI::GetTickCount() + 10000;
@@ -2846,40 +3236,48 @@ class YAPI
                 continue;
             }
             while (!$tcpreq->eof() && YAPI::GetTickCount() < $timeout) {
-                self::_handleEvents_internal(100);
+                try {
+                    self::_handleEvents_internal(100);
+                } catch (YAPI_Exception $ignore) {
+                }
             }
         }
         // clear all caches
         self::_init();
     }
-    public static function DisableExceptions()
+    public static function DisableExceptions(): void
     {
-        if (is_null(self::$_hubs)) self::_init();
+        if (is_null(self::$_hubs)) {
+            self::_init();
+        }
         self::$exceptionsDisabled = true;
     }
-    public static function EnableExceptions()
+    public static function EnableExceptions(): void
     {
-        if (is_null(self::$_hubs)) self::_init();
+        if (is_null(self::$_hubs)) {
+            self::_init();
+        }
         self::$exceptionsDisabled = false;
     }
-    private static function _parseRegisteredURL($str_url)
+    private static function _parseRegisteredURL(string $str_url): array
     {
         $res = [];
+        $res['org_url'] = $str_url;
         $res['proto'] = 'http';
         if (substr($str_url, 0, 7) == 'http://') {
             $str_url = substr($str_url, 7);
-        } else if (substr($str_url, 0, 8) == 'https://') {
+        } elseif (substr($str_url, 0, 8) == 'https://') {
             $str_url = substr($str_url, 8);
             $res['proto'] = "https";
-        } else if (substr($str_url, 0, 5) == 'ws://') {
+        } elseif (substr($str_url, 0, 5) == 'ws://') {
             $str_url = substr($str_url, 5);
             $res['proto'] = "ws";
         }
         $subdompos = strpos($str_url, '/');
-        if ($subdompos===false){
-            $res['subdomain']='';
+        if ($subdompos === false) {
+            $res['subdomain'] = '';
         } else {
-            $res['subdomain'] = substr($str_url,$subdompos);
+            $res['subdomain'] = substr($str_url, $subdompos);
             while (substr($res['subdomain'], -1) == '/') {
                 $res['subdomain'] = substr($res['subdomain'], 0, -1);
             }
@@ -2895,31 +3293,68 @@ class YAPI
         $res['port'] = 4444;
         $p_ofs = strpos($str_url, ':');
         if ($p_ofs !== false) {
-            $res['host'] = substr($str_url,0,$p_ofs);
-            $res['port'] = (int)substr($str_url,$p_ofs+1);
+            $res['host'] = substr($str_url, 0, $p_ofs);
+            $res['port'] = (int)substr($str_url, $p_ofs + 1);
         } else {
             $res['host'] = $str_url;
+            if ($res['subdomain'] != '') {
+                if ($res['proto'] == 'http') {
+                    $res['port'] = 80;
+                }else if ($res['proto'] == 'https') {
+                    $res['port'] = 443;
+                }
+            }
         }
         if (strcasecmp(substr($str_url, 0, 8), "callback") == 0) {
-            $res['rooturl'] = "http://" . strtoupper($str_url) ;
+            $res['rooturl'] = "http://" . strtoupper($str_url);
         } else {
             $res['rooturl'] = "{$res['proto']}://{$res['host']}:{$res['port']}";
         }
         return $res;
     }
-    public static function RegisterHub($url, &$errmsg = '')
+    private static function getHubFromUrl(string $url): array
     {
-        if (is_null(self::$_hubs)) self::_init();
+        if (is_null(self::$_hubs)) {
+            return [];
+        }
+        $res =[];
+        $url_detail = self::_parseRegisteredURL($url);
+        foreach (self::$_hubs as $hub_url => $hub) {
+            if ($hub_url == $url_detail['rooturl']) {
+                $res[]=$hub;
+            } else {
+                if ($hub->isURLKnown($url)) {
+                    $res[]=$hub;
+                }
+            }
+        }
+        return $res;
+    }
+    public static function RegisterHub(string $url, string &$errmsg = ''): int
+    {
+        if (is_null(self::$_hubs)) {
+            self::_init();
+        }
+        $previousHub = self::getHubFromUrl($url);
+        if (sizeof($previousHub) > 0) {
+            foreach ($previousHub as $h) {
+                if ($h->isEnable()) {
+                    $h->addKnownUrl($url);
+                    $h->setMandatory(true);
+                }
+            }
+            return YAPI::SUCCESS;
+        }
         $url_detail = self::_parseRegisteredURL($url);
         // Test hub
-        $tcphub = new YTcpHub($url_detail);
+        $tcphub = new YTcpHub($url_detail, true);
         $res = $tcphub->verfiyStreamAddr(true, $errmsg);
         if ($res < 0) {
-            return self::_throw(YAPI_IO_ERROR, $errmsg, YAPI_IO_ERROR);
+            return self::_throw(YAPI::IO_ERROR, $errmsg, YAPI::IO_ERROR);
         }
-        $timeout = YAPI::GetTickCount() + YAPI::$_yapiContext->_networkTimeoutMs;
-        $tcpreq = new YTcpReq($tcphub, "GET /api/module.json", false, '', YAPI::$_yapiContext->_networkTimeoutMs);
-        if ($tcpreq->process($errmsg) != YAPI_SUCCESS) {
+        $timeout = YAPI::GetTickCount() + $tcphub->get_networkTimeout();
+        $tcpreq = new YTcpReq($tcphub, "GET /api/module.json", false, '', $tcphub->get_networkTimeout());
+        if ($tcpreq->process($errmsg) != YAPI::SUCCESS) {
             return self::_throw($tcpreq->errorType, $errmsg, $tcpreq->errorType);
         }
         self::$_pendingRequests[] = $tcpreq;
@@ -2929,14 +3364,24 @@ class YAPI
         if (!$tcpreq->eof()) {
             $tcpreq->close();
             $errmsg = 'Timeout waiting for device reply';
-            return self::_throw(YAPI_TIMEOUT, $errmsg, YAPI_TIMEOUT);
+            return self::_throw(YAPI::TIMEOUT, $errmsg, YAPI::TIMEOUT);
         }
-        if ($tcpreq->errorType == YAPI_UNAUTHORIZED) {
+        if ($tcpreq->errorType == YAPI::UNAUTHORIZED) {
             $errmsg = 'Access denied, authorization required';
-            return self::_throw(YAPI_UNAUTHORIZED, $errmsg, YAPI_UNAUTHORIZED);
-        } else if ($tcpreq->errorType != YAPI_SUCCESS) {
+            return self::_throw(YAPI::UNAUTHORIZED, $errmsg, YAPI::UNAUTHORIZED);
+        } elseif ($tcpreq->errorType != YAPI::SUCCESS) {
             $errmsg = 'Network error while testing hub :' . $tcpreq->errorMsg;
             return self::_throw($tcpreq->errorType, $errmsg, $tcpreq->errorType);
+        }
+        foreach (self::$_hubs as $hub) {
+            if ($hub->getSerialNumber() == $tcphub->getSerialNumber()) {
+                print("Find duplicate hub: new=" . $tcphub->url_info['org_url']. " old=" . $hub->url_info['org_url']."\n");
+                $hub->mergeFrom($tcphub);
+                return YAPI::SUCCESS;
+            }
+        }
+        if (!isset(self::$_hubs[$url_detail['rooturl']])) {
+            self::$_hubs[$url_detail['rooturl']] = $tcphub;
         }
         // Add hub to known list
         if (!isset(self::$_hubs[$url_detail['rooturl']])) {
@@ -2944,100 +3389,117 @@ class YAPI
         }
         // Register device list
         $yreq = self::_updateDeviceList_internal(true, false);
-        if ($yreq->errorType != YAPI_SUCCESS) {
+        if ($yreq->errorType != YAPI::SUCCESS) {
             $errmsg = $yreq->errorMsg;
             return self::_throw($yreq->errorType, $yreq->errorMsg, $yreq->errorType);
         }
-        return YAPI_SUCCESS;
+        return YAPI::SUCCESS;
     }
-    public static function PreregisterHub($url, &$errmsg = '')
+    public static function PreregisterHub(string $url, string &$errmsg = ''): int
     {
-        if (is_null(self::$_hubs)) self::_init();
+        if (is_null(self::$_hubs)) {
+            self::_init();
+        }
+        $previousHub = self::getHubFromUrl($url);
+        if (sizeof($previousHub) > 0) {
+            foreach ($previousHub as $h) {
+                if ($h->isEnable()) {
+                    $h->addKnownUrl($url);
+                    $h->setMandatory(false);
+                }
+            }
+            return YAPI::SUCCESS;
+        }
         $url_detail = self::_parseRegisteredURL($url);
         // Add hub to known list
         if (!isset(self::$_hubs[$url_detail['rooturl']])) {
-            self::$_hubs[$url_detail['rooturl']] = new YTcpHub($url_detail);
+            self::$_hubs[$url_detail['rooturl']] = new YTcpHub($url_detail, false);
             if (self::$_hubs[$url_detail['rooturl']]->verfiyStreamAddr(true, $errmsg) < 0) {
-                return self::_throw(YAPI_IO_ERROR, $errmsg, YAPI_IO_ERROR);
+                return self::_throw(YAPI::IO_ERROR, $errmsg, YAPI::IO_ERROR);
             }
         }
-        return YAPI_SUCCESS;
+        return YAPI::SUCCESS;
     }
-    public static function UnregisterHub($url)
+    public static function UnregisterHub(string $url): void
     {
-        if (is_null(self::$_hubs))
+        if (is_null(self::$_hubs)) {
             return;
-        $url_detail = self::_parseRegisteredURL($url);
-        $new_hubs = array();
-        foreach (self::$_hubs as $hub_url => $hubst) {
-            if ($hub_url == $url_detail['rooturl']) {
-                // leave max 10 second to finish pending requests
-                $timeout = YAPI::GetTickCount() + 10000;
-                foreach (self::$_pendingRequests as $tcpreq) {
-                    if ($tcpreq->hub->rooturl === $hubst->rooturl) {
-                        $request = trim($tcpreq->request);
-                        if (substr($request, 0, 12) == 'GET /not.byn') {
-                            continue;
-                        }
-                        while (!$tcpreq->eof() && YAPI::GetTickCount() < $timeout) {
-                            self::_handleEvents_internal(100);
-                        }
+        }
+        $hubs = self::getHubFromUrl($url);
+        foreach ($hubs as $hub) {
+            // leave max 10 second to finish pending requests
+            $timeout = YAPI::GetTickCount() + 10000;
+            foreach (self::$_pendingRequests as $tcpreq) {
+                if ($tcpreq->hub->rooturl === $hub->rooturl) {
+                    $request = trim($tcpreq->request);
+                    if (substr($request, 0, 12) == 'GET /not.byn') {
+                        continue;
+                    }
+                    while (!$tcpreq->eof() && YAPI::GetTickCount() < $timeout) {
+                        self::_handleEvents_internal(100);
                     }
                 }
-                // remove all connected devices
-                foreach (self::$_hubs[$hub_url]->serialByYdx as $serial) {
+            }
+            // remove all connected devices
+            foreach ($hub->serialByYdx as $serial) {
+                if (!is_null(self::$_removalCallback)) {
+                    self::$_pendingCallbacks[] = "-$serial";
+                } else {
                     self::forgetDevice(self::$_devs[$serial]);
                 }
-                if ($hubst->notifReq) {
-                    $hubst->notifReq->close();
-                    for ($idx = 0; $idx < sizeof(self::$_pendingRequests); $idx++) {
-                        $req = self::$_pendingRequests[$idx];
-                        if ($req == $hubst->notifReq) {
-                            array_splice(self::$_pendingRequests, $idx, 1);
-                        }
+            }
+            if ($hub->notifReq) {
+                $hub->notifReq->close();
+                for ($idx = 0; $idx < sizeof(self::$_pendingRequests); $idx++) {
+                    $req = self::$_pendingRequests[$idx];
+                    if ($req == $hub->notifReq) {
+                        array_splice(self::$_pendingRequests, $idx, 1);
                     }
                 }
-            } else {
-                $new_hubs[$hub_url] = self::$_hubs[$hub_url];
+            }
+            $key = $hub->url_info['rooturl'];
+            if (key_exists($key, self::$_hubs)) {
+                unset(self::$_hubs[$key]);
             }
         }
-        self::$_hubs = $new_hubs;
     }
-    public static function TestHub($url, $mstimeout, &$errmsg = '')
+    public static function TestHub(string $url, int $mstimeout, string &$errmsg = ''): int
     {
-        if (is_null(self::$_hubs)) self::_init();
+        if (is_null(self::$_hubs)) {
+            self::_init();
+        }
         $url_detail = self::_parseRegisteredURL($url);
         // Test hub
-        $tcphub = new YTcpHub($url_detail);
+        $tcphub = new YTcpHub($url_detail, false);
         $res = $tcphub->verfiyStreamAddr(false, $errmsg);
         if ($res < 0) {
-            return YAPI_IO_ERROR;
+            return YAPI::IO_ERROR;
         }
         if ($tcphub->streamaddr == 'tcp://CALLBACK') {
-            return YAPI_SUCCESS;
+            return YAPI::SUCCESS;
         }
         $tcpreq = new YTcpReq($tcphub, "GET /api/module.json", false, '', $mstimeout);
         $timeout = YAPI::GetTickCount() + $mstimeout;
         do {
-            if ($tcpreq->process($errmsg) != YAPI_SUCCESS) {
+            if ($tcpreq->process($errmsg) != YAPI::SUCCESS) {
                 return $tcpreq->errorType;
             }
         } while (!$tcpreq->eof() && YAPI::GetTickCount() < $timeout);
         if (!$tcpreq->eof()) {
             $tcpreq->close();
             $errmsg = 'Timeout waiting for device reply';
-            return YAPI_TIMEOUT;
+            return YAPI::TIMEOUT;
         }
-        if ($tcpreq->errorType == YAPI_UNAUTHORIZED) {
+        if ($tcpreq->errorType == YAPI::UNAUTHORIZED) {
             $errmsg = 'Access denied, authorization required';
-            return YAPI_UNAUTHORIZED;
-        } else if ($tcpreq->errorType != YAPI_SUCCESS) {
+            return YAPI::UNAUTHORIZED;
+        } elseif ($tcpreq->errorType != YAPI::SUCCESS) {
             $errmsg = 'Network error while testing hub :' . $tcpreq->errorMsg;
             return $tcpreq->errorType;
         }
-        return YAPI_SUCCESS;
+        return YAPI::SUCCESS;
     }
-    static public function _forwardHTTPreq($host, $relurl, $cbdata, &$errmsg)
+    static public function _forwardHTTPreq(string $host, string $relurl, $cbdata, string &$errmsg): int
     {
         $errno = 0;
         $errstr = '';
@@ -3048,7 +3510,7 @@ class YAPI
         $skt = stream_socket_client("tcp://$host$implicitPort", $errno, $errstr, 10);
         if ($skt === false) {
             $errmsg = "failed to open socket ($errno): $errstr";
-            return YAPI_IO_ERROR;
+            return YAPI::IO_ERROR;
         }
         $request = "POST $relurl HTTP/1.1\r\nHost: $host\r\nConnection: close\r\n";
         $request .= "User-Agent: " . $_SERVER['HTTP_USER_AGENT'] . "\r\n";
@@ -3058,7 +3520,7 @@ class YAPI
         if (fwrite($skt, $request, $reqlen) != $reqlen) {
             fclose($skt);
             $errmsg = "failed to write to socket";
-            return YAPI_IO_ERROR;
+            return YAPI::IO_ERROR;
         }
         $bodylen = strlen($cbdata);
         fwrite($skt, $cbdata, $bodylen);
@@ -3073,23 +3535,23 @@ class YAPI
             if ($data === false || !is_resource($skt)) {
                 fclose($skt);
                 $errmsg = "failed to read from socket";
-                return YAPI_IO_ERROR;
+                return YAPI::IO_ERROR;
             }
             if (strlen($data) == 0) {
                 if (feof($skt)) {
                     fclose($skt);
                     if (!$headerOK) {
                         $errmsg = "connection closed unexpectly";
-                        return YAPI_IO_ERROR;
+                        return YAPI::IO_ERROR;
                     }
-                    return YAPI_SUCCESS;
+                    return YAPI::SUCCESS;
                 } else {
-                    $rd = Array($skt);
-                    $wr = NULL;
-                    $ex = NULL;
+                    $rd = array($skt);
+                    $wr = null;
+                    $ex = null;
                     if (false === ($select_res = stream_select($rd, $wr, $ex, 0, 1000000))) {
                         $errmsg = "stream select error";
-                        return YAPI_IO_ERROR;
+                        return YAPI::IO_ERROR;
                     }
                 }
                 continue;
@@ -3119,18 +3581,18 @@ class YAPI
                     if ($code == '401') {
                         fclose($skt);
                         $errmsg = "HTTP Authentication not supported";
-                        return YAPI_UNAUTHORIZED;
-                    } else if ($code == '101') {
+                        return YAPI::UNAUTHORIZED;
+                    } elseif ($code == '101') {
                         fclose($skt);
                         $errmsg = "Websocket not supported";
-                        return YAPI_NOT_SUPPORTED;
-                    } else if ($code >= '300' && $code <= '302' && isset($meta['Location'])) {
+                        return YAPI::NOT_SUPPORTED;
+                    } elseif ($code >= '300' && $code <= '302' && isset($meta['Location'])) {
                         fclose($skt);
                         return self::_forwardHTTPreq($host, $meta['Location'], $cbdata, $errmsg);
-                    } else if (substr($code, 0, 2) != '20' || $code[2] == '3') {
+                    } elseif (substr($code, 0, 2) != '20' || $code[2] == '3') {
                         fclose($skt);
                         $errmsg = "HTTP error" . substr($firstline, strlen($words[0]));
-                        return YAPI_NOT_SUPPORTED;
+                        return YAPI::NOT_SUPPORTED;
                     }
                     $chunked = isset($meta['Transfer-Encoding']) && strtolower($meta['Transfer-Encoding']) == 'chunked';
                 }
@@ -3170,16 +3632,15 @@ class YAPI
             }
         }
     }
-    public static function ForwardHTTPCallback($url, &$errmsg = "")
+    public static function ForwardHTTPCallback(string $url, string &$errmsg = ""): int
     {
-        $rooturl = 'callback';
         $url_detail = self::_parseRegisteredURL('callback');
         if (isset(self::$_hubs[$url_detail['rooturl']])) {
             $cb_hub = self::$_hubs[$url_detail['rooturl']];
             // data to post is found in $cb_hub->callbackData
-            $url = str_replace('http://', '', $url);
+            $url = str_replace(['http://', 'https://'], ['', ''], $url);
             $pos = strpos($url, '/');
-            if ($pos === FALSE) {
+            if ($pos === false) {
                 $relurl = '/';
             } else {
                 $relurl = substr($url, $pos);
@@ -3188,92 +3649,109 @@ class YAPI
             return self::_forwardHTTPreq($url, $relurl, $cb_hub->callbackData, $errmsg);
         } else {
             $errmsg = 'ForwardHTTPCallback must be called AFTER RegisterHub("callback")';
-            return YAPI_NOT_INITIALIZED;
+            return YAPI::NOT_INITIALIZED;
         }
     }
-    public static function UpdateDeviceList(&$errmsg = '')
+    public static function UpdateDeviceList(string &$errmsg = ''): int
     {
         $yreq = self::_updateDeviceList_internal(false, true);
-        if ($yreq->errorType != YAPI_SUCCESS) {
+        if ($yreq->errorType != YAPI::SUCCESS) {
             $errmsg = $yreq->errorMsg;
             return self::_throw($yreq->errorType, $yreq->errorMsg, $yreq->errorType);
         }
-        return YAPI_SUCCESS;
+        return YAPI::SUCCESS;
     }
-    public static function HandleEvents(&$errmsg = '')
+    public static function HandleEvents(string &$errmsg = ''): int
     {
         // monitor hubs for events
-        while(self::_handleEvents_internal(0)) {}
+        while (self::_handleEvents_internal(0)) {
+        }
         // handle pending events
         $nEvents = sizeof(self::$_data_events);
         for ($i = 0; $i < $nEvents; $i++) {
             $evt = self::$_data_events[$i];
-            if (is_string($evt[1])) {
-                $fun = $evt[0];
-                // event object is an advertised value
-                $fun->_invokeValueCallback($evt[1]);
+            if (sizeof($evt) == 1) {
+                $evt[0]->isOnline();
             } else {
-                $ysensor = $evt[0];
-                // event object is an array of bytes (encoded timed report)
-                $dev = YAPI::getDevice($ysensor->get_module()->get_serialNumber());
-                if (!is_null($dev)) {
-                    $report = $ysensor->_decodeTimedReport($evt[1], $evt[2], $evt[3]);
-                    $ysensor->_invokeTimedReportCallback($report);
+                if (is_string($evt[1])) {
+                    $fun = $evt[0];
+                    // event object is an advertised value
+                    $fun->_invokeValueCallback($evt[1]);
+                } else {
+                    $ysensor = $evt[0];
+                    // event object is an array of bytes (encoded timed report)
+                    $dev = YAPI::getDevice($ysensor->get_module()->get_serialNumber());
+                    if (!is_null($dev)) {
+                        $report = $ysensor->_decodeTimedReport($evt[1], $evt[2], $evt[3]);
+                        $ysensor->_invokeTimedReportCallback($report);
+                    }
                 }
             }
         }
         self::$_data_events = array_slice(self::$_data_events, $nEvents);
         $errmsg = '';
-        return YAPI_SUCCESS;
+        return YAPI::SUCCESS;
     }
-    public static function Sleep($ms_duration, &$errmsg = '')
+    public static function Sleep(float $ms_duration, string &$errmsg = ''): int
     {
         $end = YAPI::GetTickCount() + $ms_duration;
         self::HandleEvents($errmsg);
         $remain = $end - YAPI::GetTickCount();
         while ($remain > 0) {
-            if ($remain > 999) $remain = 999;
-            self::_handleEvents_internal($remain);
+            if ($remain > 999) {
+                $remain = 999;
+            }
+            self::_handleEvents_internal((int)$remain);
             self::HandleEvents($errmsg);
             $remain = $end - YAPI::GetTickCount();
         }
         $errmsg = '';
-        return YAPI_SUCCESS;
+        return YAPI::SUCCESS;
     }
-    public static function GetTickCount()
+    public static function GetTickCount(): float
     {
         return round(microtime(true) * 1000);
     }
-    public static function CheckLogicalName($name)
+    public static function CheckLogicalName(string $name): bool
     {
-        if ($name == '') return true;
-        if (!$name) return false;
-        if (strlen($name) > 19) return false;
+        if ($name == '') {
+            return true;
+        }
+        if (!$name) {
+            return false;
+        }
+        if (strlen($name) > 19) {
+            return false;
+        }
         return preg_match('/^[A-Za-z0-9_\-]*$/', $name);
     }
-    public static function RegisterDeviceArrivalCallback($arrivalCallback)
+    public static function RegisterDeviceArrivalCallback(?callable $arrivalCallback): void
     {
         self::$_arrivalCallback = $arrivalCallback;
     }
-    public static function RegisterDeviceChangeCallback($changeCallback)
+    public static function RegisterDeviceChangeCallback(?callable $changeCallback): void
     {
         self::$_namechgCallback = $changeCallback;
     }
-    public static function RegisterDeviceRemovalCallback($removalCallback)
+    public static function RegisterDeviceRemovalCallback(?callable $removalCallback): void
     {
         self::$_removalCallback = $removalCallback;
     }
     // Register a new value calibration handler for a given calibration type
     //
-    public static function RegisterCalibrationHandler($calibrationType, $calibrationHandler)
+    public static function RegisterCalibrationHandler(int $calibrationType, ?callable $calibrationHandler): void
     {
         self::$_calibHandlers[$calibrationType] = $calibrationHandler;
     }
     // Standard value calibration handler (n-point linear error correction)
     //
-    public static function LinearCalibrationHandler($float_rawValue, $int_calibType, $arr_calibParams,
-                                                    $arr_calibRawValues, $arr_calibRefValues)
-    {
+    public static function LinearCalibrationHandler(
+        float $float_rawValue,
+        int $int_calibType,
+        array $arr_calibParams,
+        array $arr_calibRawValues,
+        array $arr_calibRefValues
+    ): float {
         $x = $arr_calibRawValues[0];
         $adj = $arr_calibRefValues[0] - $x;
         $i = 0;
@@ -3302,7 +3780,7 @@ class YAPI
     //
     // return null on error
     //
-    private static function decodeNetFuncValV2($p)
+    private static function decodeNetFuncValV2(string $p): ?array
     {
         $p_ofs = 0;
         $ch = ord($p[$p_ofs]);
@@ -3318,8 +3796,9 @@ class YAPI
         $ch &= 0x3f;
         while ($len < YOCTO_PUBVAL_SIZE) {
             $p_ofs++;
-            if ($p_ofs >= strlen($p))
+            if ($p_ofs >= strlen($p)) {
                 break;
+            }
             $newCh = ord($p[$p_ofs]);
             if ($newCh == NOTIFY_NETPKT_STOP) {
                 break;
@@ -3334,7 +3813,7 @@ class YAPI
         }
         return $funcVal;
     }
-    private static function decodePubVal($typeV2, $funcval, $ofs, $funcvalen)
+    private static function decodePubVal(int $typeV2, array $funcval, int $ofs, int $funcvalen): string
     {
         $buffer = "";
         if ($typeV2 == NOTIFY_V2_6RAWBYTES || $typeV2 == NOTIFY_V2_TYPEDDATA) {
@@ -3368,7 +3847,7 @@ class YAPI
                     $numVal = $funcval[$ofs++];
                     $numVal += $funcval[$ofs++] << 8;
                     $numVal += $funcval[$ofs++] << 16;
-                    $numVal += $funcval[$ofs++] << 24;
+                    $numVal += $funcval[$ofs] << 24;
                     if ($funcValType == PUBVAL_C_LONG) {
                         return sprintf("%d", $numVal);
                     } else {
@@ -3388,7 +3867,7 @@ class YAPI
                     $v = $funcval[$ofs++];
                     $v += $funcval[$ofs++] << 8;
                     $v += $funcval[$ofs++] << 16;
-                    $v += $funcval[$ofs++] << 24;
+                    $v += $funcval[$ofs] << 24;
                     $fraction = ($v & ((1 << 23) - 1)) + (1 << 23) * ($v >> 31 | 1);
                     $exp = ($v >> 23 & 0xFF) - 127;
                     $floatVal = $fraction * pow(2, $exp - 23);
@@ -3410,27 +3889,71 @@ class YAPI
         $len = 0;
         $buffer = '';
         while ($len < YOCTO_PUBVAL_SIZE && $len < $funcvalen) {
-            if ($funcval[$len] == 0)
+            if ($funcval[$len] == 0) {
                 break;
+            }
             $buffer .= chr($funcval[$len]);
             $len++;
         }
         return $buffer;
     }
+    public static function nextHubRef(int $hubref): int
+    {
+        if (is_null(self::$_hubs)) {
+            self::_init();
+        }
+        if ($hubref < 0) {
+            $next = 0;
+        } else {
+            $next = $hubref + 1;
+        }
+        $c = 0;
+        foreach (self::$_hubs as $hub) {
+            if ($c == $next && $hub->isEnable()) {
+                return $c;
+            }
+            $c++;
+        }
+        return -1;
+    }
+    public static function getTcpHubFromRef(int $hubref): ?YTcpHub
+    {
+        $c = 0;
+        foreach (self::$_hubs as $hub) {
+            if ($c == $hubref && $hub->isEnable()) {
+                return $hub;
+            }
+            $c++;
+        }
+        return null;
+    }
+    public static function _checkForDuplicateHub(YTcpHub  $newHub):bool
+    {
+        $serialNumber = $newHub->getSerialNumber();
+        foreach (self::$_hubs as $hub) {
+            if ($hub->isEnable() && $hub !== $newHub && $hub->getSerialNumber() == $serialNumber) {
+                $hub->mergeFrom($newHub);
+                return true;
+            }
+        }
+        return false;
+    }
 }
+//^^^^ YAPI.php
 //--- (generated code: YMeasure declaration)
+//vvvv YMeasure.php
 class YMeasure
 {
     //--- (end of generated code: YMeasure declaration)
-    const DATA_INVALID = YAPI_INVALID_DOUBLE;
+    const DATA_INVALID = YAPI::INVALID_DOUBLE;
     //--- (generated code: YMeasure attributes)
-    protected $_start                    = 0;                            // float
-    protected $_end                      = 0;                            // float
-    protected $_minVal                   = 0;                            // float
-    protected $_avgVal                   = 0;                            // float
-    protected $_maxVal                   = 0;                            // float
+    protected float $_start = 0;                            // float
+    protected float $_end = 0;                            // float
+    protected float $_minVal = 0;                            // float
+    protected float $_avgVal = 0;                            // float
+    protected float $_maxVal = 0;                            // float
     //--- (end of generated code: YMeasure attributes)
-    public function __construct($float_start, $float_end, $float_minVal, $float_avgVal, $float_maxVal)
+    public function __construct(float $float_start, float $float_end, float $float_minVal, float $float_avgVal, float $float_maxVal)
     {
         //--- (generated code: YMeasure constructor)
         //--- (end of generated code: YMeasure constructor)
@@ -3441,44 +3964,46 @@ class YMeasure
         $this->_maxVal = $float_maxVal;
     }
     //--- (generated code: YMeasure implementation)
-    public function get_startTimeUTC()
+    public function get_startTimeUTC(): float
     {
         return $this->_start;
     }
-    public function get_endTimeUTC()
+    public function get_endTimeUTC(): float
     {
         return $this->_end;
     }
-    public function get_minValue()
+    public function get_minValue(): float
     {
         return $this->_minVal;
     }
-    public function get_averageValue()
+    public function get_averageValue(): float
     {
         return $this->_avgVal;
     }
-    public function get_maxValue()
+    public function get_maxValue(): float
     {
         return $this->_maxVal;
     }
     //--- (end of generated code: YMeasure implementation)
 }
+//^^^^ YMeasure.php
 //--- (generated code: YFirmwareUpdate declaration)
+//vvvv YFirmwareUpdate.php
 class YFirmwareUpdate
 {
     //--- (end of generated code: YFirmwareUpdate declaration)
-    const DATA_INVALID = YAPI_INVALID_DOUBLE;
+    const DATA_INVALID = YAPI::INVALID_DOUBLE;
     //--- (generated code: YFirmwareUpdate attributes)
-    protected $_serial                   = "";                           // str
-    protected $_settings                 = "";                           // bin
-    protected $_firmwarepath             = "";                           // str
-    protected $_progress_msg             = "";                           // str
-    protected $_progress_c               = 0;                            // int
-    protected $_progress                 = 0;                            // int
-    protected $_restore_step             = 0;                            // int
-    protected $_force                    = 0;                            // bool
+    protected string $_serial = "";                           // str
+    protected string $_settings = "";                           // bin
+    protected string $_firmwarepath = "";                           // str
+    protected string $_progress_msg = "";                           // str
+    protected int $_progress_c = 0;                            // int
+    protected int $_progress = 0;                            // int
+    protected int $_restore_step = 0;                            // int
+    protected bool $_force = false;                        // bool
     //--- (end of generated code: YFirmwareUpdate attributes)
-    public function __construct($serial, $path, $settings, $force)
+    public function __construct(string $serial, string $path, string $settings, bool $force)
     {
         //--- (generated code: YFirmwareUpdate constructor)
         //--- (end of generated code: YFirmwareUpdate constructor)
@@ -3487,17 +4012,17 @@ class YFirmwareUpdate
         $this->_settings = $settings;
         $this->_force = $force;
     }
-    private function _processMore_internal($i)
+    private function _processMore_internal(int $i): int
     {
         //not yet implemented
         $this->_progress = -1;
         $this->_progress_msg = "Not supported in PHP";
         return $this->_progress;
     }
-    private static function CheckFirmware_internal($serial, $path, $minrelease)
+    private static function CheckFirmware_internal(string $serial, string $path, string $minrelease): string
     {
-        if ($path == "http://www.yoctopuce.com" || $path == "www.yoctopuce.com") {
-            $yoctopuce_infos = file_get_contents('http://www.yoctopuce.com/FR/common/getLastFirmwareLink.php?serial=' . $serial);
+        if ($path == "http://www.yoctopuce.com" || $path == "http://www.yoctopuce.com" || $path == "www.yoctopuce.com") {
+            $yoctopuce_infos = file_get_contents('https://www.yoctopuce.com/FR/common/getLastFirmwareLink.php?serial=' . $serial);
             if ($yoctopuce_infos === false) {
                 return 'error: Unable to get last firmware info from www.yoctopuce.com';
             }
@@ -3519,41 +4044,41 @@ class YFirmwareUpdate
             return 'error: Not yet supported in PHP';
         }
     }
-    private static function GetAllBootLoaders_internal()
+    private static function GetAllBootLoaders_internal(): array
     {
         return array();
     }
     //--- (generated code: YFirmwareUpdate implementation)
-    public function _processMore($newupdate)
+    public function _processMore(int $newupdate): int
     {
         return $this->_processMore_internal($newupdate);
     }
     //cannot be generated for PHP:
-    //private function _processMore_internal($newupdate)
-    public static function GetAllBootLoaders()
+    //private function _processMore_internal(int $newupdate)
+    public static function GetAllBootLoaders(): array
     {
         return self::GetAllBootLoaders_internal();
     }
     //cannot be generated for PHP:
     //private static function GetAllBootLoaders_internal()
-    public static function CheckFirmware($serial,$path,$minrelease)
+    public static function CheckFirmware(string $serial, string $path, int $minrelease): string
     {
-        return self::CheckFirmware_internal($serial,$path,$minrelease);
+        return self::CheckFirmware_internal($serial, $path, $minrelease);
     }
     //cannot be generated for PHP:
-    //private static function CheckFirmware_internal($serial,$path,$minrelease)
-    public function get_progress()
+    //private static function CheckFirmware_internal(string $serial, string $path, int $minrelease)
+    public function get_progress(): int
     {
         if ($this->_progress >= 0) {
             $this->_processMore(0);
         }
         return $this->_progress;
     }
-    public function get_progressMessage()
+    public function get_progressMessage(): string
     {
         return $this->_progress_msg;
     }
-    public function startUpdate()
+    public function startUpdate(): int
     {
         // $err                    is a str;
         // $leng                   is a int;
@@ -3571,36 +4096,39 @@ class YFirmwareUpdate
     }
     //--- (end of generated code: YFirmwareUpdate implementation)
 }
+//^^^^ YFirmwareUpdate.php
 //--- (generated code: YDataStream declaration)
+//vvvv YDataStream.php
 class YDataStream
 {
     //--- (end of generated code: YDataStream declaration)
-    const DATA_INVALID = YAPI_INVALID_DOUBLE;
+    const DATA_INVALID = YAPI::INVALID_DOUBLE;
     //--- (generated code: YDataStream attributes)
-    protected $_parent                   = null;                         // YFunction
-    protected $_runNo                    = 0;                            // int
-    protected $_utcStamp                 = 0;                            // u32
-    protected $_nCols                    = 0;                            // int
-    protected $_nRows                    = 0;                            // int
-    protected $_startTime                = 0;                            // float
-    protected $_duration                 = 0;                            // float
-    protected $_dataSamplesInterval      = 0;                            // float
-    protected $_firstMeasureDuration     = 0;                            // float
-    protected $_columnNames              = Array();                      // strArr
-    protected $_functionId               = "";                           // str
-    protected $_isClosed                 = 0;                            // bool
-    protected $_isAvg                    = 0;                            // bool
-    protected $_minVal                   = 0;                            // float
-    protected $_avgVal                   = 0;                            // float
-    protected $_maxVal                   = 0;                            // float
-    protected $_caltyp                   = 0;                            // int
-    protected $_calpar                   = Array();                      // intArr
-    protected $_calraw                   = Array();                      // floatArr
-    protected $_calref                   = Array();                      // floatArr
-    protected $_values                   = Array();                      // floatArrArr
-    protected $_isLoaded                 = 0;                            // bool
+    protected ?YFunction $_parent = null;                         // YFunction
+    protected int $_runNo = 0;                            // int
+    protected float $_utcStamp = 0;                            // u32
+    protected int $_nCols = 0;                            // int
+    protected int $_nRows = 0;                            // int
+    protected float $_startTime = 0;                            // float
+    protected float $_duration = 0;                            // float
+    protected float $_dataSamplesInterval = 0;                            // float
+    protected float $_firstMeasureDuration = 0;                            // float
+    protected array $_columnNames = [];                           // strArr
+    protected string $_functionId = "";                           // str
+    protected bool $_isClosed = false;                        // bool
+    protected bool $_isAvg = false;                        // bool
+    protected float $_minVal = 0;                            // float
+    protected float $_avgVal = 0;                            // float
+    protected float $_maxVal = 0;                            // float
+    protected int $_caltyp = 0;                            // int
+    protected array $_calpar = [];                           // intArr
+    protected array $_calraw = [];                           // floatArr
+    protected array $_calref = [];                           // floatArr
+    protected array $_values = [];                           // floatArrArr
+    protected bool $_isLoaded = false;                        // bool
     //--- (end of generated code: YDataStream attributes)
-    public function __construct($obj_parent, $obj_dataset = null, $encoded = null)
+    private mixed $_calhdl;
+    public function __construct(YFunction $obj_parent, ?YDataSet $obj_dataset = null, array $encoded = null)
     {
         //--- (generated code: YDataStream constructor)
         //--- (end of generated code: YDataStream constructor)
@@ -3611,7 +4139,7 @@ class YDataStream
         }
     }
     //--- (generated code: YDataStream implementation)
-    public function _initFromDataSet($dataset,$encoded)
+    public function _initFromDataSet(?YDataSet $dataset, array $encoded): int
     {
         // $val                    is a int;
         // $i                      is a int;
@@ -3620,7 +4148,7 @@ class YDataStream
         // $samplesPerHour         is a int;
         // $fRaw                   is a float;
         // $fRef                   is a float;
-        $iCalib = Array();      // intArr;
+        $iCalib = [];           // intArr;
         // decode sequence header to extract data
         $this->_runNo = $encoded[0] + ((($encoded[1]) << (16)));
         $this->_utcStamp = $encoded[2] + ((($encoded[3]) << (16)));
@@ -3641,7 +4169,7 @@ class YDataStream
             $this->_startTime = $this->_utcStamp + ($ms_offset / 1000.0);
         } else {
             // legacy encoding subtract the measure interval form the UTC timestamp
-            $this->_startTime = $this->_utcStamp -  $this->_dataSamplesInterval;
+            $this->_startTime = $this->_utcStamp - $this->_dataSamplesInterval;
         }
         $this->_firstMeasureDuration = $encoded[5];
         if (!($this->_isAvg)) {
@@ -3668,9 +4196,15 @@ class YDataStream
         if ($this->_caltyp != 0) {
             $this->_calhdl = YAPI::_getCalibrationHandler($this->_caltyp);
             $maxpos = sizeof($iCalib);
-            while(sizeof($this->_calpar) > 0) { array_pop($this->_calpar); };
-            while(sizeof($this->_calraw) > 0) { array_pop($this->_calraw); };
-            while(sizeof($this->_calref) > 0) { array_pop($this->_calref); };
+            while (sizeof($this->_calpar) > 0) {
+                array_pop($this->_calpar);
+            };
+            while (sizeof($this->_calraw) > 0) {
+                array_pop($this->_calraw);
+            };
+            while (sizeof($this->_calref) > 0) {
+                array_pop($this->_calref);
+            };
             $i = 1;
             while ($i < $maxpos) {
                 $this->_calpar[] = $iCalib[$i];
@@ -3690,13 +4224,17 @@ class YDataStream
         // preload column names for backward-compatibility
         $this->_functionId = $dataset->get_functionId();
         if ($this->_isAvg) {
-            while(sizeof($this->_columnNames) > 0) { array_pop($this->_columnNames); };
+            while (sizeof($this->_columnNames) > 0) {
+                array_pop($this->_columnNames);
+            };
             $this->_columnNames[] = sprintf('%s_min', $this->_functionId);
             $this->_columnNames[] = sprintf('%s_avg', $this->_functionId);
             $this->_columnNames[] = sprintf('%s_max', $this->_functionId);
             $this->_nCols = 3;
         } else {
-            while(sizeof($this->_columnNames) > 0) { array_pop($this->_columnNames); };
+            while (sizeof($this->_columnNames) > 0) {
+                array_pop($this->_columnNames);
+            };
             $this->_columnNames[] = $this->_functionId;
             $this->_nCols = 1;
         }
@@ -3708,24 +4246,28 @@ class YDataStream
         }
         return 0;
     }
-    public function _parseStream($sdata)
+    public function _parseStream(string $sdata): int
     {
         // $idx                    is a int;
-        $udat = Array();        // intArr;
-        $dat = Array();         // floatArr;
+        $udat = [];             // intArr;
+        $dat = [];              // floatArr;
         if ($this->_isLoaded && !($this->_isClosed)) {
-            return YAPI_SUCCESS;
+            return YAPI::SUCCESS;
         }
         if (strlen($sdata) == 0) {
             $this->_nRows = 0;
-            return YAPI_SUCCESS;
+            return YAPI::SUCCESS;
         }
         $udat = YAPI::_decodeWords($this->_parent->_json_get_string($sdata));
-        while(sizeof($this->_values) > 0) { array_pop($this->_values); };
+        while (sizeof($this->_values) > 0) {
+            array_pop($this->_values);
+        };
         $idx = 0;
         if ($this->_isAvg) {
             while ($idx + 3 < sizeof($udat)) {
-                while(sizeof($dat) > 0) { array_pop($dat); };
+                while (sizeof($dat) > 0) {
+                    array_pop($dat);
+                };
                 if (($udat[$idx] == 65535) && ($udat[$idx + 1] == 65535)) {
                     $dat[] = NAN;
                     $dat[] = NAN;
@@ -3740,7 +4282,9 @@ class YDataStream
             }
         } else {
             while ($idx + 1 < sizeof($udat)) {
-                while(sizeof($dat) > 0) { array_pop($dat); };
+                while (sizeof($dat) > 0) {
+                    array_pop($dat);
+                };
                 if (($udat[$idx] == 65535) && ($udat[$idx + 1] == 65535)) {
                     $dat[] = NAN;
                 } else {
@@ -3752,37 +4296,37 @@ class YDataStream
         }
         $this->_nRows = sizeof($this->_values);
         $this->_isLoaded = true;
-        return YAPI_SUCCESS;
+        return YAPI::SUCCESS;
     }
-    public function _wasLoaded()
+    public function _wasLoaded(): bool
     {
         return $this->_isLoaded;
     }
-    public function _get_url()
+    public function _get_url(): string
     {
         // $url                    is a str;
         $url = sprintf('logger.json?id=%s&run=%d&utc=%u',
                        $this->_functionId,$this->_runNo,$this->_utcStamp);
         return $url;
     }
-    public function _get_baseurl()
+    public function _get_baseurl(): string
     {
         // $url                    is a str;
         $url = sprintf('logger.json?id=%s&run=%d&utc=',
                        $this->_functionId,$this->_runNo);
         return $url;
     }
-    public function _get_urlsuffix()
+    public function _get_urlsuffix(): string
     {
         // $url                    is a str;
         $url = sprintf('%u',$this->_utcStamp);
         return $url;
     }
-    public function loadStream()
+    public function loadStream(): int
     {
         return $this->_parseStream($this->_parent->_download($this->_get_url()));
     }
-    public function _decodeVal($w)
+    public function _decodeVal(int $w): float
     {
         // $val                    is a float;
         $val = $w;
@@ -3794,7 +4338,7 @@ class YDataStream
         }
         return $val;
     }
-    public function _decodeAvg($dw,$count)
+    public function _decodeAvg(int $dw, int $count): float
     {
         // $val                    is a float;
         $val = $dw;
@@ -3806,39 +4350,39 @@ class YDataStream
         }
         return $val;
     }
-    public function isClosed()
+    public function isClosed(): bool
     {
         return $this->_isClosed;
     }
-    public function get_runIndex()
+    public function get_runIndex(): int
     {
         return $this->_runNo;
     }
-    public function get_startTime()
+    public function get_startTime(): int
     {
         return $this->_utcStamp - time();
     }
-    public function get_startTimeUTC()
+    public function get_startTimeUTC(): float
     {
         return round($this->_startTime);
     }
-    public function get_realStartTimeUTC()
+    public function get_realStartTimeUTC(): float
     {
         return $this->_startTime;
     }
-    public function get_dataSamplesIntervalMs()
+    public function get_dataSamplesIntervalMs(): int
     {
         return round($this->_dataSamplesInterval*1000);
     }
-    public function get_dataSamplesInterval()
+    public function get_dataSamplesInterval(): float
     {
         return $this->_dataSamplesInterval;
     }
-    public function get_firstDataSamplesInterval()
+    public function get_firstDataSamplesInterval(): float
     {
         return $this->_firstMeasureDuration;
     }
-    public function get_rowCount()
+    public function get_rowCount(): int
     {
         if (($this->_nRows != 0) && $this->_isClosed) {
             return $this->_nRows;
@@ -3846,7 +4390,7 @@ class YDataStream
         $this->loadStream();
         return $this->_nRows;
     }
-    public function get_columnCount()
+    public function get_columnCount(): int
     {
         if ($this->_nCols != 0) {
             return $this->_nCols;
@@ -3854,7 +4398,7 @@ class YDataStream
         $this->loadStream();
         return $this->_nCols;
     }
-    public function get_columnNames()
+    public function get_columnNames(): array
     {
         if (sizeof($this->_columnNames) != 0) {
             return $this->_columnNames;
@@ -3862,84 +4406,86 @@ class YDataStream
         $this->loadStream();
         return $this->_columnNames;
     }
-    public function get_minValue()
+    public function get_minValue(): float
     {
         return $this->_minVal;
     }
-    public function get_averageValue()
+    public function get_averageValue(): float
     {
         return $this->_avgVal;
     }
-    public function get_maxValue()
+    public function get_maxValue(): float
     {
         return $this->_maxVal;
     }
-    public function get_realDuration()
+    public function get_realDuration(): float
     {
         if ($this->_isClosed) {
             return $this->_duration;
         }
         return time() - $this->_utcStamp;
     }
-    public function get_dataRows()
+    public function get_dataRows(): array
     {
         if ((sizeof($this->_values) == 0) || !($this->_isClosed)) {
             $this->loadStream();
         }
         return $this->_values;
     }
-    public function get_data($row,$col)
+    public function get_data(int $row, int $col): float
     {
         if ((sizeof($this->_values) == 0) || !($this->_isClosed)) {
             $this->loadStream();
         }
         if ($row >= sizeof($this->_values)) {
-            return Y_DATA_INVALID;
+            return self::DATA_INVALID;
         }
         if ($col >= sizeof($this->_values[$row])) {
-            return Y_DATA_INVALID;
+            return self::DATA_INVALID;
         }
         return $this->_values[$row][$col];
     }
     //--- (end of generated code: YDataStream implementation)
 }
+//^^^^ YDataStream.php
 //--- (generated code: YDataSet declaration)
+//vvvv YDataSet.php
+//use Exception;
 class YDataSet
 {
     //--- (end of generated code: YDataSet declaration)
-    const DATA_INVALID = YAPI_INVALID_DOUBLE;
+    const DATA_INVALID = YAPI::INVALID_DOUBLE;
     //--- (generated code: YDataSet attributes)
-    protected $_parent                   = null;                         // YFunction
-    protected $_hardwareId               = "";                           // str
-    protected $_functionId               = "";                           // str
-    protected $_unit                     = "";                           // str
-    protected $_bulkLoad                 = 0;                            // int
-    protected $_startTimeMs              = 0;                            // float
-    protected $_endTimeMs                = 0;                            // float
-    protected $_progress                 = 0;                            // int
-    protected $_calib                    = Array();                      // intArr
-    protected $_streams                  = Array();                      // YDataStreamArr
-    protected $_summary                  = null;                         // YMeasure
-    protected $_preview                  = Array();                      // YMeasureArr
-    protected $_measures                 = Array();                      // YMeasureArr
-    protected $_summaryMinVal            = 0;                            // float
-    protected $_summaryMaxVal            = 0;                            // float
-    protected $_summaryTotalAvg          = 0;                            // float
-    protected $_summaryTotalTime         = 0;                            // float
+    protected ?YFunction $_parent = null;                         // YFunction
+    protected string $_hardwareId = "";                           // str
+    protected string $_functionId = "";                           // str
+    protected string $_unit = "";                           // str
+    protected int $_bulkLoad = 0;                            // int
+    protected float $_startTimeMs = 0;                            // float
+    protected float $_endTimeMs = 0;                            // float
+    protected int $_progress = 0;                            // int
+    protected array $_calib = [];                           // intArr
+    protected array $_streams = [];                           // YDataStreamArr
+    protected ?YMeasure $_summary = null;                         // YMeasure
+    protected array $_preview = [];                           // YMeasureArr
+    protected array $_measures = [];                           // YMeasureArr
+    protected float $_summaryMinVal = 0;                            // float
+    protected float $_summaryMaxVal = 0;                            // float
+    protected float $_summaryTotalAvg = 0;                            // float
+    protected float $_summaryTotalTime = 0;                            // float
     //--- (end of generated code: YDataSet attributes)
-    public function __construct($obj_parent, $str_functionId = null, $str_unit = null, $float_startTime = null, $float_endTime = null)
+    public function __construct(YFunction $obj_parent, ?string $str_functionId = null, ?string $str_unit = null, ?float $float_startTime = null, ?float $float_endTime = null)
     {
         //--- (generated code: YDataSet constructor)
         //--- (end of generated code: YDataSet constructor)
         $this->_summary = new YMeasure(0, 0, 0, 0, 0);
+        $this->_parent = $obj_parent;
         if (is_null($str_unit)) {
             // 1st version of constructor, called from YDataLogger
-            $this->_parent = $obj_parent;
-            $this->_startTime = 0;
-            $this->_endTime = 0;
+            $this->_startTimeMs = 0;
+            $this->_endTimeMs = 0;
         } else {
             // 2nd version of constructor, called from YFunction
-            $this->_parent = $obj_parent;
             $this->_functionId = $str_functionId;
             $this->_unit = $str_unit;
             $this->_startTimeMs = $float_startTime * 1000;
@@ -3948,13 +4494,13 @@ class YDataSet
         }
     }
     //--- (generated code: YDataSet implementation)
-    public function _get_calibration()
+    public function _get_calibration(): array
     {
         return $this->_calib;
     }
-    public function loadSummary($data)
+    public function loadSummary(string $data): int
     {
-        $dataRows = Array();    // floatArrArr;
+        $dataRows = [];         // floatArrArr;
         // $tim                    is a float;
         // $mitv                   is a float;
         // $itv                    is a float;
@@ -3988,12 +4534,12 @@ class YDataSet
         // $summaryMaxVal          is a float;
         // $url                    is a str;
         // $strdata                is a str;
-        $measure_data = Array(); // floatArr;
+        $measure_data = [];     // floatArr;
         if ($this->_progress < 0) {
             $strdata = $data;
             if ($strdata == '{}') {
-                $this->_parent->_throw(YAPI_VERSION_MISMATCH, 'device firmware is too old');
-                return YAPI_VERSION_MISMATCH;
+                $this->_parent->_throw(YAPI::VERSION_MISMATCH, 'device firmware is too old');
+                return YAPI::VERSION_MISMATCH;
             }
             $res = $this->_parse($strdata);
             if ($res < 0) {
@@ -4002,14 +4548,14 @@ class YDataSet
         }
         $summaryTotalTime = 0;
         $summaryTotalAvg = 0;
-        $summaryMinVal = YAPI_MAX_DOUBLE;
-        $summaryMaxVal = YAPI_MIN_DOUBLE;
-        $summaryStartMs = YAPI_MAX_DOUBLE;
-        $summaryStopMs = YAPI_MIN_DOUBLE;
+        $summaryMinVal = YAPI::MAX_DOUBLE;
+        $summaryMaxVal = YAPI::MIN_DOUBLE;
+        $summaryStartMs = YAPI::MAX_DOUBLE;
+        $summaryStopMs = YAPI::MIN_DOUBLE;
         // Parse complete streams
-        foreach( $this->_streams as $each) {
-            $streamStartTimeMs = round($each->get_realStartTimeUTC() *1000);
-            $streamDuration = $each->get_realDuration() ;
+        foreach ( $this->_streams as $each) {
+            $streamStartTimeMs = round($each->get_realStartTimeUTC() * 1000);
+            $streamDuration = $each->get_realDuration();
             $streamEndTimeMs = $streamStartTimeMs + round($streamDuration * 1000);
             if (($streamStartTimeMs >= $this->_startTimeMs) && (($this->_endTimeMs == 0) || ($streamEndTimeMs <= $this->_endTimeMs))) {
                 // stream that are completely inside the dataset
@@ -4050,11 +4596,11 @@ class YDataSet
                 $previewTotalAvg = 0;
                 $previewStartMs = $streamEndTimeMs;
                 $previewStopMs = $streamStartTimeMs;
-                $previewMinVal = YAPI_MAX_DOUBLE;
-                $previewMaxVal = YAPI_MIN_DOUBLE;
+                $previewMinVal = YAPI::MAX_DOUBLE;
+                $previewMaxVal = YAPI::MIN_DOUBLE;
                 $m_pos = 0;
                 while ($m_pos < sizeof($dataRows)) {
-                    $measure_data  = $dataRows[$m_pos];
+                    $measure_data = $dataRows[$m_pos];
                     if ($m_pos == 0) {
                         $mitv = $fitv;
                     } else {
@@ -4118,14 +4664,14 @@ class YDataSet
         if ($summaryTotalTime > 0) {
             $this->_summary = new YMeasure($summaryStartMs / 1000.0, $summaryStopMs / 1000.0, $summaryMinVal, $summaryTotalAvg / $summaryTotalTime, $summaryMaxVal);
         } else {
-            $this->_summary = new YMeasure(0.0, 0.0, YAPI_INVALID_DOUBLE, YAPI_INVALID_DOUBLE, YAPI_INVALID_DOUBLE);
+            $this->_summary = new YMeasure(0.0, 0.0, YAPI::INVALID_DOUBLE, YAPI::INVALID_DOUBLE, YAPI::INVALID_DOUBLE);
         }
         return $this->get_progress();
     }
-    public function processMore($progress,$data)
+    public function processMore(int $progress, string $data): int
     {
         // $stream                 is a YDataStream;
-        $dataRows = Array();    // floatArrArr;
+        $dataRows = [];         // floatArrArr;
         // $tim                    is a float;
         // $itv                    is a float;
         // $fitv                   is a float;
@@ -4139,10 +4685,10 @@ class YDataSet
         // $baseurl                is a str;
         // $url                    is a str;
         // $suffix                 is a str;
-        $suffixes = Array();    // strArr;
+        $suffixes = [];         // strArr;
         // $idx                    is a int;
         // $bulkFile               is a bin;
-        $streamStr = Array();   // strArr;
+        $streamStr = [];        // strArr;
         // $urlIdx                 is a int;
         // $streamBin              is a bin;
         if ($progress != $this->_progress) {
@@ -4182,7 +4728,7 @@ class YDataSet
             $maxCol = 0;
         }
         $firstMeasure = true;
-        foreach($dataRows as $each) {
+        foreach ($dataRows as $each) {
             if ($firstMeasure) {
                 $end_ = $tim + $fitv;
                 $firstMeasure = false;
@@ -4205,7 +4751,7 @@ class YDataSet
             $url = $stream->_get_url();
             $suffix = $stream->_get_urlsuffix();
             $suffixes[] = $suffix;
-            $idx = $this->_progress+1;
+            $idx = $this->_progress + 1;
             while (($idx < sizeof($this->_streams)) && (sizeof($suffixes) < $this->_bulkLoad)) {
                 $stream = $this->_streams[$idx];
                 if (!($stream->_wasLoaded()) && ($stream->_get_baseurl() == $baseurl)) {
@@ -4231,11 +4777,11 @@ class YDataSet
         }
         return $this->get_progress();
     }
-    public function get_privateDataStreams()
+    public function get_privateDataStreams(): array
     {
         return $this->_streams;
     }
-    public function get_hardwareId()
+    public function get_hardwareId(): string
     {
         // $mo                     is a YModule;
         if (!($this->_hardwareId == '')) {
@@ -4245,31 +4791,31 @@ class YDataSet
         $this->_hardwareId = sprintf('%s.%s', $mo->get_serialNumber(), $this->get_functionId());
         return $this->_hardwareId;
     }
-    public function get_functionId()
+    public function get_functionId(): string
     {
         return $this->_functionId;
     }
-    public function get_unit()
+    public function get_unit(): string
     {
         return $this->_unit;
     }
-    public function get_startTimeUTC()
+    public function get_startTimeUTC(): float
     {
         return $this->imm_get_startTimeUTC();
     }
-    public function imm_get_startTimeUTC()
+    public function imm_get_startTimeUTC(): float
     {
         return ($this->_startTimeMs / 1000.0);
     }
-    public function get_endTimeUTC()
+    public function get_endTimeUTC(): float
     {
         return $this->imm_get_endTimeUTC();
     }
-    public function imm_get_endTimeUTC()
+    public function imm_get_endTimeUTC(): float
     {
         return round($this->_endTimeMs / 1000.0);
     }
-    public function get_progress()
+    public function get_progress(): int
     {
         if ($this->_progress < 0) {
             return 0;
@@ -4280,7 +4826,7 @@ class YDataSet
         }
         return intVal((1 + (1 + $this->_progress) * 98 ) / ((1 + sizeof($this->_streams))));
     }
-    public function loadMore()
+    public function loadMore(): int
     {
         // $url                    is a str;
         // $stream                 is a YDataStream;
@@ -4290,7 +4836,7 @@ class YDataSet
                 $url = sprintf('%s&from=%u',$url,$this->imm_get_startTimeUTC());
             }
             if ($this->_endTimeMs != 0) {
-                $url = sprintf('%s&to=%u',$url,$this->imm_get_endTimeUTC()+1);
+                $url = sprintf('%s&to=%u',$url,$this->imm_get_endTimeUTC() + 1);
             }
         } else {
             if ($this->_progress >= sizeof($this->_streams)) {
@@ -4310,20 +4856,20 @@ class YDataSet
             return $this->processMore($this->_progress, $this->_parent->_download($url));
         }
     }
-    public function get_summary()
+    public function get_summary(): ?YMeasure
     {
         return $this->_summary;
     }
-    public function get_preview()
+    public function get_preview(): array
     {
         return $this->_preview;
     }
-    public function get_measuresAt($measure)
+    public function get_measuresAt(YMeasure $measure): array
     {
         // $startUtcMs             is a float;
         // $stream                 is a YDataStream;
-        $dataRows = Array();    // floatArrArr;
-        $measures = Array();    // YMeasureArr;
+        $dataRows = [];         // floatArrArr;
+        $measures = [];         // YMeasureArr;
         // $tim                    is a float;
         // $itv                    is a float;
         // $end_                   is a float;
@@ -4331,9 +4877,9 @@ class YDataSet
         // $minCol                 is a int;
         // $avgCol                 is a int;
         // $maxCol                 is a int;
-        $startUtcMs = $measure.get_startTimeUTC() * 1000;
+        $startUtcMs = $measure->get_startTimeUTC() * 1000;
         $stream = null;
-        foreach($this->_streams as $each) {
+        foreach ($this->_streams as $each) {
             if (round($each->get_realStartTimeUTC() *1000) == $startUtcMs) {
                 $stream = $each;
             }
@@ -4362,7 +4908,7 @@ class YDataSet
         } else {
             $maxCol = 0;
         }
-        foreach($dataRows as $each) {
+        foreach ($dataRows as $each) {
             $end_ = $tim + $itv;
             if (($end_ > $this->_startTimeMs) && (($this->_endTimeMs == 0) || ($tim < $this->_endTimeMs))) {
                 $measures[] = new YMeasure($tim / 1000.0, $end_ / 1000.0, $each[$minCol], $each[$avgCol], $each[$maxCol]);
@@ -4371,13 +4917,13 @@ class YDataSet
         }
         return $measures;
     }
-    public function get_measures()
+    public function get_measures(): array
     {
         return $this->_measures;
     }
     //--- (end of generated code: YDataSet implementation)
     // YDataSet parser for stream list
-    public function _parse($str_json)
+    public function _parse(string $str_json)
     {
         $loadval = json_decode(iconv("ISO-8859-1", "UTF-8", $str_json), true);
         $this->_functionId = $loadval['id'];
@@ -4390,64 +4936,70 @@ class YDataSet
             $this->_calib = YAPI::_decodeWords($loadval['cal']);
         }
         $this->_summary = new YMeasure(0, 0, 0, 0, 0);
-        $this->_streams = Array();
-        $this->_preview = Array();
-        $this->_measures = Array();
+        $this->_streams = array();
+        $this->_preview = array();
+        $this->_measures = array();
         for ($i = 0; $i < sizeof($loadval['streams']); $i++) {
             $stream = $this->_parent->_findDataStream($this, $loadval['streams'][$i]);
             $streamStartTime = $stream->get_realstartTimeUTC() * 1000;
             $streamEndTime = $streamStartTime + $stream->get_realDuration() * 1000;
             if ($this->_startTimeMs > 0 && $streamEndTime <= $this->_startTimeMs) {
                 // this stream is too early, drop it
-            } else if ($this->_endTimeMs > 0 && $streamStartTime >= $this->_endTimeMs) {
-                // this stream is too late, drop it
             } else {
-                $this->_streams[] = $stream;
+                if ($this->_endTimeMs > 0 && $streamStartTime >= $this->_endTimeMs) {
+                    // this stream is too late, drop it
+                } else {
+                    $this->_streams[] = $stream;
+                }
             }
         }
         $this->_progress = 0;
         return $this->get_progress();
     }
 }
+//^^^^ YDataSet.php
 //--- (generated code: YConsolidatedDataSet declaration)
+//vvvv YConsolidatedDataSet.php
 class YConsolidatedDataSet
 {
     //--- (end of generated code: YConsolidatedDataSet declaration)
     //--- (generated code: YConsolidatedDataSet attributes)
-    protected $_start                    = 0;                            // float
-    protected $_end                      = 0;                            // float
-    protected $_nsensors                 = 0;                            // int
-    protected $_sensors                  = Array();                      // YSensorArr
-    protected $_datasets                 = Array();                      // YDataSetArr
-    protected $_progresss                = Array();                      // intArr
-    protected $_nextidx                  = Array();                      // intArr
-    protected $_nexttim                  = Array();                      // floatArr
+    protected float $_start = 0;                            // float
+    protected float $_end = 0;                            // float
+    protected int $_nsensors = 0;                            // int
+    protected array $_sensors = [];                           // YSensorArr
+    protected array $_datasets = [];                           // YDataSetArr
+    protected array $_progresss = [];                           // intArr
+    protected array $_nextidx = [];                           // intArr
+    protected array $_nexttim = [];                           // floatArr
     //--- (end of generated code: YConsolidatedDataSet attributes)
-    public function __construct($float_startTime, $float_endTime, $obj_sensorList)
+    public function __construct(float $float_startTime, float $float_endTime, array $obj_sensorList)
     {
         //--- (generated code: YConsolidatedDataSet constructor)
         //--- (end of generated code: YConsolidatedDataSet constructor)
         $this->imm_init($float_startTime, $float_endTime, $obj_sensorList);
     }
     //--- (generated code: YConsolidatedDataSet implementation)
-    public function imm_init($startt,$endt,$sensorList)
+    public function imm_init(float $startt, float $endt, array $sensorList): int
     {
         $this->_start = $startt;
         $this->_end = $endt;
         $this->_sensors = $sensorList;
         $this->_nsensors = -1;
-        return YAPI_SUCCESS;
+        return YAPI::SUCCESS;
     }
-    public static function Init($sensorNames,$startTime,$endTime)
+    public static function Init(array $sensorNames, float $startTime, float $endTime): ?YConsolidatedDataSet
     {
         // $nSensors               is a int;
-        $sensorList = Array();  // YSensorArr;
+        $sensorList = [];       // YSensorArr;
         // $idx                    is a int;
         // $sensorName             is a str;
         // $s                      is a YSensor;
         // $obj                    is a YConsolidatedDataSet;
         $nSensors = sizeof($sensorNames);
-        while(sizeof($sensorList) > 0) { array_pop($sensorList); };
+        while (sizeof($sensorList) > 0) {
+            array_pop($sensorList);
+        };
         $idx = 0;
         while ($idx < $nSensors) {
             $sensorName = $sensorNames[$idx];
@@ -4458,7 +5010,7 @@ class YConsolidatedDataSet
         $obj = new YConsolidatedDataSet($startTime, $endTime, $sensorList);
         return $obj;
     }
-    public function nextRecord(&$datarec)
+    public function nextRecord(array &$datarec): int
     {
         // $s                      is a int;
         // $idx                    is a int;
@@ -4468,17 +5020,25 @@ class YConsolidatedDataSet
         // $currprogress           is a int;
         // $currnexttim            is a float;
         // $newvalue               is a float;
-        $measures = Array();    // YMeasureArr;
+        $measures = [];         // YMeasureArr;
         // $nexttime               is a float;
         //
         // Ensure the dataset have been retrieved
         //
         if ($this->_nsensors == -1) {
             $this->_nsensors = sizeof($this->_sensors);
-            while(sizeof($this->_datasets) > 0) { array_pop($this->_datasets); };
-            while(sizeof($this->_progresss) > 0) { array_pop($this->_progresss); };
-            while(sizeof($this->_nextidx) > 0) { array_pop($this->_nextidx); };
-            while(sizeof($this->_nexttim) > 0) { array_pop($this->_nexttim); };
+            while (sizeof($this->_datasets) > 0) {
+                array_pop($this->_datasets);
+            };
+            while (sizeof($this->_progresss) > 0) {
+                array_pop($this->_progresss);
+            };
+            while (sizeof($this->_nextidx) > 0) {
+                array_pop($this->_nextidx);
+            };
+            while (sizeof($this->_nexttim) > 0) {
+                array_pop($this->_nexttim);
+            };
             $s = 0;
             while ($s < $this->_nsensors) {
                 $sensor = $this->_sensors[$s];
@@ -4490,7 +5050,9 @@ class YConsolidatedDataSet
                 $s = $s + 1;
             }
         }
-        while(sizeof($datarec) > 0) { array_pop($datarec); };
+        while (sizeof($datarec) > 0) {
+            array_pop($datarec);
+        };
         //
         // Find next timestamp to process
         //
@@ -4528,7 +5090,9 @@ class YConsolidatedDataSet
         //
         // Extract data for $this timestamp
         //
-        while(sizeof($datarec) > 0) { array_pop($datarec); };
+        while (sizeof($datarec) > 0) {
+            array_pop($datarec);
+        };
         $datarec[] = $nexttime;
         $globprogress = 0;
         $s = 0;
@@ -4539,7 +5103,7 @@ class YConsolidatedDataSet
                 $newvalue = $measures[$idx]->get_averageValue();
                 $datarec[] = $newvalue;
                 $this->_nexttim[$s] = 0.0;
-                $this->_nextidx[$s] = $idx+1;
+                $this->_nextidx[$s] = $idx + 1;
             } else {
                 $datarec[] = NAN;
             }
@@ -4557,44 +5121,210 @@ class YConsolidatedDataSet
     }
     //--- (end of generated code: YConsolidatedDataSet implementation)
 }
+//^^^^ YConsolidatedDataSet.php
+//--- (generated code: YHub definitions)
+//--- (end of generated code: YHub definitions)
+//--- (generated code: YHub declaration)
+//vvvv YHub.php
+class YHub
+{
+    //--- (end of generated code: YHub declaration)
+//--- (generated code: YHub attributes)
+    protected ?YAPIContext $_ctx = null;                         // YAPIContext
+    protected int $_hubref = 0;                            // int
+    protected mixed $_userData = null;                         // any
+    //--- (end of generated code: YHub attributes)
+    function __construct(YAPIContext $ctx, int $_hubref)
+    {
+        //--- (generated code: YHub constructor)
+        //--- (end of generated code: YHub constructor)
+        $this->_hubref = $_hubref;
+        $this->_ctx = $ctx;
+    }
+    private function _getStrAttr_internal(string $attrName): string
+    {
+        $hub = $this->_ctx->getTcpHubFromRef($this->_hubref);
+        if ($hub == null) {
+            return "";
+        }
+        switch ($attrName) {
+            case "registeredUrl":
+                return $hub->getRegisteredUrl();
+            case "connectionUrl":
+                return $hub->getBaseURL();
+            case "serialNumber":
+                return $hub->getSerialNumber();
+            case "errorMessage":
+                return $hub->getLastErrorMessage();
+            default:
+                return "";
+        }
+    }
+    private function _getIntAttr_internal(string $attrName): int
+    {
+        $hub = $this->_ctx->getTcpHubFromRef($this->_hubref);
+        if ($attrName == "isInUse") {
+            return $hub != null ? 1 : 0;
+        }
+        if ($hub == null) {
+            return -1;
+        }
+        switch ($attrName) {
+            case "isOnline":
+                return $hub->isOnline() ? 1 : 0;
+            case "isReadOnly":
+                return $hub->isReadOnly() ? 1 : 0;
+            case "networkTimeout":
+                return $hub->get_networkTimeout();
+            case "errorType":
+                return $hub->getLastErrorType();
+            default:
+                return -1;
+        }
+    }
+    private function _setIntAttr_internal(string $attrName, int $value): void
+    {
+        $hub = $this->_ctx->getTcpHubFromRef($this->_hubref);
+        if ($hub != null && $attrName == "networkTimeout") {
+            $hub->set_networkTimeout($value);
+        }
+    }
+    private function get_knownUrls_internal(): array
+    {
+        $hub = $this->_ctx->getTcpHubFromRef($this->_hubref);
+        if ($hub != null) {
+            return $hub->getKnownUrls();
+        }
+        return [];
+    }
+//--- (generated code: YHub implementation)
+    public function _getStrAttr(string $attrName): string
+    {
+        return $this->_getStrAttr_internal($attrName);
+    }
+    //cannot be generated for PHP:
+    //private function _getStrAttr_internal(string $attrName)
+    public function _getIntAttr(string $attrName): int
+    {
+        return $this->_getIntAttr_internal($attrName);
+    }
+    //cannot be generated for PHP:
+    //private function _getIntAttr_internal(string $attrName)
+    public function _setIntAttr(string $attrName, int $value): void
+    {
+        $this->_setIntAttr_internal($attrName, $value);
+    }
+    //cannot be generated for PHP:
+    //private function _setIntAttr_internal(string $attrName, int $value)
+    public function get_registeredUrl(): string
+    {
+        return $this->_getStrAttr('registeredUrl');
+    }
+    public function get_knownUrls(): array
+    {
+        return $this->get_knownUrls_internal();
+    }
+    //cannot be generated for PHP:
+    //private function get_knownUrls_internal()
+    public function get_connectionUrl(): string
+    {
+        return $this->_getStrAttr('connectionUrl');
+    }
+    public function get_serialNumber(): string
+    {
+        return $this->_getStrAttr('serialNumber');
+    }
+    public function isInUse(): bool
+    {
+        return $this->_getIntAttr('isInUse') > 0;
+    }
+    public function isOnline(): bool
+    {
+        return $this->_getIntAttr('isOnline') > 0;
+    }
+    public function isReadOnly(): bool
+    {
+        return $this->_getIntAttr('isReadOnly') > 0;
+    }
+    public function set_networkTimeout(int $networkMsTimeout): void
+    {
+        $this->_setIntAttr('networkTimeout',$networkMsTimeout);
+    }
+    public function get_networkTimeout(): int
+    {
+        return $this->_getIntAttr('networkTimeout');
+    }
+    public function get_errorType(): int
+    {
+        return $this->_getIntAttr('errorType');
+    }
+    public function get_errorMessage(): string
+    {
+        return $this->_getStrAttr('errorMessage');
+    }
+    public function get_userData(): mixed
+    {
+        return $this->_userData;
+    }
+    public function set_userData(mixed $data): void
+    {
+        $this->_userData = $data;
+    }
+    public static function FirstHubInUse(): ?YHub
+    {
+        return YAPI::nextHubInUseInternal(-1);
+    }
+    public function nextHubInUse(): ?YHub
+    {
+        return $this->_ctx->nextHubInUseInternal($this->_hubref);
+    }
+    //--- (end of generated code: YHub implementation)
+}
+//^^^^ YHub.php
 //--- (generated code: YFunction declaration)
+//vvvv YFunction.php
+//use Exception;
 class YFunction
 {
-    const LOGICALNAME_INVALID            = YAPI_INVALID_STRING;
-    const ADVERTISEDVALUE_INVALID        = YAPI_INVALID_STRING;
+    const LOGICALNAME_INVALID = YAPI::INVALID_STRING;
+    const ADVERTISEDVALUE_INVALID = YAPI::INVALID_STRING;
     //--- (end of generated code: YFunction declaration)
-    public static $_TimedReportCallbackList = Array();
-    public static $_ValueCallbackList = Array();
-    protected $_className     = 'Function';
-    protected $_func;
-    protected $_lastErrorType = YAPI_SUCCESS;
-    protected $_lastErrorMsg  = 'no error';
-    protected $_dataStreams;
-    protected $_userData      = NULL;
-    protected $_cache;
+    const FUNCTIONDESCRIPTOR_INVALID = YAPI::INVALID_STRING;
+    const HARDWAREID_INVALID = YAPI::INVALID_STRING;
+    const FUNCTIONID_INVALID = YAPI::INVALID_STRING;
+    const FRIENDLYNAME_INVALID = YAPI::INVALID_STRING;
+    public static array $_TimedReportCallbackList = array();
+    public static array $_ValueCallbackList = array();
+    protected string $_className = 'Function';
+    protected string $_func;
+    protected int $_lastErrorType = YAPI::SUCCESS;
+    protected string $_lastErrorMsg = 'no error';
+    protected array $_dataStreams;
+    protected mixed $_userData = null;
+    protected array $_cache;
     //--- (generated code: YFunction attributes)
-    protected $_logicalName              = Y_LOGICALNAME_INVALID;        // Text
-    protected $_advertisedValue          = Y_ADVERTISEDVALUE_INVALID;    // PubText
-    protected $_valueCallbackFunction    = null;                         // YFunctionValueCallback
-    protected $_cacheExpiration          = 0;                            // ulong
-    protected $_serial                   = "";                           // str
-    protected $_funId                    = "";                           // str
-    protected $_hwId                     = "";                           // str
+    protected string $_logicalName = self::LOGICALNAME_INVALID;    // Text
+    protected string $_advertisedValue = self::ADVERTISEDVALUE_INVALID; // PubText
+    protected mixed $_valueCallbackFunction = null;                         // YFunctionValueCallback
+    protected float $_cacheExpiration = 0;                            // ulong
+    protected string $_serial = "";                           // str
+    protected string $_funId = "";                           // str
+    protected string $_hwId = "";                           // str
     //--- (end of generated code: YFunction attributes)
-    function __construct($str_func)
+    function __construct(string $str_func)
     {
         $this->_func = $str_func;
-        $this->_cache = Array('_expiration' => 0);
-        $this->_dataStreams = Array();
+        $this->_cache = array();
+        $this->_dataStreams = array();
         //--- (generated code: YFunction constructor)
         //--- (end of generated code: YFunction constructor)
     }
     // internal helper for YFunctionType
-    function _getHwId()
+    function _getHwId(): string
     {
         return $this->_hwId;
     }
-    private function isReadOnly_internal()
+    private function isReadOnly_internal(): bool
     {
         try {
             $serial = $this->get_serialNumber();
@@ -4604,12 +5334,9 @@ class YFunction
         }
     }
     //--- (generated code: YFunction implementation)
-    function _parseAttr($name, $val)
+    function _parseAttr(string $name, mixed $val): int
     {
-        switch($name) {
-        case '_expiration':
-            $this->_cacheExpiration = $val;
-            return 1;
+        switch ($name) {
         case 'logicalName':
             $this->_logicalName = $val;
             return 1;
@@ -4619,41 +5346,42 @@ class YFunction
         }
         return 0;
     }
-    public function get_logicalName()
+    public function get_logicalName(): string
     {
         // $res                    is a string;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_LOGICALNAME_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::LOGICALNAME_INVALID;
             }
         }
         $res = $this->_logicalName;
         return $res;
     }
-    public function set_logicalName($newval)
+    public function set_logicalName(string $newval): int
     {
-        if (!YAPI::CheckLogicalName($newval))
-            return $this->_throw(YAPI_INVALID_ARGUMENT,'Invalid name :'.$newval);
+        if (!YAPI::CheckLogicalName($newval)) {
+            return $this->_throw(YAPI::INVALID_ARGUMENT,'Invalid name :'.$newval);
+        }
         $rest_val = $newval;
-        return $this->_setAttr("logicalName",$rest_val);
+        return $this->_setAttr("logicalName", $rest_val);
     }
-    public function get_advertisedValue()
+    public function get_advertisedValue(): string
     {
         // $res                    is a string;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_ADVERTISEDVALUE_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::ADVERTISEDVALUE_INVALID;
             }
         }
         $res = $this->_advertisedValue;
         return $res;
     }
-    public function set_advertisedValue($newval)
+    public function set_advertisedValue(string $newval): int
     {
         $rest_val = $newval;
-        return $this->_setAttr("advertisedValue",$rest_val);
+        return $this->_setAttr("advertisedValue", $rest_val);
     }
-    public static function FindFunction($func)
+    public static function FindFunction(string $func): YFunction
     {
         // $obj                    is a YFunction;
         $obj = YFunction::_FindFromCache('Function', $func);
@@ -4663,7 +5391,7 @@ class YFunction
         }
         return $obj;
     }
-    public function registerValueCallback($callback)
+    public function registerValueCallback(mixed $callback): int
     {
         // $val                    is a str;
         if (!is_null($callback)) {
@@ -4681,23 +5409,22 @@ class YFunction
         }
         return 0;
     }
-    public function _invokeValueCallback($value)
+    public function _invokeValueCallback(string $value): int
     {
         if (!is_null($this->_valueCallbackFunction)) {
             call_user_func($this->_valueCallbackFunction, $this, $value);
-        } else {
         }
         return 0;
     }
-    public function muteValueCallbacks()
+    public function muteValueCallbacks(): int
     {
         return $this->set_advertisedValue('SILENT');
     }
-    public function unmuteValueCallbacks()
+    public function unmuteValueCallbacks(): int
     {
         return $this->set_advertisedValue('');
     }
-    public function loadAttribute($attrName)
+    public function loadAttribute(string $attrName): string
     {
         // $url                    is a str;
         // $attrVal                is a bin;
@@ -4705,56 +5432,72 @@ class YFunction
         $attrVal = $this->_download($url);
         return $attrVal;
     }
-    public function isReadOnly()
+    public function isReadOnly(): bool
     {
         return $this->isReadOnly_internal();
     }
     //cannot be generated for PHP:
     //private function isReadOnly_internal()
-    public function get_serialNumber()
+    public function get_serialNumber(): string
     {
         // $m                      is a YModule;
         $m = $this->get_module();
         return $m->get_serialNumber();
     }
-    public function _parserHelper()
+    public function _parserHelper(): int
     {
         return 0;
     }
-    public function logicalName()
-    { return $this->get_logicalName(); }
-    public function setLogicalName($newval)
-    { return $this->set_logicalName($newval); }
-    public function advertisedValue()
-    { return $this->get_advertisedValue(); }
-    public function setAdvertisedValue($newval)
-    { return $this->set_advertisedValue($newval); }
-    public function nextFunction()
-    {   $resolve = YAPI::resolveFunction($this->_className, $this->_func);
-        if($resolve->errorType != YAPI_SUCCESS) return null;
+    public function logicalName(): string
+{
+    return $this->get_logicalName();
+}
+    public function setLogicalName(string $newval): int
+{
+    return $this->set_logicalName($newval);
+}
+    public function advertisedValue(): string
+{
+    return $this->get_advertisedValue();
+}
+    public function setAdvertisedValue(string $newval): int
+{
+    return $this->set_advertisedValue($newval);
+}
+    public function nextFunction(): ?YFunction
+    {
+        $resolve = YAPI::resolveFunction($this->_className, $this->_func);
+        if ($resolve->errorType != YAPI::SUCCESS) {
+            return null;
+        }
         $next_hwid = YAPI::getNextHardwareId($this->_className, $resolve->result);
-        if($next_hwid == null) return null;
+        if ($next_hwid == null) {
+            return null;
+        }
         return self::FindFunction($next_hwid);
     }
-    public static function FirstFunction()
-    {   $next_hwid = YAPI::getFirstHardwareId('Function');
-        if($next_hwid == null) return null;
+    public static function FirstFunction(): ?YFunction
+    {
+        $next_hwid = YAPI::getFirstHardwareId('Function');
+        if ($next_hwid == null) {
+            return null;
+        }
         return self::FindFunction($next_hwid);
     }
     //--- (end of generated code: YFunction implementation)
-    public static function _FindFromCache($className, $func)
+    public static function _FindFromCache(string $className, string $func): ?YFunction
     {
         return YAPI::getFunction($className, $func);
     }
-    public static function _AddToCache($className, $func, $obj)
+    public static function _AddToCache(string $className, string $func, YFunction $obj): void
     {
         YAPI::setFunction($className, $func, $obj);
     }
-    public static function _ClearCache()
+    public static function _ClearCache(): void
     {
         YAPI::_init();
     }
-    public static function _UpdateValueCallbackList($obj_func, $bool_add)
+    public static function _UpdateValueCallbackList(YFunction $obj_func, bool $bool_add): void
     {
         $index = array_search($obj_func, self::$_ValueCallbackList);
         if ($bool_add) {
@@ -4762,11 +5505,11 @@ class YFunction
             if ($index === false) {
                 self::$_ValueCallbackList[] = $obj_func;
             }
-        } else if ($index !== false) {
+        } elseif ($index !== false) {
             array_splice(self::$_ValueCallbackList, $index, 1);
         }
     }
-    public static function _UpdateTimedReportCallbackList($obj_func, $bool_add)
+    public static function _UpdateTimedReportCallbackList(YFunction $obj_func, bool $bool_add): void
     {
         $index = array_search($obj_func, self::$_TimedReportCallbackList);
         if ($bool_add) {
@@ -4774,12 +5517,11 @@ class YFunction
             if ($index === false) {
                 self::$_TimedReportCallbackList[] = $obj_func;
             }
-        } else if ($index !== false) {
+        } elseif ($index !== false) {
             array_splice(self::$_TimedReportCallbackList, $index, 1);
         }
     }
-    // Throw an exception, keeping track of it in the object itself
-    public function _throw($int_errType, $str_errMsg, $obj_retVal = null)
+    public function _throw(int $int_errType, string $str_errMsg, mixed $obj_retVal = null): mixed
     {
         $this->_lastErrorType = $int_errType;
         $this->_lastErrorMsg = $str_errMsg;
@@ -4789,56 +5531,56 @@ class YFunction
         // throw an exception
         throw new YAPI_Exception($str_errMsg, $int_errType);
     }
-    public function describe()
+    public function describe(): string
     {
         $resolve = YAPI::resolveFunction($this->_className, $this->_func);
-        if ($resolve->errorType != YAPI_SUCCESS && $resolve->result != $this->_func) {
+        if ($resolve->errorType != YAPI::SUCCESS && $resolve->result != $this->_func) {
             return $this->_className . "({$this->_func})=unresolved";
         }
         return $this->_className . "({$this->_func})={$resolve->result}";
     }
-    public function get_hardwareId()
+    public function get_hardwareId(): string
     {
         $resolve = YAPI::resolveFunction($this->_className, $this->_func);
-        if ($resolve->errorType != YAPI_SUCCESS) {
+        if ($resolve->errorType != YAPI::SUCCESS) {
             $this->isOnline();
             $resolve = YAPI::resolveFunction($this->_className, $this->_func);
-            if ($resolve->errorType != YAPI_SUCCESS) {
-                return $this->_throw($resolve->errorType, $resolve->errorMsg, Y_HARDWAREID_INVALID);
+            if ($resolve->errorType != YAPI::SUCCESS) {
+                return $this->_throw($resolve->errorType, $resolve->errorMsg, YFunction::HARDWAREID_INVALID);
             }
         }
         return $resolve->result;
     }
-    public function get_functionId()
+    public function get_functionId(): string
     {
         $resolve = YAPI::resolveFunction($this->_className, $this->_func);
-        if ($resolve->errorType != YAPI_SUCCESS) {
+        if ($resolve->errorType != YAPI::SUCCESS) {
             $this->isOnline();
             $resolve = YAPI::resolveFunction($this->_className, $this->_func);
-            if ($resolve->errorType != YAPI_SUCCESS) {
-                return $this->_throw($resolve->errorType, $resolve->errorMsg, Y_FUNCTIONID_INVALID);
+            if ($resolve->errorType != YAPI::SUCCESS) {
+                return $this->_throw($resolve->errorType, $resolve->errorMsg, YFunction::FUNCTIONID_INVALID);
             }
         }
         return substr($resolve->result, strpos($resolve->result, '.') + 1);
     }
-    public function get_friendlyName()
+    public function get_friendlyName(): string
     {
         $resolve = YAPI::getFriendlyNameFunction($this->_className, $this->_func);
-        if ($resolve->errorType != YAPI_SUCCESS) {
+        if ($resolve->errorType != YAPI::SUCCESS) {
             $this->isOnline();
             $resolve = YAPI::getFriendlyNameFunction($this->_className, $this->_func);
-            if ($resolve->errorType != YAPI_SUCCESS) {
-                return $this->_throw($resolve->errorType, $resolve->errorMsg, Y_FRIENDLYNAME_INVALID);
+            if ($resolve->errorType != YAPI::SUCCESS) {
+                return $this->_throw($resolve->errorType, $resolve->errorMsg, YFunction::FRIENDLYNAME_INVALID);
             }
         }
         return $resolve->result;
     }
     // Store and parse a an API request for current function
     //
-    protected function _parse($yreq, $msValidity)
+    protected function _parse(YAPI_YReq $yreq, float $msValidity): void
     {
         // save the whole structure for backward-compatibility
-        $yreq->result["_expiration"] = YAPI::GetTickCount() + $msValidity;
+        $this->_cacheExpiration = YAPI::GetTickCount() + $msValidity;
         $this->_serial = $yreq->deviceid;
         $this->_funId = $yreq->functionid;
         $this->_hwId = $yreq->hwid;
@@ -4851,42 +5593,44 @@ class YFunction
     }
     // Return the value of an attribute from function cache, after reloading it from device if needed
     // Note: the function cache is a typed (parsed) cache, contrarily to the agnostic device cache
-    protected function _getAttr($str_attr)
+    protected function _getAttr(string $str_attr): ?string
     {
-        if ($this->_cache['_expiration'] <= YAPI::GetTickCount()) {
+        if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
             // no valid cached value, reload from device
-            if ($this->load(YAPI::$defaultCacheValidity) != YAPI_SUCCESS) return null;
+            if ($this->load(YAPI::$defaultCacheValidity) != YAPI::SUCCESS) {
+                return null;
+            }
         }
         if (!isset($this->_cache[$str_attr])) {
-            $this->_throw(YAPI_VERSION_MISMATCH, 'No such attribute $str_attr in function', null);
+            $this->_throw(YAPI::VERSION_MISMATCH, 'No such attribute $str_attr in function', null);
         }
         return $this->_cache[$str_attr];
     }
     // Return the value of an attribute from function cache, after loading it from device if never done
-    protected function _getFixedAttr($str_attr)
+    protected function _getFixedAttr(string $str_attr): ?string
     {
-        if ($this->_cache['_expiration'] == 0) {
+        if ($this->_cacheExpiration == 0) {
             // no cached value, load from device
-            if ($this->load(YAPI::$defaultCacheValidity) != YAPI_SUCCESS) return null;
+            if ($this->load(YAPI::$defaultCacheValidity) != YAPI::SUCCESS) {
+                return null;
+            }
         }
         if (!isset($this->_cache[$str_attr])) {
-            $this->_throw(YAPI_VERSION_MISMATCH, "No such attribute $str_attr in function", null);
+            $this->_throw(YAPI::VERSION_MISMATCH, "No such attribute $str_attr in function", null);
         }
         return $this->_cache[$str_attr];
     }
-    protected function _escapeAttr($str_newval)
+    protected function _escapeAttr(string $str_newval): string
     {
         // urlencode according to RFC 3986 instead of php default RFC 1738
         $safecodes = array('%21', '%23', '%24', '%27', '%28', '%29', '%2A', '%2C', '%2F', '%3A', '%3B', '%40', '%3F', '%5B', '%5D');
         $safechars = array('!', "#", "$", "'", "(", ")", '*', ",", "/", ":", ";", "@", "?", "[", "]");
         return str_replace($safecodes, $safechars, urlencode($str_newval));
     }
-    // Change the value of an attribute on a device, and update cache on the fly
-    // Note: the function cache is a typed (parsed) cache, contrarily to the agnostic device cache
-    protected function _setAttr($str_attr, $str_newval)
+    protected function _setAttr(string $str_attr, string $str_newval): int
     {
         if (!isset($str_newval)) {
-            $this->_throw(YAPI_INVALID_ARGUMENT, "Undefined value to set for attribute $str_attr", null);
+            $this->_throw(YAPI::INVALID_ARGUMENT, "Undefined value to set for attribute $str_attr", null);
         }
         // urlencode according to RFC 3986 instead of php default RFC 1738
         $safecodes = array('%21', '%23', '%24', '%27', '%28', '%29', '%2A', '%2C', '%2F', '%3A', '%3B', '%40', '%3F', '%5B', '%5D');
@@ -4894,37 +5638,32 @@ class YFunction
         $attrname = str_replace($safecodes, $safechars, urlencode($str_attr));
         $extra = "/$attrname?$attrname=" . $this->_escapeAttr($str_newval) . "&.";
         $yreq = YAPI::funcRequest($this->_className, $this->_func, $extra);
-        if ($this->_cache['_expiration'] != 0) {
-            $this->_cache['_expiration'] = YAPI::GetTickCount();
+        if ($this->_cacheExpiration != 0) {
+            $this->_cacheExpiration = YAPI::GetTickCount();
         }
-        if ($yreq->errorType != YAPI_SUCCESS) {
+        if ($yreq->errorType != YAPI::SUCCESS) {
             return $this->_throw($yreq->errorType, $yreq->errorMsg, $yreq->errorType);
         }
-        return YAPI_SUCCESS;
+        return YAPI::SUCCESS;
     }
-    // Execute an arbitrary HTTP GET request on the device and return the binary content
-    //
-    public function _download($str_path)
+    public function _download(string $str_path): mixed
     {
         // get the device serial number
         $devid = $this->module()->get_serialNumber();
-        if ($devid == Y_SERIALNUMBER_INVALID) {
+        if ($devid == YModule::SERIALNUMBER_INVALID) {
             return '';
         }
         $yreq = YAPI::devRequest($devid, "GET /$str_path");
-        if ($yreq->errorType != YAPI_SUCCESS) {
+        if ($yreq->errorType != YAPI::SUCCESS) {
             return $this->_throw($yreq->errorType, $yreq->errorMsg, '');
         }
         return $yreq->result;
     }
-    // Upload a file to the filesystem, to the specified full path name.
-    // If a file already exists with the same path name, its content is overwritten.
-    //
-    public function _upload($str_path, $bin_content)
+    public function _upload(string $str_path, mixed $bin_content): int
     {
         // get the device serial number
         $devid = $this->module()->get_serialNumber();
-        if ($devid == Y_SERIALNUMBER_INVALID) {
+        if ($devid == YModule::SERIALNUMBER_INVALID) {
             return $this->get_errorType();
         }
         if (is_array($bin_content)) {
@@ -4935,19 +5674,19 @@ class YFunction
             "Content-Type: application/octet-stream\r\n" .
             "Content-Transfer-Encoding: binary\r\n\r\n" . $bin_content;
         $yreq = YAPI::devRequest($devid, $httpreq, true, $body);
-        if ($yreq->errorType != YAPI_SUCCESS) {
+        if ($yreq->errorType != YAPI::SUCCESS) {
             return $yreq->errorType;
         }
-        return YAPI_SUCCESS;
+        return YAPI::SUCCESS;
     }
     // Upload a file to the filesystem, to the specified full path name.
     // If a file already exists with the same path name, its content is overwritten.
     //
-    public function _uploadEx($str_path, $bin_content)
+    public function _uploadEx(string $str_path, mixed $bin_content)
     {
         // get the device serial number
         $devid = $this->module()->get_serialNumber();
-        if ($devid == Y_SERIALNUMBER_INVALID) {
+        if ($devid == YModule::SERIALNUMBER_INVALID) {
             return $this->get_errorType();
         }
         if (is_array($bin_content)) {
@@ -4958,14 +5697,14 @@ class YFunction
             "Content-Type: application/octet-stream\r\n" .
             "Content-Transfer-Encoding: binary\r\n\r\n" . $bin_content;
         $yreq = YAPI::devRequest($devid, $httpreq, false, $body);
-        if ($yreq->errorType != YAPI_SUCCESS) {
+        if ($yreq->errorType != YAPI::SUCCESS) {
             return $this->_throw($yreq->errorType, $yreq->errorMsg, '');
         }
         return $yreq->result;
     }
     // Get a value from a JSON buffer
     //
-    public function _json_get_key($bin_jsonbuff, $str_key)
+    public function _json_get_key(string $bin_jsonbuff, string $str_key): mixed
     {
         $loadval = json_decode($bin_jsonbuff, true);
         if (isset($loadval[$str_key])) {
@@ -4975,22 +5714,22 @@ class YFunction
     }
     // Get a string from a JSON buffer
     //
-    public function _json_get_string($bin_jsonbuff)
+    public function _json_get_string(string $bin_jsonbuff): string
     {
         return json_decode($bin_jsonbuff, true);
     }
     // Get an array of strings from a JSON buffer
     //
-    public function _json_get_array($bin_jsonbuff)
+    public function _json_get_array(string $bin_jsonbuff): array
     {
         $loadval = json_decode($bin_jsonbuff, true);
-        $res = Array();
+        $res = array();
         foreach ($loadval as $record) {
             $res[] = json_encode($record);
         }
         return $res;
     }
-    public function _get_json_path($str_json, $path)
+    public function _get_json_path(string $str_json, string $path): string
     {
         $json = json_decode($str_json, true);
         $paths = explode('|', $path);
@@ -5003,19 +5742,23 @@ class YFunction
         }
         return json_encode($json);
     }
-    public function _decode_json_string($json)
+    public function _decode_json_string(string $json): string
     {
         $decoded = json_decode($json);
+        if (is_null($decoded)) {
+            return '';
+        }
         return $decoded;
     }
-    public function _findDataStream($obj_dataset, $str_def)
+    public function _findDataStream(YDataSet $obj_dataset, string $str_def): ?YDataStream
     {
         $key = $obj_dataset->get_functionId() . ":" . $str_def;
-        if (isset($this->_dataStreams[$key]))
+        if (isset($this->_dataStreams[$key])) {
             return $this->_dataStreams[$key];
+        }
         $words = YAPI::_decodeWords($str_def);
         if (sizeof($words) < 14) {
-            $this->_throw(YAPI_VERSION_MISMATCH, "device firmware is too old");
+            $this->_throw(YAPI::VERSION_MISMATCH, "device firmware is too old");
             return null;
         }
         $newDataStream = new YDataStream($this, $obj_dataset, $words);
@@ -5023,64 +5766,66 @@ class YFunction
         return $newDataStream;
     }
     // Method used to clear cache of DataStream object (undocumented)
-    public function _clearDataStreamCache()
+    public function _clearDataStreamCache(): void
     {
         $this->_dataStreams = array();
     }
-    public function _getValueCallback()
+    public function _getValueCallback(): callable
     {
         return $this->_valueCallbackFunction;
     }
-    public function isOnline()
+    public function isOnline(): bool
     {
         // A valid value in cache means that the device is online
-        if ($this->_cache['_expiration'] > YAPI::GetTickCount()) return true;
+        if ($this->_cacheExpiration > YAPI::GetTickCount()) {
+            return true;
+        }
         // Check that the function is available without throwing exceptions
         $yreq = YAPI::funcRequest($this->_className, $this->_func, '');
-        if ($yreq->errorType != YAPI_SUCCESS) {
+        if ($yreq->errorType != YAPI::SUCCESS) {
             return false;
         }
         // save result in cache anyway
         $this->_parse($yreq, YAPI::$defaultCacheValidity);
         return true;
     }
-    public function get_errorType()
+    public function get_errorType(): int
     {
         return $this->_lastErrorType;
     }
-    public function errorType()
+    public function errorType(): int
     {
         return $this->_lastErrorType;
     }
-    public function errType()
+    public function errType(): int
     {
         return $this->_lastErrorType;
     }
-    public function get_errorMessage()
+    public function get_errorMessage(): string
     {
         return $this->_lastErrorMsg;
     }
-    public function errorMessage()
+    public function errorMessage(): string
     {
         return $this->_lastErrorMsg;
     }
-    public function errMessage()
+    public function errMessage(): string
     {
         return $this->_lastErrorMsg;
     }
-    public function load($msValidity)
+    public function load(float $msValidity): int
     {
         $yreq = YAPI::funcRequest($this->_className, $this->_func, '');
-        if ($yreq->errorType != YAPI_SUCCESS) {
+        if ($yreq->errorType != YAPI::SUCCESS) {
             return $this->_throw($yreq->errorType, $yreq->errorMsg, $yreq->errorType);
         }
         $this->_parse($yreq, $msValidity);
-        return YAPI_SUCCESS;
+        return YAPI::SUCCESS;
     }
-    public function clearCache()
+    public function clearCache(): void
     {
         $resolve = YAPI::resolveFunction($this->_className, $this->_func);
-        if ($resolve->errorType != YAPI_SUCCESS) {
+        if ($resolve->errorType != YAPI::SUCCESS) {
             return;
         }
         $str_func = $resolve->result;
@@ -5096,134 +5841,142 @@ class YFunction
             $this->_cacheExpiration = YAPI::GetTickCount();
         }
     }
-    public function get_module()
+    public function get_module(): YModule
     {
         // try to resolve the function name to a device id without query
         if ($this->_serial != '') {
-            return yFindModule($this->_serial . '.module');
+            return YModule::FindModule($this->_serial . '.module');
         }
         $hwid = $this->_func;
-        if (strpos($hwid, '.') === FALSE) {
+        if (strpos($hwid, '.') === false) {
             $resolve = YAPI::resolveFunction($this->_className, $this->_func);
-            if ($resolve->errorType == YAPI_SUCCESS) $hwid = $resolve->result;
+            if ($resolve->errorType == YAPI::SUCCESS) {
+                $hwid = $resolve->result;
+            }
         }
         $dotidx = strpos($hwid, '.');
-        if ($dotidx !== FALSE) {
+        if ($dotidx !== false) {
             // resolution worked
-            return yFindModule(substr($hwid, 0, $dotidx) . '.module');
+            return YModule::FindModule(substr($hwid, 0, $dotidx) . '.module');
         }
         // device not resolved for now, force a communication for a last chance resolution
-        if ($this->load(YAPI::$defaultCacheValidity) == YAPI_SUCCESS) {
+        if ($this->load(YAPI::$defaultCacheValidity) == YAPI::SUCCESS) {
             $resolve = YAPI::resolveFunction($this->_className, $this->_func);
-            if ($resolve->errorType == YAPI_SUCCESS) $hwid = $resolve->result;
+            if ($resolve->errorType == YAPI::SUCCESS) {
+                $hwid = $resolve->result;
+            }
         }
         $dotidx = strpos($hwid, '.');
-        if ($dotidx !== FALSE) {
+        if ($dotidx !== false) {
             // resolution worked
-            return yFindModule(substr($hwid, 0, $dotidx) . '.module');
+            return YModule::FindModule(substr($hwid, 0, $dotidx) . '.module');
         }
-        // return a true yFindModule object even if it is not a module valid for communicating
-        return yFindModule('module_of_' . $this->_className . '_' . $this->_func);
+        // return a true YModule object even if it is not a module valid for communicating
+        return YModule::FindModule('module_of_' . $this->_className . '_' . $this->_func);
     }
-    public function module()
+    public function module(): YModule
     {
         return $this->get_module();
     }
-    public function get_functionDescriptor()
+    public function get_functionDescriptor(): string
     {
         // try to resolve the function name to a device id without query
         $hwid = $this->_func;
-        if (strpos($hwid, '.') === FALSE) {
+        if (strpos($hwid, '.') === false) {
             $resolve = YAPI::resolveFunction($this->_className, $this->_func);
-            if ($resolve->errorType != YAPI_SUCCESS) $hwid = $resolve->result;
+            if ($resolve->errorType != YAPI::SUCCESS) {
+                $hwid = $resolve->result;
+            }
         }
         $dotidx = strpos($hwid, '.');
-        if ($dotidx !== FALSE) {
+        if ($dotidx !== false) {
             // resolution worked
             return $hwid;
         }
-        return Y_FUNCTIONDESCRIPTOR_INVALID;
+        return YFunction::FUNCTIONDESCRIPTOR_INVALID;
     }
-    public function getFunctionDescriptor()
+    public function getFunctionDescriptor(): string
     {
         return $this->get_functionDescriptor();
     }
-    public function get_userData()
+    public function get_userData(): mixed
     {
         return $this->_userData;
     }
-    public function userData()
+    public function userData(): mixed
     {
         return $this->_userData;
     }
-    public function set_userData($data)
+    public function set_userData(mixed $data): void
     {
         $this->_userData = $data;
     }
-    public function setUserData($data)
+    public function setUserData(mixed $data): void
     {
         $this->_userData = $data;
     }
 }
+//^^^^ YFunction.php
 //--- (generated code: YSensor declaration)
+//vvvv YSensor.php
 class YSensor extends YFunction
 {
-    const UNIT_INVALID                   = YAPI_INVALID_STRING;
-    const CURRENTVALUE_INVALID           = YAPI_INVALID_DOUBLE;
-    const LOWESTVALUE_INVALID            = YAPI_INVALID_DOUBLE;
-    const HIGHESTVALUE_INVALID           = YAPI_INVALID_DOUBLE;
-    const CURRENTRAWVALUE_INVALID        = YAPI_INVALID_DOUBLE;
-    const LOGFREQUENCY_INVALID           = YAPI_INVALID_STRING;
-    const REPORTFREQUENCY_INVALID        = YAPI_INVALID_STRING;
-    const ADVMODE_IMMEDIATE              = 0;
-    const ADVMODE_PERIOD_AVG             = 1;
-    const ADVMODE_PERIOD_MIN             = 2;
-    const ADVMODE_PERIOD_MAX             = 3;
-    const ADVMODE_INVALID                = -1;
-    const CALIBRATIONPARAM_INVALID       = YAPI_INVALID_STRING;
-    const RESOLUTION_INVALID             = YAPI_INVALID_DOUBLE;
-    const SENSORSTATE_INVALID            = YAPI_INVALID_INT;
+    const UNIT_INVALID = YAPI::INVALID_STRING;
+    const CURRENTVALUE_INVALID = YAPI::INVALID_DOUBLE;
+    const LOWESTVALUE_INVALID = YAPI::INVALID_DOUBLE;
+    const HIGHESTVALUE_INVALID = YAPI::INVALID_DOUBLE;
+    const CURRENTRAWVALUE_INVALID = YAPI::INVALID_DOUBLE;
+    const LOGFREQUENCY_INVALID = YAPI::INVALID_STRING;
+    const REPORTFREQUENCY_INVALID = YAPI::INVALID_STRING;
+    const ADVMODE_IMMEDIATE = 0;
+    const ADVMODE_PERIOD_AVG = 1;
+    const ADVMODE_PERIOD_MIN = 2;
+    const ADVMODE_PERIOD_MAX = 3;
+    const ADVMODE_INVALID = -1;
+    const CALIBRATIONPARAM_INVALID = YAPI::INVALID_STRING;
+    const RESOLUTION_INVALID = YAPI::INVALID_DOUBLE;
+    const SENSORSTATE_INVALID = YAPI::INVALID_INT;
     //--- (end of generated code: YSensor declaration)
-    const DATA_INVALID = YAPI_INVALID_DOUBLE;
+    const DATA_INVALID = YAPI::INVALID_DOUBLE;
     //--- (generated code: YSensor attributes)
-    protected $_unit                     = Y_UNIT_INVALID;               // Text
-    protected $_currentValue             = Y_CURRENTVALUE_INVALID;       // MeasureVal
-    protected $_lowestValue              = Y_LOWESTVALUE_INVALID;        // MeasureVal
-    protected $_highestValue             = Y_HIGHESTVALUE_INVALID;       // MeasureVal
-    protected $_currentRawValue          = Y_CURRENTRAWVALUE_INVALID;    // MeasureVal
-    protected $_logFrequency             = Y_LOGFREQUENCY_INVALID;       // YFrequency
-    protected $_reportFrequency          = Y_REPORTFREQUENCY_INVALID;    // YFrequency
-    protected $_advMode                  = Y_ADVMODE_INVALID;            // AdvertisingMode
-    protected $_calibrationParam         = Y_CALIBRATIONPARAM_INVALID;   // CalibParams
-    protected $_resolution               = Y_RESOLUTION_INVALID;         // MeasureVal
-    protected $_sensorState              = Y_SENSORSTATE_INVALID;        // Int
-    protected $_timedReportCallbackSensor = null;                         // YSensorTimedReportCallback
-    protected $_prevTimedReport          = 0;                            // float
-    protected $_iresol                   = 0;                            // float
-    protected $_offset                   = 0;                            // float
-    protected $_scale                    = 0;                            // float
-    protected $_decexp                   = 0;                            // float
-    protected $_caltyp                   = 0;                            // int
-    protected $_calpar                   = Array();                      // intArr
-    protected $_calraw                   = Array();                      // floatArr
-    protected $_calref                   = Array();                      // floatArr
-    protected $_calhdl                   = null;                         // yCalibrationHandler
+    protected string $_unit = self::UNIT_INVALID;           // Text
+    protected float $_currentValue = self::CURRENTVALUE_INVALID;   // MeasureVal
+    protected float $_lowestValue = self::LOWESTVALUE_INVALID;    // MeasureVal
+    protected float $_highestValue = self::HIGHESTVALUE_INVALID;   // MeasureVal
+    protected float $_currentRawValue = self::CURRENTRAWVALUE_INVALID; // MeasureVal
+    protected string $_logFrequency = self::LOGFREQUENCY_INVALID;   // YFrequency
+    protected string $_reportFrequency = self::REPORTFREQUENCY_INVALID; // YFrequency
+    protected int $_advMode = self::ADVMODE_INVALID;        // AdvertisingMode
+    protected string $_calibrationParam = self::CALIBRATIONPARAM_INVALID; // CalibParams
+    protected float $_resolution = self::RESOLUTION_INVALID;     // MeasureVal
+    protected int $_sensorState = self::SENSORSTATE_INVALID;    // Int
+    protected mixed $_timedReportCallbackSensor = null;                         // YSensorTimedReportCallback
+    protected float $_prevTimedReport = 0;                            // float
+    protected float $_iresol = 0;                            // float
+    protected float $_offset = 0;                            // float
+    protected float $_scale = 0;                            // float
+    protected float $_decexp = 0;                            // float
+    protected int $_caltyp = 0;                            // int
+    protected array $_calpar = [];                           // intArr
+    protected array $_calraw = [];                           // floatArr
+    protected array $_calref = [];                           // floatArr
+    protected mixed $_calhdl = null;                         // yCalibrationHandler
     //--- (end of generated code: YSensor attributes)
-    function __construct($str_func)
+    function __construct(string $str_func)
     {
         //--- (generated code: YSensor constructor)
         parent::__construct($str_func);
         $this->_className = 'Sensor';
         //--- (end of generated code: YSensor constructor)
     }
-    public function _getTimedReportCallback()
+    public function _getTimedReportCallback(): callable
     {
         return $this->_timedReportCallbackSensor;
     }
     //--- (generated code: YSensor implementation)
-    function _parseAttr($name, $val)
+    function _parseAttr(string $name, mixed $val): int
     {
-        switch($name) {
+        switch ($name) {
         case 'unit':
             $this->_unit = $val;
             return 1;
@@ -5260,170 +6013,170 @@ class YSensor extends YFunction
         }
         return parent::_parseAttr($name, $val);
     }
-    public function get_unit()
+    public function get_unit(): string
     {
         // $res                    is a string;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_UNIT_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::UNIT_INVALID;
             }
         }
         $res = $this->_unit;
         return $res;
     }
-    public function get_currentValue()
+    public function get_currentValue(): float
     {
         // $res                    is a float;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_CURRENTVALUE_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::CURRENTVALUE_INVALID;
             }
         }
         $res = $this->_applyCalibration($this->_currentRawValue);
-        if ($res == Y_CURRENTVALUE_INVALID) {
+        if ($res == self::CURRENTVALUE_INVALID) {
             $res = $this->_currentValue;
         }
         $res = $res * $this->_iresol;
         $res = round($res) / $this->_iresol;
         return $res;
     }
-    public function set_lowestValue($newval)
+    public function set_lowestValue(float $newval): int
     {
         $rest_val = strval(round($newval * 65536.0));
-        return $this->_setAttr("lowestValue",$rest_val);
+        return $this->_setAttr("lowestValue", $rest_val);
     }
-    public function get_lowestValue()
+    public function get_lowestValue(): float
     {
         // $res                    is a float;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_LOWESTVALUE_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::LOWESTVALUE_INVALID;
             }
         }
         $res = $this->_lowestValue * $this->_iresol;
         $res = round($res) / $this->_iresol;
         return $res;
     }
-    public function set_highestValue($newval)
+    public function set_highestValue(float $newval): int
     {
         $rest_val = strval(round($newval * 65536.0));
-        return $this->_setAttr("highestValue",$rest_val);
+        return $this->_setAttr("highestValue", $rest_val);
     }
-    public function get_highestValue()
+    public function get_highestValue(): float
     {
         // $res                    is a float;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_HIGHESTVALUE_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::HIGHESTVALUE_INVALID;
             }
         }
         $res = $this->_highestValue * $this->_iresol;
         $res = round($res) / $this->_iresol;
         return $res;
     }
-    public function get_currentRawValue()
+    public function get_currentRawValue(): float
     {
         // $res                    is a double;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_CURRENTRAWVALUE_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::CURRENTRAWVALUE_INVALID;
             }
         }
         $res = $this->_currentRawValue;
         return $res;
     }
-    public function get_logFrequency()
+    public function get_logFrequency(): string
     {
         // $res                    is a string;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_LOGFREQUENCY_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::LOGFREQUENCY_INVALID;
             }
         }
         $res = $this->_logFrequency;
         return $res;
     }
-    public function set_logFrequency($newval)
+    public function set_logFrequency(string $newval): int
     {
         $rest_val = $newval;
-        return $this->_setAttr("logFrequency",$rest_val);
+        return $this->_setAttr("logFrequency", $rest_val);
     }
-    public function get_reportFrequency()
+    public function get_reportFrequency(): string
     {
         // $res                    is a string;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_REPORTFREQUENCY_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::REPORTFREQUENCY_INVALID;
             }
         }
         $res = $this->_reportFrequency;
         return $res;
     }
-    public function set_reportFrequency($newval)
+    public function set_reportFrequency(string $newval): int
     {
         $rest_val = $newval;
-        return $this->_setAttr("reportFrequency",$rest_val);
+        return $this->_setAttr("reportFrequency", $rest_val);
     }
-    public function get_advMode()
+    public function get_advMode(): int
     {
         // $res                    is a enumADVERTISINGMODE;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_ADVMODE_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::ADVMODE_INVALID;
             }
         }
         $res = $this->_advMode;
         return $res;
     }
-    public function set_advMode($newval)
+    public function set_advMode(int $newval): int
     {
         $rest_val = strval($newval);
-        return $this->_setAttr("advMode",$rest_val);
+        return $this->_setAttr("advMode", $rest_val);
     }
-    public function get_calibrationParam()
+    public function get_calibrationParam(): string
     {
         // $res                    is a string;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_CALIBRATIONPARAM_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::CALIBRATIONPARAM_INVALID;
             }
         }
         $res = $this->_calibrationParam;
         return $res;
     }
-    public function set_calibrationParam($newval)
+    public function set_calibrationParam(string $newval): int
     {
         $rest_val = $newval;
-        return $this->_setAttr("calibrationParam",$rest_val);
+        return $this->_setAttr("calibrationParam", $rest_val);
     }
-    public function set_resolution($newval)
+    public function set_resolution(float $newval): int
     {
         $rest_val = strval(round($newval * 65536.0));
-        return $this->_setAttr("resolution",$rest_val);
+        return $this->_setAttr("resolution", $rest_val);
     }
-    public function get_resolution()
+    public function get_resolution(): float
     {
         // $res                    is a double;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_RESOLUTION_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::RESOLUTION_INVALID;
             }
         }
         $res = $this->_resolution;
         return $res;
     }
-    public function get_sensorState()
+    public function get_sensorState(): int
     {
         // $res                    is a int;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_SENSORSTATE_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::SENSORSTATE_INVALID;
             }
         }
         $res = $this->_sensorState;
         return $res;
     }
-    public static function FindSensor($func)
+    public static function FindSensor(string $func): YSensor
     {
         // $obj                    is a YSensor;
         $obj = YFunction::_FindFromCache('Sensor', $func);
@@ -5433,20 +6186,26 @@ class YSensor extends YFunction
         }
         return $obj;
     }
-    public function _parserHelper()
+    public function _parserHelper(): int
     {
         // $position               is a int;
         // $maxpos                 is a int;
-        $iCalib = Array();      // intArr;
+        $iCalib = [];           // intArr;
         // $iRaw                   is a int;
         // $iRef                   is a int;
         // $fRaw                   is a float;
         // $fRef                   is a float;
         $this->_caltyp = -1;
         $this->_scale = -1;
-        while(sizeof($this->_calpar) > 0) { array_pop($this->_calpar); };
-        while(sizeof($this->_calraw) > 0) { array_pop($this->_calraw); };
-        while(sizeof($this->_calref) > 0) { array_pop($this->_calref); };
+        while (sizeof($this->_calpar) > 0) {
+            array_pop($this->_calpar);
+        };
+        while (sizeof($this->_calraw) > 0) {
+            array_pop($this->_calraw);
+        };
+        while (sizeof($this->_calref) > 0) {
+            array_pop($this->_calref);
+        };
         // Store inverted resolution, to provide better rounding
         if ($this->_resolution > 0) {
             $this->_iresol = round(1.0 / $this->_resolution);
@@ -5459,7 +6218,7 @@ class YSensor extends YFunction
             $this->_caltyp = 0;
             return 0;
         }
-        if (Ystrpos($this->_calibrationParam,',') >= 0) {
+        if (YAPI::Ystrpos($this->_calibrationParam,',') >= 0) {
             // Plain text format
             $iCalib = YAPI::_decodeFloats($this->_calibrationParam);
             $this->_caltyp = intVal(($iCalib[0]) / (1000));
@@ -5480,14 +6239,20 @@ class YSensor extends YFunction
             $this->_offset = 0;
             $this->_scale = 1000;
             $maxpos = sizeof($iCalib);
-            while(sizeof($this->_calpar) > 0) { array_pop($this->_calpar); };
+            while (sizeof($this->_calpar) > 0) {
+                array_pop($this->_calpar);
+            };
             $position = 1;
             while ($position < $maxpos) {
                 $this->_calpar[] = $iCalib[$position];
                 $position = $position + 1;
             }
-            while(sizeof($this->_calraw) > 0) { array_pop($this->_calraw); };
-            while(sizeof($this->_calref) > 0) { array_pop($this->_calref); };
+            while (sizeof($this->_calraw) > 0) {
+                array_pop($this->_calraw);
+            };
+            while (sizeof($this->_calref) > 0) {
+                array_pop($this->_calref);
+            };
             $position = 1;
             while ($position + 1 < $maxpos) {
                 $fRaw = $iCalib[$position];
@@ -5536,9 +6301,15 @@ class YSensor extends YFunction
             if ($maxpos > sizeof($iCalib)) {
                 $maxpos = sizeof($iCalib);
             }
-            while(sizeof($this->_calpar) > 0) { array_pop($this->_calpar); };
-            while(sizeof($this->_calraw) > 0) { array_pop($this->_calraw); };
-            while(sizeof($this->_calref) > 0) { array_pop($this->_calref); };
+            while (sizeof($this->_calpar) > 0) {
+                array_pop($this->_calpar);
+            };
+            while (sizeof($this->_calraw) > 0) {
+                array_pop($this->_calraw);
+            };
+            while (sizeof($this->_calref) > 0) {
+                array_pop($this->_calref);
+            };
             $position = 3;
             while ($position + 1 < $maxpos) {
                 $iRaw = $iCalib[$position];
@@ -5552,7 +6323,7 @@ class YSensor extends YFunction
         }
         return 0;
     }
-    public function isSensorReady()
+    public function isSensorReady(): bool
     {
         if (!($this->isOnline())) {
             return false;
@@ -5562,7 +6333,7 @@ class YSensor extends YFunction
         }
         return true;
     }
-    public function get_dataLogger()
+    public function get_dataLogger(): ?YDataLogger
     {
         // $logger                 is a YDataLogger;
         // $modu                   is a YModule;
@@ -5570,28 +6341,28 @@ class YSensor extends YFunction
         // $hwid                   is a str;
         $modu = $this->get_module();
         $serial = $modu->get_serialNumber();
-        if ($serial == YAPI_INVALID_STRING) {
+        if ($serial == YAPI::INVALID_STRING) {
             return null;
         }
         $hwid = $serial . '.dataLogger';
         $logger = YDataLogger::FindDataLogger($hwid);
         return $logger;
     }
-    public function startDataLogger()
+    public function startDataLogger(): int
     {
         // $res                    is a bin;
         $res = $this->_download('api/dataLogger/recording?recording=1');
-        if (!(strlen($res)>0)) return $this->_throw( YAPI_IO_ERROR, 'unable to start datalogger',YAPI_IO_ERROR);
-        return YAPI_SUCCESS;
+        if (!(strlen($res) > 0)) return $this->_throw( YAPI::IO_ERROR, 'unable to start datalogger',YAPI::IO_ERROR);
+        return YAPI::SUCCESS;
     }
-    public function stopDataLogger()
+    public function stopDataLogger(): int
     {
         // $res                    is a bin;
         $res = $this->_download('api/dataLogger/recording?recording=0');
-        if (!(strlen($res)>0)) return $this->_throw( YAPI_IO_ERROR, 'unable to stop datalogger',YAPI_IO_ERROR);
-        return YAPI_SUCCESS;
+        if (!(strlen($res) > 0)) return $this->_throw( YAPI::IO_ERROR, 'unable to stop datalogger',YAPI::IO_ERROR);
+        return YAPI::SUCCESS;
     }
-    public function get_recordedData($startTime,$endTime)
+    public function get_recordedData(float $startTime, float $endTime): ?YDataSet
     {
         // $funcid                 is a str;
         // $funit                  is a str;
@@ -5599,7 +6370,7 @@ class YSensor extends YFunction
         $funit = $this->get_unit();
         return new YDataSet($this, $funcid, $funit, $startTime, $endTime);
     }
-    public function registerTimedReportCallback($callback)
+    public function registerTimedReportCallback(mixed $callback): int
     {
         // $sensor                 is a YSensor;
         $sensor = $this;
@@ -5611,15 +6382,14 @@ class YSensor extends YFunction
         $this->_timedReportCallbackSensor = $callback;
         return 0;
     }
-    public function _invokeTimedReportCallback($value)
+    public function _invokeTimedReportCallback(YMeasure $value): int
     {
         if (!is_null($this->_timedReportCallbackSensor)) {
             call_user_func($this->_timedReportCallbackSensor, $this, $value);
-        } else {
         }
         return 0;
     }
-    public function calibrateFromPoints($rawValues,$refValues)
+    public function calibrateFromPoints(array $rawValues, array $refValues): int
     {
         // $rest_val               is a str;
         // $res                    is a int;
@@ -5627,39 +6397,47 @@ class YSensor extends YFunction
         $res = $this->_setAttr('calibrationParam', $rest_val);
         return $res;
     }
-    public function loadCalibrationPoints(&$rawValues,&$refValues)
+    public function loadCalibrationPoints(array &$rawValues, array &$refValues): int
     {
-        while(sizeof($rawValues) > 0) { array_pop($rawValues); };
-        while(sizeof($refValues) > 0) { array_pop($refValues); };
+        while (sizeof($rawValues) > 0) {
+            array_pop($rawValues);
+        };
+        while (sizeof($refValues) > 0) {
+            array_pop($refValues);
+        };
         // Load function parameters if not yet loaded
         if ($this->_scale == 0) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return YAPI_DEVICE_NOT_FOUND;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return YAPI::DEVICE_NOT_FOUND;
             }
         }
         if ($this->_caltyp < 0) {
-            $this->_throw(YAPI_NOT_SUPPORTED, 'Calibration parameters format mismatch. Please upgrade your library or firmware.');
-            return YAPI_NOT_SUPPORTED;
+            $this->_throw(YAPI::NOT_SUPPORTED, 'Calibration parameters format mismatch. Please upgrade your library or firmware.');
+            return YAPI::NOT_SUPPORTED;
         }
-        while(sizeof($rawValues) > 0) { array_pop($rawValues); };
-        while(sizeof($refValues) > 0) { array_pop($refValues); };
-        foreach($this->_calraw as $each) {
+        while (sizeof($rawValues) > 0) {
+            array_pop($rawValues);
+        };
+        while (sizeof($refValues) > 0) {
+            array_pop($refValues);
+        };
+        foreach ($this->_calraw as $each) {
             $rawValues[] = $each;
         }
-        foreach($this->_calref as $each) {
+        foreach ($this->_calref as $each) {
             $refValues[] = $each;
         }
-        return YAPI_SUCCESS;
+        return YAPI::SUCCESS;
     }
-    public function _encodeCalibrationPoints($rawValues,$refValues)
+    public function _encodeCalibrationPoints(array $rawValues, array $refValues): string
     {
         // $res                    is a str;
         // $npt                    is a int;
         // $idx                    is a int;
         $npt = sizeof($rawValues);
         if ($npt != sizeof($refValues)) {
-            $this->_throw(YAPI_INVALID_ARGUMENT, 'Invalid calibration parameters (size mismatch)');
-            return YAPI_INVALID_STRING;
+            $this->_throw(YAPI::INVALID_ARGUMENT, 'Invalid calibration parameters (size mismatch)');
+            return YAPI::INVALID_STRING;
         }
         // Shortcut when building empty calibration parameters
         if ($npt == 0) {
@@ -5667,13 +6445,13 @@ class YSensor extends YFunction
         }
         // Load function parameters if not yet loaded
         if ($this->_scale == 0) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return YAPI_INVALID_STRING;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return YAPI::INVALID_STRING;
             }
         }
         // Detect old firmware
         if (($this->_caltyp < 0) || ($this->_scale < 0)) {
-            $this->_throw(YAPI_NOT_SUPPORTED, 'Calibration parameters format mismatch. Please upgrade your library or firmware.');
+            $this->_throw(YAPI::NOT_SUPPORTED, 'Calibration parameters format mismatch. Please upgrade your library or firmware.');
             return '0';
         }
         // 32-bit fixed-point encoding
@@ -5685,23 +6463,23 @@ class YSensor extends YFunction
         }
         return $res;
     }
-    public function _applyCalibration($rawValue)
+    public function _applyCalibration(float $rawValue): float
     {
-        if ($rawValue == Y_CURRENTVALUE_INVALID) {
-            return Y_CURRENTVALUE_INVALID;
+        if ($rawValue == self::CURRENTVALUE_INVALID) {
+            return self::CURRENTVALUE_INVALID;
         }
         if ($this->_caltyp == 0) {
             return $rawValue;
         }
         if ($this->_caltyp < 0) {
-            return Y_CURRENTVALUE_INVALID;
+            return self::CURRENTVALUE_INVALID;
         }
         if (!(!is_null($this->_calhdl))) {
-            return Y_CURRENTVALUE_INVALID;
+            return self::CURRENTVALUE_INVALID;
         }
         return call_user_func($this->_calhdl, $rawValue, $this->_caltyp, $this->_calpar, $this->_calraw, $this->_calref);
     }
-    public function _decodeTimedReport($timestamp,$duration,$report)
+    public function _decodeTimedReport(float $timestamp, float $duration, array $report): ?YMeasure
     {
         // $i                      is a int;
         // $byteVal                is a int;
@@ -5802,7 +6580,7 @@ class YSensor extends YFunction
         }
         return new YMeasure($startTime, $endTime, $minVal, $avgVal, $maxVal);
     }
-    public function _decodeVal($w)
+    public function _decodeVal(int $w): float
     {
         // $val                    is a float;
         $val = $w;
@@ -5813,7 +6591,7 @@ class YSensor extends YFunction
         }
         return $val;
     }
-    public function _decodeAvg($dw)
+    public function _decodeAvg(int $dw): float
     {
         // $val                    is a float;
         $val = $dw;
@@ -5824,161 +6602,211 @@ class YSensor extends YFunction
         }
         return $val;
     }
-    public function unit()
-    { return $this->get_unit(); }
-    public function currentValue()
-    { return $this->get_currentValue(); }
-    public function setLowestValue($newval)
-    { return $this->set_lowestValue($newval); }
-    public function lowestValue()
-    { return $this->get_lowestValue(); }
-    public function setHighestValue($newval)
-    { return $this->set_highestValue($newval); }
-    public function highestValue()
-    { return $this->get_highestValue(); }
-    public function currentRawValue()
-    { return $this->get_currentRawValue(); }
-    public function logFrequency()
-    { return $this->get_logFrequency(); }
-    public function setLogFrequency($newval)
-    { return $this->set_logFrequency($newval); }
-    public function reportFrequency()
-    { return $this->get_reportFrequency(); }
-    public function setReportFrequency($newval)
-    { return $this->set_reportFrequency($newval); }
-    public function advMode()
-    { return $this->get_advMode(); }
-    public function setAdvMode($newval)
-    { return $this->set_advMode($newval); }
-    public function calibrationParam()
-    { return $this->get_calibrationParam(); }
-    public function setCalibrationParam($newval)
-    { return $this->set_calibrationParam($newval); }
-    public function setResolution($newval)
-    { return $this->set_resolution($newval); }
-    public function resolution()
-    { return $this->get_resolution(); }
-    public function sensorState()
-    { return $this->get_sensorState(); }
-    public function nextSensor()
-    {   $resolve = YAPI::resolveFunction($this->_className, $this->_func);
-        if($resolve->errorType != YAPI_SUCCESS) return null;
+    public function unit(): string
+{
+    return $this->get_unit();
+}
+    public function currentValue(): float
+{
+    return $this->get_currentValue();
+}
+    public function setLowestValue(float $newval): int
+{
+    return $this->set_lowestValue($newval);
+}
+    public function lowestValue(): float
+{
+    return $this->get_lowestValue();
+}
+    public function setHighestValue(float $newval): int
+{
+    return $this->set_highestValue($newval);
+}
+    public function highestValue(): float
+{
+    return $this->get_highestValue();
+}
+    public function currentRawValue(): float
+{
+    return $this->get_currentRawValue();
+}
+    public function logFrequency(): string
+{
+    return $this->get_logFrequency();
+}
+    public function setLogFrequency(string $newval): int
+{
+    return $this->set_logFrequency($newval);
+}
+    public function reportFrequency(): string
+{
+    return $this->get_reportFrequency();
+}
+    public function setReportFrequency(string $newval): int
+{
+    return $this->set_reportFrequency($newval);
+}
+    public function advMode(): int
+{
+    return $this->get_advMode();
+}
+    public function setAdvMode(int $newval): int
+{
+    return $this->set_advMode($newval);
+}
+    public function calibrationParam(): string
+{
+    return $this->get_calibrationParam();
+}
+    public function setCalibrationParam(string $newval): int
+{
+    return $this->set_calibrationParam($newval);
+}
+    public function setResolution(float $newval): int
+{
+    return $this->set_resolution($newval);
+}
+    public function resolution(): float
+{
+    return $this->get_resolution();
+}
+    public function sensorState(): int
+{
+    return $this->get_sensorState();
+}
+    public function nextSensor(): ?YSensor
+    {
+        $resolve = YAPI::resolveFunction($this->_className, $this->_func);
+        if ($resolve->errorType != YAPI::SUCCESS) {
+            return null;
+        }
         $next_hwid = YAPI::getNextHardwareId($this->_className, $resolve->result);
-        if($next_hwid == null) return null;
+        if ($next_hwid == null) {
+            return null;
+        }
         return self::FindSensor($next_hwid);
     }
-    public static function FirstSensor()
-    {   $next_hwid = YAPI::getFirstHardwareId('Sensor');
-        if($next_hwid == null) return null;
+    public static function FirstSensor(): ?YSensor
+    {
+        $next_hwid = YAPI::getFirstHardwareId('Sensor');
+        if ($next_hwid == null) {
+            return null;
+        }
         return self::FindSensor($next_hwid);
     }
     //--- (end of generated code: YSensor implementation)
 }
+//^^^^ YSensor.php
 //--- (generated code: YModule declaration)
+//vvvv YModule.php
 class YModule extends YFunction
 {
-    const PRODUCTNAME_INVALID            = YAPI_INVALID_STRING;
-    const SERIALNUMBER_INVALID           = YAPI_INVALID_STRING;
-    const PRODUCTID_INVALID              = YAPI_INVALID_UINT;
-    const PRODUCTRELEASE_INVALID         = YAPI_INVALID_UINT;
-    const FIRMWARERELEASE_INVALID        = YAPI_INVALID_STRING;
-    const PERSISTENTSETTINGS_LOADED      = 0;
-    const PERSISTENTSETTINGS_SAVED       = 1;
-    const PERSISTENTSETTINGS_MODIFIED    = 2;
-    const PERSISTENTSETTINGS_INVALID     = -1;
-    const LUMINOSITY_INVALID             = YAPI_INVALID_UINT;
-    const BEACON_OFF                     = 0;
-    const BEACON_ON                      = 1;
-    const BEACON_INVALID                 = -1;
-    const UPTIME_INVALID                 = YAPI_INVALID_LONG;
-    const USBCURRENT_INVALID             = YAPI_INVALID_UINT;
-    const REBOOTCOUNTDOWN_INVALID        = YAPI_INVALID_INT;
-    const USERVAR_INVALID                = YAPI_INVALID_INT;
+    const PRODUCTNAME_INVALID = YAPI::INVALID_STRING;
+    const SERIALNUMBER_INVALID = YAPI::INVALID_STRING;
+    const PRODUCTID_INVALID = YAPI::INVALID_UINT;
+    const PRODUCTRELEASE_INVALID = YAPI::INVALID_UINT;
+    const FIRMWARERELEASE_INVALID = YAPI::INVALID_STRING;
+    const PERSISTENTSETTINGS_LOADED = 0;
+    const PERSISTENTSETTINGS_SAVED = 1;
+    const PERSISTENTSETTINGS_MODIFIED = 2;
+    const PERSISTENTSETTINGS_INVALID = -1;
+    const LUMINOSITY_INVALID = YAPI::INVALID_UINT;
+    const BEACON_OFF = 0;
+    const BEACON_ON = 1;
+    const BEACON_INVALID = -1;
+    const UPTIME_INVALID = YAPI::INVALID_LONG;
+    const USBCURRENT_INVALID = YAPI::INVALID_UINT;
+    const REBOOTCOUNTDOWN_INVALID = YAPI::INVALID_INT;
+    const USERVAR_INVALID = YAPI::INVALID_INT;
     //--- (end of generated code: YModule declaration)
     //--- (generated code: YModule attributes)
-    protected $_productName              = Y_PRODUCTNAME_INVALID;        // Text
-    protected $_serialNumber             = Y_SERIALNUMBER_INVALID;       // Text
-    protected $_productId                = Y_PRODUCTID_INVALID;          // XWord
-    protected $_productRelease           = Y_PRODUCTRELEASE_INVALID;     // XWord
-    protected $_firmwareRelease          = Y_FIRMWARERELEASE_INVALID;    // Text
-    protected $_persistentSettings       = Y_PERSISTENTSETTINGS_INVALID; // FlashSettings
-    protected $_luminosity               = Y_LUMINOSITY_INVALID;         // Percent
-    protected $_beacon                   = Y_BEACON_INVALID;             // OnOff
-    protected $_upTime                   = Y_UPTIME_INVALID;             // Time
-    protected $_usbCurrent               = Y_USBCURRENT_INVALID;         // UsedCurrent
-    protected $_rebootCountdown          = Y_REBOOTCOUNTDOWN_INVALID;    // Int
-    protected $_userVar                  = Y_USERVAR_INVALID;            // Int
-    protected $_logCallback              = null;                         // YModuleLogCallback
-    protected $_confChangeCallback       = null;                         // YModuleConfigChangeCallback
-    protected $_beaconCallback           = null;                         // YModuleBeaconCallback
+    protected string $_productName = self::PRODUCTNAME_INVALID;    // Text
+    protected string $_serialNumber = self::SERIALNUMBER_INVALID;   // Text
+    protected int $_productId = self::PRODUCTID_INVALID;      // XWord
+    protected int $_productRelease = self::PRODUCTRELEASE_INVALID; // XWord
+    protected string $_firmwareRelease = self::FIRMWARERELEASE_INVALID; // Text
+    protected int $_persistentSettings = self::PERSISTENTSETTINGS_INVALID; // FlashSettings
+    protected int $_luminosity = self::LUMINOSITY_INVALID;     // Percent
+    protected int $_beacon = self::BEACON_INVALID;         // OnOff
+    protected float $_upTime = self::UPTIME_INVALID;         // Time
+    protected int $_usbCurrent = self::USBCURRENT_INVALID;     // UsedCurrent
+    protected int $_rebootCountdown = self::REBOOTCOUNTDOWN_INVALID; // Int
+    protected int $_userVar = self::USERVAR_INVALID;        // Int
+    protected mixed $_logCallback = null;                         // YModuleLogCallback
+    protected mixed $_confChangeCallback = null;                         // YModuleConfigChangeCallback
+    protected mixed $_beaconCallback = null;                         // YModuleBeaconCallback
     //--- (end of generated code: YModule attributes)
-    protected static $_moduleCallbackList = array();
-    function __construct($str_func)
+    protected static array $_moduleCallbackList = array();
+    function __construct(string $str_func)
     {
         //--- (generated code: YModule constructor)
         parent::__construct($str_func);
         $this->_className = 'Module';
         //--- (end of generated code: YModule constructor)
     }
-    private static function _updateModuleCallbackList($module, $add)
+    private static function _updateModuleCallbackList(YModule $module, bool $add): void
     {
     }
-    // Return the internal device object hosting the function
-    protected function _getDev()
+    protected function _getDev(): ?YDevice
     {
         $devid = $this->_func;
         $dotidx = strpos($devid, '.');
-        if ($dotidx !== false) $devid = substr($devid, 0, $dotidx);
+        if ($dotidx !== false) {
+            $devid = substr($devid, 0, $dotidx);
+        }
         $dev = YAPI::getDevice($devid);
         if (is_null($dev)) {
-            $this->_throw(YAPI_DEVICE_NOT_FOUND, "Device [$devid] is not online", null);
+            $this->_throw(YAPI::DEVICE_NOT_FOUND, "Device [$devid] is not online", null);
         }
         return $dev;
     }
-    public function functionCount()
+    public function functionCount(): int
     {
         $dev = $this->_getDev();
         return $dev->functionCount();
     }
-    public function functionId($functionIndex)
+    public function functionId(int $functionIndex): string
     {
         $dev = $this->_getDev();
         return $dev->functionId($functionIndex);
     }
-    public function functionType($functionIndex)
+    public function functionType(int $functionIndex): string
     {
         $dev = $this->_getDev();
         return $dev->functionType($functionIndex);
     }
-    public function functionBaseType($functionIndex)
+    public function functionBaseType(int $functionIndex): string
     {
         $dev = $this->_getDev();
         return $dev->functionBaseType($functionIndex);
     }
-    public function functionName($functionIndex)
+    public function functionName(int $functionIndex): string
     {
         $devid = $this->_func;
         $dotidx = strpos($devid, '.');
-        if ($dotidx !== FALSE) $devid = substr($devid, 0, $dotidx);
+        if ($dotidx !== false) {
+            $devid = substr($devid, 0, $dotidx);
+        }
         $dev = YAPI::getDevice($devid);
         return $dev->functionName($functionIndex);
     }
-    public function functionValue($functionIndex)
+    public function functionValue(int $functionIndex): string
     {
         $dev = $this->_getDev();
         return $dev->functionValue($functionIndex);
     }
-    protected function _flattenJsonStruct_internal($jsoncomplex)
+    protected function _flattenJsonStruct_internal(string $jsoncomplex): string
     {
         $decoded = json_decode($jsoncomplex);
         if ($decoded == null) {
-            $this->_throw(YAPI_INVALID_ARGUMENT, 'Invalid json structure');
+            $this->_throw(YAPI::INVALID_ARGUMENT, 'Invalid json structure');
             return "";
         }
         $attrs = array();
         foreach ($decoded as $function_name => $fuction_attrs) {
-            if ($function_name == "services")
+            if ($function_name == "services") {
                 continue;
+            }
             foreach ($fuction_attrs as $attr_name => $attr_value) {
                 if (is_object($attr_value)) {
                     // skip complext attributes (move and pulse)
@@ -5990,28 +6818,26 @@ class YModule extends YFunction
         }
         return json_encode($attrs);
     }
-    private function get_subDevices_internal()
+    private function get_subDevices_internal(): array
     {
         $serial = $this->get_serialNumber();
         return YAPI::getSubDevicesFrom($serial);
     }
-    private function get_parentHub_internal()
+    private function get_parentHub_internal(): string
     {
         $serial = $this->get_serialNumber();
         $hubserial = YAPI::getHubSerialFrom($serial);
-        if ($hubserial == $serial)
+        if ($hubserial == $serial) {
             return '';
+        }
         return $hubserial;
     }
-    private function get_url_internal()
+    private function get_url_internal(): string
     {
-        $dev = $this->_getDev();
-        if (!($dev == null)) {
-            return $dev->getRootUrl();
-        }
-        return "";
+        $serial = $this->get_serialNumber();
+        return YAPI::getHubURLFrom($serial);
     }
-    private function _startStopDevLog_internal($str_serial, $bool_start)
+    private function _startStopDevLog_internal(string $str_serial, bool $bool_start): void
     {
         $dev = $this->_getDev();
         if (!($dev == null)) {
@@ -6019,9 +6845,9 @@ class YModule extends YFunction
         }
     }
     //--- (generated code: YModule implementation)
-    function _parseAttr($name, $val)
+    function _parseAttr(string $name, mixed $val): int
     {
-        switch($name) {
+        switch ($name) {
         case 'productName':
             $this->_productName = $val;
             return 1;
@@ -6061,7 +6887,7 @@ class YModule extends YFunction
         }
         return parent::_parseAttr($name, $val);
     }
-    public function get_productName()
+    public function get_productName(): string
     {
         // $res                    is a string;
         // $dev                    is a YDevice;
@@ -6070,14 +6896,14 @@ class YModule extends YFunction
             if (!($dev == null)) {
                 return $dev->getProductName();
             }
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_PRODUCTNAME_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::PRODUCTNAME_INVALID;
             }
         }
         $res = $this->_productName;
         return $res;
     }
-    public function get_serialNumber()
+    public function get_serialNumber(): string
     {
         // $res                    is a string;
         // $dev                    is a YDevice;
@@ -6086,14 +6912,14 @@ class YModule extends YFunction
             if (!($dev == null)) {
                 return $dev->getSerialNumber();
             }
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_SERIALNUMBER_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::SERIALNUMBER_INVALID;
             }
         }
         $res = $this->_serialNumber;
         return $res;
     }
-    public function get_productId()
+    public function get_productId(): int
     {
         // $res                    is a int;
         // $dev                    is a YDevice;
@@ -6102,68 +6928,68 @@ class YModule extends YFunction
             if (!($dev == null)) {
                 return $dev->getProductId();
             }
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_PRODUCTID_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::PRODUCTID_INVALID;
             }
         }
         $res = $this->_productId;
         return $res;
     }
-    public function get_productRelease()
+    public function get_productRelease(): int
     {
         // $res                    is a int;
         if ($this->_cacheExpiration == 0) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_PRODUCTRELEASE_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::PRODUCTRELEASE_INVALID;
             }
         }
         $res = $this->_productRelease;
         return $res;
     }
-    public function get_firmwareRelease()
+    public function get_firmwareRelease(): string
     {
         // $res                    is a string;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_FIRMWARERELEASE_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::FIRMWARERELEASE_INVALID;
             }
         }
         $res = $this->_firmwareRelease;
         return $res;
     }
-    public function get_persistentSettings()
+    public function get_persistentSettings(): int
     {
         // $res                    is a enumFLASHSETTINGS;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_PERSISTENTSETTINGS_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::PERSISTENTSETTINGS_INVALID;
             }
         }
         $res = $this->_persistentSettings;
         return $res;
     }
-    public function set_persistentSettings($newval)
+    public function set_persistentSettings(int $newval): int
     {
         $rest_val = strval($newval);
-        return $this->_setAttr("persistentSettings",$rest_val);
+        return $this->_setAttr("persistentSettings", $rest_val);
     }
-    public function get_luminosity()
+    public function get_luminosity(): int
     {
         // $res                    is a int;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_LUMINOSITY_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::LUMINOSITY_INVALID;
             }
         }
         $res = $this->_luminosity;
         return $res;
     }
-    public function set_luminosity($newval)
+    public function set_luminosity(int $newval): int
     {
         $rest_val = strval($newval);
-        return $this->_setAttr("luminosity",$rest_val);
+        return $this->_setAttr("luminosity", $rest_val);
     }
-    public function get_beacon()
+    public function get_beacon(): int
     {
         // $res                    is a enumONOFF;
         // $dev                    is a YDevice;
@@ -6172,79 +6998,79 @@ class YModule extends YFunction
             if (!($dev == null)) {
                 return $dev->getBeacon();
             }
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_BEACON_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::BEACON_INVALID;
             }
         }
         $res = $this->_beacon;
         return $res;
     }
-    public function set_beacon($newval)
+    public function set_beacon(int $newval): int
     {
         $rest_val = strval($newval);
-        return $this->_setAttr("beacon",$rest_val);
+        return $this->_setAttr("beacon", $rest_val);
     }
-    public function get_upTime()
+    public function get_upTime(): float
     {
         // $res                    is a long;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_UPTIME_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::UPTIME_INVALID;
             }
         }
         $res = $this->_upTime;
         return $res;
     }
-    public function get_usbCurrent()
+    public function get_usbCurrent(): int
     {
         // $res                    is a int;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_USBCURRENT_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::USBCURRENT_INVALID;
             }
         }
         $res = $this->_usbCurrent;
         return $res;
     }
-    public function get_rebootCountdown()
+    public function get_rebootCountdown(): int
     {
         // $res                    is a int;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_REBOOTCOUNTDOWN_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::REBOOTCOUNTDOWN_INVALID;
             }
         }
         $res = $this->_rebootCountdown;
         return $res;
     }
-    public function set_rebootCountdown($newval)
+    public function set_rebootCountdown(int $newval): int
     {
         $rest_val = strval($newval);
-        return $this->_setAttr("rebootCountdown",$rest_val);
+        return $this->_setAttr("rebootCountdown", $rest_val);
     }
-    public function get_userVar()
+    public function get_userVar(): int
     {
         // $res                    is a int;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_USERVAR_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::USERVAR_INVALID;
             }
         }
         $res = $this->_userVar;
         return $res;
     }
-    public function set_userVar($newval)
+    public function set_userVar(int $newval): int
     {
         $rest_val = strval($newval);
-        return $this->_setAttr("userVar",$rest_val);
+        return $this->_setAttr("userVar", $rest_val);
     }
-    public static function FindModule($func)
+    public static function FindModule(string $func): YModule
     {
         // $obj                    is a YModule;
         // $cleanHwId              is a str;
         // $modpos                 is a int;
         $cleanHwId = $func;
-        $modpos = Ystrpos($func,'.module');
+        $modpos = YAPI::Ystrpos($func,'.module');
         if ($modpos != (strlen($func) - 7)) {
             $cleanHwId = $func . '.module';
         }
@@ -6255,7 +7081,7 @@ class YModule extends YFunction
         }
         return $obj;
     }
-    public function get_productNameAndRevision()
+    public function get_productNameAndRevision(): string
     {
         // $prodname               is a str;
         // $prodrel                is a int;
@@ -6263,50 +7089,50 @@ class YModule extends YFunction
         $prodname = $this->get_productName();
         $prodrel = $this->get_productRelease();
         if ($prodrel > 1) {
-            $fullname = sprintf('%s rev. %c', $prodname, 64+$prodrel);
+            $fullname = sprintf('%s rev. %c', $prodname, 64 + $prodrel);
         } else {
             $fullname = $prodname;
         }
         return $fullname;
     }
-    public function saveToFlash()
+    public function saveToFlash(): int
     {
-        return $this->set_persistentSettings(Y_PERSISTENTSETTINGS_SAVED);
+        return $this->set_persistentSettings(self::PERSISTENTSETTINGS_SAVED);
     }
-    public function revertFromFlash()
+    public function revertFromFlash(): int
     {
-        return $this->set_persistentSettings(Y_PERSISTENTSETTINGS_LOADED);
+        return $this->set_persistentSettings(self::PERSISTENTSETTINGS_LOADED);
     }
-    public function reboot($secBeforeReboot)
+    public function reboot(int $secBeforeReboot): int
     {
         return $this->set_rebootCountdown($secBeforeReboot);
     }
-    public function triggerFirmwareUpdate($secBeforeReboot)
+    public function triggerFirmwareUpdate(int $secBeforeReboot): int
     {
         return $this->set_rebootCountdown(-$secBeforeReboot);
     }
-    public function _startStopDevLog($serial,$start)
+    public function _startStopDevLog(string $serial, bool $start): void
     {
-        $this->_startStopDevLog_internal($serial,$start);
+        $this->_startStopDevLog_internal($serial, $start);
     }
     //cannot be generated for PHP:
-    //private function _startStopDevLog_internal($serial,$start)
-    public function registerLogCallback($callback)
+    //private function _startStopDevLog_internal(string $serial, bool $start)
+    public function registerLogCallback(mixed $callback): int
     {
         // $serial                 is a str;
         $serial = $this->get_serialNumber();
-        if ($serial == YAPI_INVALID_STRING) {
-            return YAPI_DEVICE_NOT_FOUND;
+        if ($serial == YAPI::INVALID_STRING) {
+            return YAPI::DEVICE_NOT_FOUND;
         }
         $this->_logCallback = $callback;
         $this->_startStopDevLog($serial, !is_null($callback));
         return 0;
     }
-    public function get_logCallback()
+    public function get_logCallback(): mixed
     {
         return $this->_logCallback;
     }
-    public function registerConfigChangeCallback($callback)
+    public function registerConfigChangeCallback(mixed $callback): int
     {
         if (!is_null($callback)) {
             YModule::_updateModuleCallbackList($this, true);
@@ -6316,14 +7142,14 @@ class YModule extends YFunction
         $this->_confChangeCallback = $callback;
         return 0;
     }
-    public function _invokeConfigChangeCallback()
+    public function _invokeConfigChangeCallback(): int
     {
         if (!is_null($this->_confChangeCallback)) {
             call_user_func($this->_confChangeCallback, $this);
         }
         return 0;
     }
-    public function registerBeaconCallback($callback)
+    public function registerBeaconCallback(mixed $callback): int
     {
         if (!is_null($callback)) {
             YModule::_updateModuleCallbackList($this, true);
@@ -6333,19 +7159,19 @@ class YModule extends YFunction
         $this->_beaconCallback = $callback;
         return 0;
     }
-    public function _invokeBeaconCallback($beaconState)
+    public function _invokeBeaconCallback(int $beaconState): int
     {
         if (!is_null($this->_beaconCallback)) {
             call_user_func($this->_beaconCallback, $this, $beaconState);
         }
         return 0;
     }
-    public function triggerConfigChangeCallback()
+    public function triggerConfigChangeCallback(): int
     {
         $this->_setAttr('persistentSettings', '2');
         return 0;
     }
-    public function checkFirmware($path,$onlynew)
+    public function checkFirmware(string $path, bool $onlynew): string
     {
         // $serial                 is a str;
         // $release                is a int;
@@ -6358,28 +7184,28 @@ class YModule extends YFunction
         //may throw an exception
         $serial = $this->get_serialNumber();
         $tmp_res = YFirmwareUpdate::CheckFirmware($serial, $path, $release);
-        if (Ystrpos($tmp_res,'error:') == 0) {
-            $this->_throw(YAPI_INVALID_ARGUMENT, $tmp_res);
+        if (YAPI::Ystrpos($tmp_res,'error:') == 0) {
+            $this->_throw(YAPI::INVALID_ARGUMENT, $tmp_res);
         }
         return $tmp_res;
     }
-    public function updateFirmwareEx($path,$force)
+    public function updateFirmwareEx(string $path, bool $force): ?YFirmwareUpdate
     {
         // $serial                 is a str;
         // $settings               is a bin;
         $serial = $this->get_serialNumber();
         $settings = $this->get_allSettings();
         if (strlen($settings) == 0) {
-            $this->_throw(YAPI_IO_ERROR, 'Unable to get device settings');
+            $this->_throw(YAPI::IO_ERROR, 'Unable to get device settings');
             $settings = 'error:Unable to get device settings';
         }
         return new YFirmwareUpdate($serial, $path, $settings, $force);
     }
-    public function updateFirmware($path)
+    public function updateFirmware(string $path): ?YFirmwareUpdate
     {
         return $this->updateFirmwareEx($path, false);
     }
-    public function get_allSettings()
+    public function get_allSettings(): string
     {
         // $settings               is a bin;
         // $json                   is a bin;
@@ -6394,8 +7220,8 @@ class YModule extends YFunction
         // $file_data_bin          is a bin;
         // $temp_data_bin          is a bin;
         // $ext_settings           is a str;
-        $filelist = Array();    // strArr;
-        $templist = Array();    // strArr;
+        $filelist = [];         // strArr;
+        $templist = [];         // strArr;
         $settings = $this->_download('api.json');
         if (strlen($settings) == 0) {
             return $settings;
@@ -6403,7 +7229,7 @@ class YModule extends YFunction
         $ext_settings = ', "extras":[';
         $templist = $this->get_functionIds('Temperature');
         $sep = '';
-        foreach( $templist as $each) {
+        foreach ( $templist as $each) {
             if (intVal($this->get_firmwareRelease()) > 9000) {
                 $url = sprintf('api/%s/sensorType',$each);
                 $t_type = $this->_download($url);
@@ -6429,7 +7255,7 @@ class YModule extends YFunction
             }
             $filelist = $this->_json_get_array($json);
             $sep = '';
-            foreach( $filelist as $each) {
+            foreach ( $filelist as $each) {
                 $name = $this->_json_get_key($each, 'name');
                 if ((strlen($name) > 0) && !($name == 'startupConf.json')) {
                     $file_data_bin = $this->_download($this->_escapeAttr($name));
@@ -6443,9 +7269,9 @@ class YModule extends YFunction
         $res = '{ "api":' . $settings . $ext_settings . ']}';
         return $res;
     }
-    public function loadThermistorExtra($funcId,$jsonExtra)
+    public function loadThermistorExtra(string $funcId, string $jsonExtra): int
     {
-        $values = Array();      // strArr;
+        $values = [];           // strArr;
         // $url                    is a str;
         // $curr                   is a str;
         // $currTemp               is a str;
@@ -6464,15 +7290,15 @@ class YModule extends YFunction
             $this->_download($url);
             $ofs = $ofs + 2;
         }
-        return YAPI_SUCCESS;
+        return YAPI::SUCCESS;
     }
-    public function set_extraSettings($jsonExtra)
+    public function set_extraSettings(string $jsonExtra): int
     {
-        $extras = Array();      // strArr;
+        $extras = [];           // strArr;
         // $functionId             is a str;
         // $data                   is a str;
         $extras = $this->_json_get_array($jsonExtra);
-        foreach( $extras as $each) {
+        foreach ( $extras as $each) {
             $functionId = $this->_get_json_path($each, 'fid');
             $functionId = $this->_decode_json_string($functionId);
             $data = $this->_get_json_path($each, 'json');
@@ -6480,9 +7306,9 @@ class YModule extends YFunction
                 $this->loadThermistorExtra($functionId, $data);
             }
         }
-        return YAPI_SUCCESS;
+        return YAPI::SUCCESS;
     }
-    public function set_allSettingsAndFiles($settings)
+    public function set_allSettingsAndFiles(string $settings): int
     {
         // $down                   is a bin;
         // $json                   is a str;
@@ -6503,17 +7329,17 @@ class YModule extends YFunction
         }
         $this->set_allSettings($json_api);
         if ($this->hasFunction('files')) {
-            $files = Array();       // strArr;
+            $files = [];            // strArr;
             // $res                    is a str;
             // $name                   is a str;
             // $data                   is a str;
             $down = $this->_download('files.json?a=format');
             $res = $this->_get_json_path($down, 'res');
             $res = $this->_decode_json_string($res);
-            if (!($res == 'ok')) return $this->_throw( YAPI_IO_ERROR, 'format failed',YAPI_IO_ERROR);
+            if (!($res == 'ok')) return $this->_throw( YAPI::IO_ERROR, 'format failed',YAPI::IO_ERROR);
             $json_files = $this->_get_json_path($json, 'files');
             $files = $this->_json_get_array($json_files);
-            foreach( $files as $each) {
+            foreach ( $files as $each) {
                 $name = $this->_get_json_path($each, 'name');
                 $name = $this->_decode_json_string($name);
                 $data = $this->_get_json_path($each, 'data');
@@ -6527,10 +7353,10 @@ class YModule extends YFunction
         }
         // Apply settings a second time for file-dependent settings and dynamic sensor nodes
         $globalres = $this->set_allSettings($json_api);
-        if (!($fuperror == 0)) return $this->_throw( YAPI_IO_ERROR, 'Error during file upload',YAPI_IO_ERROR);
+        if (!($fuperror == 0)) return $this->_throw( YAPI::IO_ERROR, 'Error during file upload',YAPI::IO_ERROR);
         return $globalres;
     }
-    public function hasFunction($funcId)
+    public function hasFunction(string $funcId): bool
     {
         // $count                  is a int;
         // $i                      is a int;
@@ -6546,12 +7372,12 @@ class YModule extends YFunction
         }
         return false;
     }
-    public function get_functionIds($funType)
+    public function get_functionIds(string $funType): array
     {
         // $count                  is a int;
         // $i                      is a int;
         // $ftype                  is a str;
-        $res = Array();         // strArr;
+        $res = [];              // strArr;
         $count = $this->functionCount();
         $i = 0;
         while ($i < $count) {
@@ -6568,19 +7394,19 @@ class YModule extends YFunction
         }
         return $res;
     }
-    public function _flattenJsonStruct($jsoncomplex)
+    public function _flattenJsonStruct(string $jsoncomplex): string
     {
         return $this->_flattenJsonStruct_internal($jsoncomplex);
     }
     //cannot be generated for PHP:
-    //private function _flattenJsonStruct_internal($jsoncomplex)
-    public function calibVersion($cparams)
+    //private function _flattenJsonStruct_internal(string $jsoncomplex)
+    public function calibVersion(string $cparams): int
     {
         if ($cparams == '0,') {
             return 3;
         }
-        if (Ystrpos($cparams,',') >= 0) {
-            if (Ystrpos($cparams,' ') > 0) {
+        if (YAPI::Ystrpos($cparams,',') >= 0) {
+            if (YAPI::Ystrpos($cparams,' ') > 0) {
                 return 3;
             } else {
                 return 1;
@@ -6589,13 +7415,13 @@ class YModule extends YFunction
         if ($cparams == '' || $cparams == '0') {
             return 1;
         }
-        if ((strlen($cparams) < 2) || (Ystrpos($cparams,'.') >= 0)) {
+        if ((strlen($cparams) < 2) || (YAPI::Ystrpos($cparams,'.') >= 0)) {
             return 0;
         } else {
             return 2;
         }
     }
-    public function calibScale($unit_name,$sensorType)
+    public function calibScale(string $unit_name, string $sensorType): int
     {
         if ($unit_name == 'g' || $unit_name == 'gauss' || $unit_name == 'W') {
             return 1000;
@@ -6615,14 +7441,14 @@ class YModule extends YFunction
         }
         return 1;
     }
-    public function calibOffset($unit_name)
+    public function calibOffset(string $unit_name): int
     {
         if ($unit_name == '% RH' || $unit_name == 'mbar' || $unit_name == 'lx') {
             return 0;
         }
         return 32767;
     }
-    public function calibConvert($param,$currentFuncValue,$unit_name,$sensorType)
+    public function calibConvert(string $param, string $currentFuncValue, string $unit_name, string $sensorType): string
     {
         // $paramVer               is a int;
         // $funVer                 is a int;
@@ -6630,10 +7456,10 @@ class YModule extends YFunction
         // $funOffset              is a int;
         // $paramScale             is a int;
         // $paramOffset            is a int;
-        $words = Array();       // intArr;
-        $words_str = Array();   // strArr;
-        $calibData = Array();   // floatArr;
-        $iCalib = Array();      // intArr;
+        $words = [];            // intArr;
+        $words_str = [];        // strArr;
+        $calibData = [];        // floatArr;
+        $iCalib = [];           // intArr;
         // $calibType              is a int;
         // $i                      is a int;
         // $maxSize                is a int;
@@ -6667,7 +7493,9 @@ class YModule extends YFunction
                 }
             }
         }
-        while(sizeof($calibData) > 0) { array_pop($calibData); };
+        while (sizeof($calibData) > 0) {
+            array_pop($calibData);
+        };
         $calibType = 0;
         if ($paramVer < 3) {
             // Handle old 16 bit parameters formats
@@ -6695,7 +7523,7 @@ class YModule extends YFunction
             } else {
                 if ($paramVer == 1) {
                     $words_str = explode(',', $param);
-                    foreach($words_str as $each) {
+                    foreach ($words_str as $each) {
                         $words[] = intVal($each);
                     }
                     if ($param == '' || ($words[0] > 10)) {
@@ -6790,11 +7618,11 @@ class YModule extends YFunction
         }
         return $param;
     }
-    public function _tryExec($url)
+    public function _tryExec(string $url): int
     {
         // $res                    is a int;
         // $done                   is a int;
-        $res = YAPI_SUCCESS;
+        $res = YAPI::SUCCESS;
         $done = 1;
         try {
             $this->_download($url);
@@ -6804,7 +7632,7 @@ class YModule extends YFunction
         if ($done == 0) {
             // retry silently after a short wait
             try {
-                YAPI.Sleep(500);
+                YAPI::Sleep(500);
                 $this->_download($url);
             } catch (Exception $ex) {
                 // second failure, return error code
@@ -6813,19 +7641,19 @@ class YModule extends YFunction
         }
         return $res;
     }
-    public function set_allSettings($settings)
+    public function set_allSettings(string $settings): int
     {
-        $restoreLast = Array(); // strArr;
+        $restoreLast = [];      // strArr;
         // $old_json_flat          is a bin;
-        $old_dslist = Array();  // strArr;
-        $old_jpath = Array();   // strArr;
-        $old_jpath_len = Array(); // intArr;
-        $old_val_arr = Array(); // strArr;
+        $old_dslist = [];       // strArr;
+        $old_jpath = [];        // strArr;
+        $old_jpath_len = [];    // intArr;
+        $old_val_arr = [];      // strArr;
         // $actualSettings         is a bin;
-        $new_dslist = Array();  // strArr;
-        $new_jpath = Array();   // strArr;
-        $new_jpath_len = Array(); // intArr;
-        $new_val_arr = Array(); // strArr;
+        $new_dslist = [];       // strArr;
+        $new_jpath = [];        // strArr;
+        $new_jpath_len = [];    // intArr;
+        $new_val_arr = [];      // strArr;
         // $cpos                   is a int;
         // $eqpos                  is a int;
         // $leng                   is a int;
@@ -6849,7 +7677,7 @@ class YModule extends YFunction
         // $each_str               is a str;
         // $do_update              is a bool;
         // $found                  is a bool;
-        $res = YAPI_SUCCESS;
+        $res = YAPI::SUCCESS;
         $tmp = $settings;
         $tmp = $this->_get_json_path($tmp, 'api');
         if (!($tmp == '')) {
@@ -6859,14 +7687,14 @@ class YModule extends YFunction
         $newval = '';
         $old_json_flat = $this->_flattenJsonStruct($settings);
         $old_dslist = $this->_json_get_array($old_json_flat);
-        foreach($old_dslist as $each) {
+        foreach ($old_dslist as $each) {
             $each_str = $this->_json_get_string($each);
             // split json path and attr
             $leng = strlen($each_str);
-            $eqpos = Ystrpos($each_str,'=');
+            $eqpos = YAPI::Ystrpos($each_str,'=');
             if (($eqpos < 0) || ($leng == 0)) {
-                $this->_throw(YAPI_INVALID_ARGUMENT, 'Invalid settings');
-                return YAPI_INVALID_ARGUMENT;
+                $this->_throw(YAPI::INVALID_ARGUMENT, 'Invalid settings');
+                return YAPI::INVALID_ARGUMENT;
             }
             $jpath = substr($each_str,  0, $eqpos);
             $eqpos = $eqpos + 1;
@@ -6879,20 +7707,20 @@ class YModule extends YFunction
             $actualSettings = $this->_download('api.json');
         } catch (Exception $ex) {
             // retry silently after a short wait
-            YAPI.Sleep(500);
+            YAPI::Sleep(500);
             $actualSettings = $this->_download('api.json');
         }
         $actualSettings = $this->_flattenJsonStruct($actualSettings);
         $new_dslist = $this->_json_get_array($actualSettings);
-        foreach($new_dslist as $each) {
+        foreach ($new_dslist as $each) {
             // remove quotes
             $each_str = $this->_json_get_string($each);
             // split json path and attr
             $leng = strlen($each_str);
-            $eqpos = Ystrpos($each_str,'=');
+            $eqpos = YAPI::Ystrpos($each_str,'=');
             if (($eqpos < 0) || ($leng == 0)) {
-                $this->_throw(YAPI_INVALID_ARGUMENT, 'Invalid settings');
-                return YAPI_INVALID_ARGUMENT;
+                $this->_throw(YAPI::INVALID_ARGUMENT, 'Invalid settings');
+                return YAPI::INVALID_ARGUMENT;
             }
             $jpath = substr($each_str,  0, $eqpos);
             $eqpos = $eqpos + 1;
@@ -6905,7 +7733,7 @@ class YModule extends YFunction
         while ($i < sizeof($new_jpath)) {
             $njpath = $new_jpath[$i];
             $leng = strlen($njpath);
-            $cpos = Ystrpos($njpath,'/');
+            $cpos = YAPI::Ystrpos($njpath,'/');
             if (($cpos < 0) || ($leng == 0)) {
                 continue;
             }
@@ -7087,7 +7915,7 @@ class YModule extends YFunction
                     $newval = $this->calibConvert($old_calib, $new_val_arr[$i], $unit_name, $sensorType);
                     $url = 'api/' . $fun . '.json?' . $attr . '=' . $this->_escapeAttr($newval);
                     $subres = $this->_tryExec($url);
-                    if (($res == YAPI_SUCCESS) && ($subres != YAPI_SUCCESS)) {
+                    if (($res == YAPI::SUCCESS) && ($subres != YAPI::SUCCESS)) {
                         $res = $subres;
                     }
                 } else {
@@ -7096,7 +7924,7 @@ class YModule extends YFunction
                         $restoreLast[] = $url;
                     } else {
                         $subres = $this->_tryExec($url);
-                        if (($res == YAPI_SUCCESS) && ($subres != YAPI_SUCCESS)) {
+                        if (($res == YAPI::SUCCESS) && ($subres != YAPI::SUCCESS)) {
                             $res = $subres;
                         }
                     }
@@ -7104,291 +7932,367 @@ class YModule extends YFunction
             }
             $i = $i + 1;
         }
-        foreach($restoreLast as $each) {
+        foreach ($restoreLast as $each) {
             $subres = $this->_tryExec($each);
-            if (($res == YAPI_SUCCESS) && ($subres != YAPI_SUCCESS)) {
+            if (($res == YAPI::SUCCESS) && ($subres != YAPI::SUCCESS)) {
                 $res = $subres;
             }
         }
         $this->clearCache();
         return $res;
     }
-    public function addFileToHTTPCallback($filename)
+    public function addFileToHTTPCallback(string $filename): int
     {
         // $content                is a bin;
         $content = $this->_download('@YCB+' . $filename);
         if (strlen($content) == 0) {
-            return YAPI_NOT_SUPPORTED;
+            return YAPI::NOT_SUPPORTED;
         }
-        return YAPI_SUCCESS;
+        return YAPI::SUCCESS;
     }
-    public function get_hardwareId()
+    public function get_hardwareId(): string
     {
         // $serial                 is a str;
         $serial = $this->get_serialNumber();
         return $serial . '.module';
     }
-    public function download($pathname)
+    public function download(string $pathname): string
     {
         return $this->_download($pathname);
     }
-    public function get_icon2d()
+    public function get_icon2d(): string
     {
         return $this->_download('icon2d.png');
     }
-    public function get_lastLogs()
+    public function get_lastLogs(): string
     {
         // $content                is a bin;
         $content = $this->_download('logs.txt');
         return $content;
     }
-    public function log($text)
+    public function log(string $text): int
     {
         return $this->_upload('logs.txt', $text);
     }
-    public function get_subDevices()
+    public function get_subDevices(): array
     {
         return $this->get_subDevices_internal();
     }
     //cannot be generated for PHP:
     //private function get_subDevices_internal()
-    public function get_parentHub()
+    public function get_parentHub(): string
     {
         return $this->get_parentHub_internal();
     }
     //cannot be generated for PHP:
     //private function get_parentHub_internal()
-    public function get_url()
+    public function get_url(): string
     {
         return $this->get_url_internal();
     }
     //cannot be generated for PHP:
     //private function get_url_internal()
-    public function productName()
-    { return $this->get_productName(); }
-    public function serialNumber()
-    { return $this->get_serialNumber(); }
-    public function productId()
-    { return $this->get_productId(); }
-    public function productRelease()
-    { return $this->get_productRelease(); }
-    public function firmwareRelease()
-    { return $this->get_firmwareRelease(); }
-    public function persistentSettings()
-    { return $this->get_persistentSettings(); }
-    public function setPersistentSettings($newval)
-    { return $this->set_persistentSettings($newval); }
-    public function luminosity()
-    { return $this->get_luminosity(); }
-    public function setLuminosity($newval)
-    { return $this->set_luminosity($newval); }
-    public function beacon()
-    { return $this->get_beacon(); }
-    public function setBeacon($newval)
-    { return $this->set_beacon($newval); }
-    public function upTime()
-    { return $this->get_upTime(); }
-    public function usbCurrent()
-    { return $this->get_usbCurrent(); }
-    public function rebootCountdown()
-    { return $this->get_rebootCountdown(); }
-    public function setRebootCountdown($newval)
-    { return $this->set_rebootCountdown($newval); }
-    public function userVar()
-    { return $this->get_userVar(); }
-    public function setUserVar($newval)
-    { return $this->set_userVar($newval); }
-    public function nextModule()
-    {   $resolve = YAPI::resolveFunction($this->_className, $this->_func);
-        if($resolve->errorType != YAPI_SUCCESS) return null;
+    public function productName(): string
+{
+    return $this->get_productName();
+}
+    public function serialNumber(): string
+{
+    return $this->get_serialNumber();
+}
+    public function productId(): int
+{
+    return $this->get_productId();
+}
+    public function productRelease(): int
+{
+    return $this->get_productRelease();
+}
+    public function firmwareRelease(): string
+{
+    return $this->get_firmwareRelease();
+}
+    public function persistentSettings(): int
+{
+    return $this->get_persistentSettings();
+}
+    public function setPersistentSettings(int $newval): int
+{
+    return $this->set_persistentSettings($newval);
+}
+    public function luminosity(): int
+{
+    return $this->get_luminosity();
+}
+    public function setLuminosity(int $newval): int
+{
+    return $this->set_luminosity($newval);
+}
+    public function beacon(): int
+{
+    return $this->get_beacon();
+}
+    public function setBeacon(int $newval): int
+{
+    return $this->set_beacon($newval);
+}
+    public function upTime(): float
+{
+    return $this->get_upTime();
+}
+    public function usbCurrent(): int
+{
+    return $this->get_usbCurrent();
+}
+    public function rebootCountdown(): int
+{
+    return $this->get_rebootCountdown();
+}
+    public function setRebootCountdown(int $newval): int
+{
+    return $this->set_rebootCountdown($newval);
+}
+    public function userVar(): int
+{
+    return $this->get_userVar();
+}
+    public function setUserVar(int $newval): int
+{
+    return $this->set_userVar($newval);
+}
+    public function nextModule(): ?YModule
+    {
+        $resolve = YAPI::resolveFunction($this->_className, $this->_func);
+        if ($resolve->errorType != YAPI::SUCCESS) {
+            return null;
+        }
         $next_hwid = YAPI::getNextHardwareId($this->_className, $resolve->result);
-        if($next_hwid == null) return null;
+        if ($next_hwid == null) {
+            return null;
+        }
         return self::FindModule($next_hwid);
     }
-    public static function FirstModule()
-    {   $next_hwid = YAPI::getFirstHardwareId('Module');
-        if($next_hwid == null) return null;
+    public static function FirstModule(): ?YModule
+    {
+        $next_hwid = YAPI::getFirstHardwareId('Module');
+        if ($next_hwid == null) {
+            return null;
+        }
         return self::FindModule($next_hwid);
     }
     //--- (end of generated code: YModule implementation)
 }
-function ySetHTTPCallbackCacheDir($str_directory)
+//^^^^ YModule.php
+function ySetHTTPCallbackCacheDir(string $directory): void
 {
-    YAPI::SetHTTPCallbackCacheDir($str_directory);
+    YAPI::SetHTTPCallbackCacheDir($directory);
 }
-function yClearHTTPCallbackCacheDir($bool_removeFiles)
+function yClearHTTPCallbackCacheDir(bool $removeFiles): void
 {
-    YAPI::ClearHTTPCallbackCacheDir($bool_removeFiles);
+    YAPI::ClearHTTPCallbackCacheDir($removeFiles);
 }
-function yGetAPIVersion()
+function yGetAPIVersion(): string
 {
     return YAPI::GetAPIVersion();
 }
-function yInitAPI($mode = 0, &$errmsg = "")
+function yInitAPI(int $mode = 0, string &$errmsg = ""): int
 {
     return YAPI::InitAPI($mode, $errmsg);
 }
-function yFreeAPI()
+function yFreeAPI(): void
 {
     YAPI::FreeAPI();
 }
-function yDisableExceptions()
+function yDisableExceptions(): void
 {
     YAPI::DisableExceptions();
 }
-function yEnableExceptions()
+function yEnableExceptions(): void
 {
     YAPI::EnableExceptions();
 }
-function yRegisterHub($url, &$errmsg = "")
+function yRegisterHub(string $url, string &$errmsg = ""): int
 {
     return YAPI::RegisterHub($url, $errmsg);
 }
-function yPreregisterHub($url, &$errmsg = "")
+function yPreregisterHub(string $url, string &$errmsg = ""): int
 {
     return YAPI::PreregisterHub($url, $errmsg);
 }
-function yUnregisterHub($url)
+function yUnregisterHub(string $url): void
 {
     YAPI::UnregisterHub($url);
 }
-function yTestHub($url, $mstimeout, &$errmsg = "")
+function yTestHub(string $url, int $mstimeout, string &$errmsg = ""): int
 {
     return YAPI::TestHub($url, $mstimeout, $errmsg);
 }
-function yForwardHTTPCallback($url, &$errmsg = "")
+function yForwardHTTPCallback(string $url, string &$errmsg = ""): int
 {
     return YAPI::ForwardHTTPCallback($url, $errmsg);
 }
-function yUpdateDeviceList(&$errmsg = "")
+function yUpdateDeviceList(string &$errmsg = ""): int
 {
     return YAPI::UpdateDeviceList($errmsg);
 }
-function yHandleEvents(&$errmsg = "")
+function yHandleEvents(string &$errmsg = ""): int
 {
     return YAPI::HandleEvents($errmsg);
 }
-function ySleep($ms_duration, &$errmsg = "")
+function ySleep(float $ms_duration, string &$errmsg = ""): int
 {
     return YAPI::Sleep($ms_duration, $errmsg);
 }
-function yGetTickCount()
+function yGetTickCount(): float
 {
     return YAPI::GetTickCount();
 }
-function yCheckLogicalName($name)
+function yCheckLogicalName(string $name): bool
 {
     return YAPI::CheckLogicalName($name);
 }
-function yRegisterDeviceArrivalCallback($arrivalCallback)
+function yRegisterDeviceArrivalCallback(?callable $arrivalCallback): void
 {
     YAPI::RegisterDeviceArrivalCallback($arrivalCallback);
 }
-function yRegisterDeviceChangeCallback($changeCallback)
+function yRegisterDeviceChangeCallback(?callable $changeCallback): void
 {
     YAPI::RegisterDeviceChangeCallback($changeCallback);
 }
-function yRegisterDeviceRemovalCallback($removalCallback)
+function yRegisterDeviceRemovalCallback(?callable $removalCallback): void
 {
     YAPI::RegisterDeviceRemovalCallback($removalCallback);
 }
 // Register a new value calibration handler for a given calibration type
 //
-function yRegisterCalibrationHandler($int_calibrationType, $calibrationHandler)
+function yRegisterCalibrationHandler(int $int_calibrationType, ?callable $calibrationHandler): void
 {
     YAPI::RegisterCalibrationHandler($int_calibrationType, $calibrationHandler);
 }
 // Standard value calibration handler (n-point linear error correction)
 //
-function yLinearCalibrationHandler($int_calibType, $float_rawValue, $arr_calibParams,
-                                   $arr_calibRawValues, $arr_calibRefValues)
-{
+function yLinearCalibrationHandler(
+    int $int_calibType,
+    float $float_rawValue,
+    array $arr_calibParams,
+    array $arr_calibRawValues,
+    array $arr_calibRefValues
+): float {
     return YAPI::LinearCalibrationHandler($int_calibType, $float_rawValue, $arr_calibParams,
         $arr_calibRawValues, $arr_calibRefValues);
 }
-for ($yHdlrIdx = 1; $yHdlrIdx <= 20; $yHdlrIdx++) {
-    yRegisterCalibrationHandler($yHdlrIdx, 'yLinearCalibrationHandler');
-}
-yRegisterCalibrationHandler(YOCTO_CALIB_TYPE_OFS, 'yLinearCalibrationHandler');
 //--- (generated code: YFunction functions)
-function yFindFunction($func)
+function yFindFunction(string $func): YFunction
 {
     return YFunction::FindFunction($func);
 }
-function yFirstFunction()
+function yFirstFunction(): ?YFunction
 {
     return YFunction::FirstFunction();
 }
 //--- (end of generated code: YFunction functions)
 //--- (generated code: YSensor functions)
-function yFindSensor($func)
+function yFindSensor(string $func): YSensor
 {
     return YSensor::FindSensor($func);
 }
-function yFirstSensor()
+function yFirstSensor(): ?YSensor
 {
     return YSensor::FirstSensor();
 }
 //--- (end of generated code: YSensor functions)
 //--- (generated code: YModule functions)
-function yFindModule($func)
+function yFindModule(string $func): YModule
 {
     return YModule::FindModule($func);
 }
-function yFirstModule()
+function yFirstModule(): ?YModule
 {
     return YModule::FirstModule();
 }
 //--- (end of generated code: YModule functions)
 //--- (generated code: YDataLogger definitions)
-if(!defined('Y_RECORDING_OFF'))              define('Y_RECORDING_OFF',             0);
-if(!defined('Y_RECORDING_ON'))               define('Y_RECORDING_ON',              1);
-if(!defined('Y_RECORDING_PENDING'))          define('Y_RECORDING_PENDING',         2);
-if(!defined('Y_RECORDING_INVALID'))          define('Y_RECORDING_INVALID',         -1);
-if(!defined('Y_AUTOSTART_OFF'))              define('Y_AUTOSTART_OFF',             0);
-if(!defined('Y_AUTOSTART_ON'))               define('Y_AUTOSTART_ON',              1);
-if(!defined('Y_AUTOSTART_INVALID'))          define('Y_AUTOSTART_INVALID',         -1);
-if(!defined('Y_BEACONDRIVEN_OFF'))           define('Y_BEACONDRIVEN_OFF',          0);
-if(!defined('Y_BEACONDRIVEN_ON'))            define('Y_BEACONDRIVEN_ON',           1);
-if(!defined('Y_BEACONDRIVEN_INVALID'))       define('Y_BEACONDRIVEN_INVALID',      -1);
-if(!defined('Y_CLEARHISTORY_FALSE'))         define('Y_CLEARHISTORY_FALSE',        0);
-if(!defined('Y_CLEARHISTORY_TRUE'))          define('Y_CLEARHISTORY_TRUE',         1);
-if(!defined('Y_CLEARHISTORY_INVALID'))       define('Y_CLEARHISTORY_INVALID',      -1);
-if(!defined('Y_CURRENTRUNINDEX_INVALID'))    define('Y_CURRENTRUNINDEX_INVALID',   YAPI_INVALID_UINT);
-if(!defined('Y_TIMEUTC_INVALID'))            define('Y_TIMEUTC_INVALID',           YAPI_INVALID_LONG);
-if(!defined('Y_USAGE_INVALID'))              define('Y_USAGE_INVALID',             YAPI_INVALID_UINT);
+if (!defined('Y_RECORDING_OFF')) {
+    define('Y_RECORDING_OFF', 0);
+}
+if (!defined('Y_RECORDING_ON')) {
+    define('Y_RECORDING_ON', 1);
+}
+if (!defined('Y_RECORDING_PENDING')) {
+    define('Y_RECORDING_PENDING', 2);
+}
+if (!defined('Y_RECORDING_INVALID')) {
+    define('Y_RECORDING_INVALID', -1);
+}
+if (!defined('Y_AUTOSTART_OFF')) {
+    define('Y_AUTOSTART_OFF', 0);
+}
+if (!defined('Y_AUTOSTART_ON')) {
+    define('Y_AUTOSTART_ON', 1);
+}
+if (!defined('Y_AUTOSTART_INVALID')) {
+    define('Y_AUTOSTART_INVALID', -1);
+}
+if (!defined('Y_BEACONDRIVEN_OFF')) {
+    define('Y_BEACONDRIVEN_OFF', 0);
+}
+if (!defined('Y_BEACONDRIVEN_ON')) {
+    define('Y_BEACONDRIVEN_ON', 1);
+}
+if (!defined('Y_BEACONDRIVEN_INVALID')) {
+    define('Y_BEACONDRIVEN_INVALID', -1);
+}
+if (!defined('Y_CLEARHISTORY_FALSE')) {
+    define('Y_CLEARHISTORY_FALSE', 0);
+}
+if (!defined('Y_CLEARHISTORY_TRUE')) {
+    define('Y_CLEARHISTORY_TRUE', 1);
+}
+if (!defined('Y_CLEARHISTORY_INVALID')) {
+    define('Y_CLEARHISTORY_INVALID', -1);
+}
+if (!defined('Y_CURRENTRUNINDEX_INVALID')) {
+    define('Y_CURRENTRUNINDEX_INVALID', YAPI_INVALID_UINT);
+}
+if (!defined('Y_TIMEUTC_INVALID')) {
+    define('Y_TIMEUTC_INVALID', YAPI_INVALID_LONG);
+}
+if (!defined('Y_USAGE_INVALID')) {
+    define('Y_USAGE_INVALID', YAPI_INVALID_UINT);
+}
 //--- (end of generated code: YDataLogger definitions)
 //--- (generated code: YDataLogger declaration)
+//vvvv YDataLogger.php
 class YDataLogger extends YFunction
 {
-    const CURRENTRUNINDEX_INVALID        = YAPI_INVALID_UINT;
-    const TIMEUTC_INVALID                = YAPI_INVALID_LONG;
-    const RECORDING_OFF                  = 0;
-    const RECORDING_ON                   = 1;
-    const RECORDING_PENDING              = 2;
-    const RECORDING_INVALID              = -1;
-    const AUTOSTART_OFF                  = 0;
-    const AUTOSTART_ON                   = 1;
-    const AUTOSTART_INVALID              = -1;
-    const BEACONDRIVEN_OFF               = 0;
-    const BEACONDRIVEN_ON                = 1;
-    const BEACONDRIVEN_INVALID           = -1;
-    const USAGE_INVALID                  = YAPI_INVALID_UINT;
-    const CLEARHISTORY_FALSE             = 0;
-    const CLEARHISTORY_TRUE              = 1;
-    const CLEARHISTORY_INVALID           = -1;
+    const CURRENTRUNINDEX_INVALID = YAPI::INVALID_UINT;
+    const TIMEUTC_INVALID = YAPI::INVALID_LONG;
+    const RECORDING_OFF = 0;
+    const RECORDING_ON = 1;
+    const RECORDING_PENDING = 2;
+    const RECORDING_INVALID = -1;
+    const AUTOSTART_OFF = 0;
+    const AUTOSTART_ON = 1;
+    const AUTOSTART_INVALID = -1;
+    const BEACONDRIVEN_OFF = 0;
+    const BEACONDRIVEN_ON = 1;
+    const BEACONDRIVEN_INVALID = -1;
+    const USAGE_INVALID = YAPI::INVALID_UINT;
+    const CLEARHISTORY_FALSE = 0;
+    const CLEARHISTORY_TRUE = 1;
+    const CLEARHISTORY_INVALID = -1;
     //--- (end of generated code: YDataLogger declaration)
     //--- (generated code: YDataLogger attributes)
-    protected $_currentRunIndex          = Y_CURRENTRUNINDEX_INVALID;    // UInt31
-    protected $_timeUTC                  = Y_TIMEUTC_INVALID;            // UTCTime
-    protected $_recording                = Y_RECORDING_INVALID;          // OffOnPending
-    protected $_autoStart                = Y_AUTOSTART_INVALID;          // OnOff
-    protected $_beaconDriven             = Y_BEACONDRIVEN_INVALID;       // OnOff
-    protected $_usage                    = Y_USAGE_INVALID;              // Percent
-    protected $_clearHistory             = Y_CLEARHISTORY_INVALID;       // Bool
+    protected int $_currentRunIndex = self::CURRENTRUNINDEX_INVALID; // UInt31
+    protected float $_timeUTC = self::TIMEUTC_INVALID;        // UTCTime
+    protected int $_recording = self::RECORDING_INVALID;      // OffOnPending
+    protected int $_autoStart = self::AUTOSTART_INVALID;      // OnOff
+    protected int $_beaconDriven = self::BEACONDRIVEN_INVALID;   // OnOff
+    protected int $_usage = self::USAGE_INVALID;          // Percent
+    protected int $_clearHistory = self::CLEARHISTORY_INVALID;   // Bool
     //--- (end of generated code: YDataLogger attributes)
-    protected $dataLoggerURL = null;
-    function __construct($str_func)
+    protected ?string $dataLoggerURL = null;
+    function __construct(string $str_func)
     {
         //--- (generated code: YDataLogger constructor)
         parent::__construct($str_func);
@@ -7397,14 +8301,14 @@ class YDataLogger extends YFunction
     }
     // Internal function to retrieve datalogger memory
     //
-    public function getData($runIdx, $timeIdx, &$loadval)
+    public function getData(int $runIdx, ?int $timeIdx, string &$loadval): int
     {
         if (is_null($this->dataLoggerURL)) {
             $this->dataLoggerURL = "/logger.json";
         }
         // get the device serial number
         $devid = $this->module()->get_serialNumber();
-        if ($devid == Y_SERIALNUMBER_INVALID) {
+        if ($devid == YModule::SERIALNUMBER_INVALID) {
             return $this->get_errorType();
         }
         $httpreq = "GET " . $this->dataLoggerURL;
@@ -7412,7 +8316,7 @@ class YDataLogger extends YFunction
             $httpreq .= "?run={$runIdx}&time={$timeIdx}";
         }
         $yreq = YAPI::devRequest($devid, $httpreq);
-        if ($yreq->errorType != YAPI_SUCCESS) {
+        if ($yreq->errorType != YAPI::SUCCESS) {
             if (strpos($yreq->errorMsg, 'HTTP status 404') !== false && $this->dataLoggerURL != "/dataLogger.json") {
                 $this->dataLoggerURL = "/dataLogger.json";
                 return $this->getData($runIdx, $timeIdx, $loadval);
@@ -7420,12 +8324,12 @@ class YDataLogger extends YFunction
             return $yreq->errorType;
         }
         $loadval = json_decode($yreq->result, true);
-        return YAPI_SUCCESS;
+        return YAPI::SUCCESS;
     }
     //--- (generated code: YDataLogger implementation)
-    function _parseAttr($name, $val)
+    function _parseAttr(string $name, mixed $val): int
     {
-        switch($name) {
+        switch ($name) {
         case 'currentRunIndex':
             $this->_currentRunIndex = intval($val);
             return 1;
@@ -7450,109 +8354,109 @@ class YDataLogger extends YFunction
         }
         return parent::_parseAttr($name, $val);
     }
-    public function get_currentRunIndex()
+    public function get_currentRunIndex(): int
     {
         // $res                    is a int;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_CURRENTRUNINDEX_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::CURRENTRUNINDEX_INVALID;
             }
         }
         $res = $this->_currentRunIndex;
         return $res;
     }
-    public function get_timeUTC()
+    public function get_timeUTC(): float
     {
         // $res                    is a long;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_TIMEUTC_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::TIMEUTC_INVALID;
             }
         }
         $res = $this->_timeUTC;
         return $res;
     }
-    public function set_timeUTC($newval)
+    public function set_timeUTC(float $newval): int
     {
         $rest_val = strval($newval);
-        return $this->_setAttr("timeUTC",$rest_val);
+        return $this->_setAttr("timeUTC", $rest_val);
     }
-    public function get_recording()
+    public function get_recording(): int
     {
         // $res                    is a enumOFFONPENDING;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_RECORDING_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::RECORDING_INVALID;
             }
         }
         $res = $this->_recording;
         return $res;
     }
-    public function set_recording($newval)
+    public function set_recording(int $newval): int
     {
         $rest_val = strval($newval);
-        return $this->_setAttr("recording",$rest_val);
+        return $this->_setAttr("recording", $rest_val);
     }
-    public function get_autoStart()
+    public function get_autoStart(): int
     {
         // $res                    is a enumONOFF;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_AUTOSTART_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::AUTOSTART_INVALID;
             }
         }
         $res = $this->_autoStart;
         return $res;
     }
-    public function set_autoStart($newval)
+    public function set_autoStart(int $newval): int
     {
         $rest_val = strval($newval);
-        return $this->_setAttr("autoStart",$rest_val);
+        return $this->_setAttr("autoStart", $rest_val);
     }
-    public function get_beaconDriven()
+    public function get_beaconDriven(): int
     {
         // $res                    is a enumONOFF;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_BEACONDRIVEN_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::BEACONDRIVEN_INVALID;
             }
         }
         $res = $this->_beaconDriven;
         return $res;
     }
-    public function set_beaconDriven($newval)
+    public function set_beaconDriven(int $newval): int
     {
         $rest_val = strval($newval);
-        return $this->_setAttr("beaconDriven",$rest_val);
+        return $this->_setAttr("beaconDriven", $rest_val);
     }
-    public function get_usage()
+    public function get_usage(): int
     {
         // $res                    is a int;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_USAGE_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::USAGE_INVALID;
             }
         }
         $res = $this->_usage;
         return $res;
     }
-    public function get_clearHistory()
+    public function get_clearHistory(): int
     {
         // $res                    is a enumBOOL;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_CLEARHISTORY_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::CLEARHISTORY_INVALID;
             }
         }
         $res = $this->_clearHistory;
         return $res;
     }
-    public function set_clearHistory($newval)
+    public function set_clearHistory(int $newval): int
     {
         $rest_val = strval($newval);
-        return $this->_setAttr("clearHistory",$rest_val);
+        return $this->_setAttr("clearHistory", $rest_val);
     }
-    public static function FindDataLogger($func)
+    public static function FindDataLogger(string $func): YDataLogger
     {
         // $obj                    is a YDataLogger;
         $obj = YFunction::_FindFromCache('DataLogger', $func);
@@ -7562,72 +8466,107 @@ class YDataLogger extends YFunction
         }
         return $obj;
     }
-    public function forgetAllDataStreams()
+    public function forgetAllDataStreams(): int
     {
-        return $this->set_clearHistory(Y_CLEARHISTORY_TRUE);
+        return $this->set_clearHistory(self::CLEARHISTORY_TRUE);
     }
-    public function get_dataSets()
+    public function get_dataSets(): array
     {
         return $this->parse_dataSets($this->_download('logger.json'));
     }
-    public function parse_dataSets($json)
+    public function parse_dataSets(string $json): array
     {
-        $dslist = Array();      // strArr;
+        $dslist = [];           // strArr;
         // $dataset                is a YDataSetPtr;
-        $res = Array();         // YDataSetArr;
+        $res = [];              // YDataSetArr;
         $dslist = $this->_json_get_array($json);
-        while(sizeof($res) > 0) { array_pop($res); };
-        foreach($dslist as $each) {
+        while (sizeof($res) > 0) {
+            array_pop($res);
+        };
+        foreach ($dslist as $each) {
             $dataset = new YDataSet($this);
             $dataset->_parse($each);
             $res[] = $dataset;
         }
         return $res;
     }
-    public function currentRunIndex()
-    { return $this->get_currentRunIndex(); }
-    public function timeUTC()
-    { return $this->get_timeUTC(); }
-    public function setTimeUTC($newval)
-    { return $this->set_timeUTC($newval); }
-    public function recording()
-    { return $this->get_recording(); }
-    public function setRecording($newval)
-    { return $this->set_recording($newval); }
-    public function autoStart()
-    { return $this->get_autoStart(); }
-    public function setAutoStart($newval)
-    { return $this->set_autoStart($newval); }
-    public function beaconDriven()
-    { return $this->get_beaconDriven(); }
-    public function setBeaconDriven($newval)
-    { return $this->set_beaconDriven($newval); }
-    public function usage()
-    { return $this->get_usage(); }
-    public function clearHistory()
-    { return $this->get_clearHistory(); }
-    public function setClearHistory($newval)
-    { return $this->set_clearHistory($newval); }
-    public function nextDataLogger()
-    {   $resolve = YAPI::resolveFunction($this->_className, $this->_func);
-        if($resolve->errorType != YAPI_SUCCESS) return null;
+    public function currentRunIndex(): int
+{
+    return $this->get_currentRunIndex();
+}
+    public function timeUTC(): float
+{
+    return $this->get_timeUTC();
+}
+    public function setTimeUTC(float $newval): int
+{
+    return $this->set_timeUTC($newval);
+}
+    public function recording(): int
+{
+    return $this->get_recording();
+}
+    public function setRecording(int $newval): int
+{
+    return $this->set_recording($newval);
+}
+    public function autoStart(): int
+{
+    return $this->get_autoStart();
+}
+    public function setAutoStart(int $newval): int
+{
+    return $this->set_autoStart($newval);
+}
+    public function beaconDriven(): int
+{
+    return $this->get_beaconDriven();
+}
+    public function setBeaconDriven(int $newval): int
+{
+    return $this->set_beaconDriven($newval);
+}
+    public function usage(): int
+{
+    return $this->get_usage();
+}
+    public function clearHistory(): int
+{
+    return $this->get_clearHistory();
+}
+    public function setClearHistory(int $newval): int
+{
+    return $this->set_clearHistory($newval);
+}
+    public function nextDataLogger(): ?YDataLogger
+    {
+        $resolve = YAPI::resolveFunction($this->_className, $this->_func);
+        if ($resolve->errorType != YAPI::SUCCESS) {
+            return null;
+        }
         $next_hwid = YAPI::getNextHardwareId($this->_className, $resolve->result);
-        if($next_hwid == null) return null;
+        if ($next_hwid == null) {
+            return null;
+        }
         return self::FindDataLogger($next_hwid);
     }
-    public static function FirstDataLogger()
-    {   $next_hwid = YAPI::getFirstHardwareId('DataLogger');
-        if($next_hwid == null) return null;
+    public static function FirstDataLogger(): ?YDataLogger
+    {
+        $next_hwid = YAPI::getFirstHardwareId('DataLogger');
+        if ($next_hwid == null) {
+            return null;
+        }
         return self::FindDataLogger($next_hwid);
     }
     //--- (end of generated code: YDataLogger implementation)
 }
+//^^^^ YDataLogger.php
 //--- (generated code: YDataLogger functions)
-function yFindDataLogger($func)
+function yFindDataLogger(string $func): YDataLogger
 {
     return YDataLogger::FindDataLogger($func);
 }
-function yFirstDataLogger()
+function yFirstDataLogger(): ?YDataLogger
 {
     return YDataLogger::FirstDataLogger();
 }
@@ -7636,137 +8575,247 @@ function yFirstDataLogger()
 //--- (YNetwork return codes)
 //--- (end of YNetwork return codes)
 //--- (YNetwork definitions)
-if(!defined('Y_READINESS_DOWN'))             define('Y_READINESS_DOWN',            0);
-if(!defined('Y_READINESS_EXISTS'))           define('Y_READINESS_EXISTS',          1);
-if(!defined('Y_READINESS_LINKED'))           define('Y_READINESS_LINKED',          2);
-if(!defined('Y_READINESS_LAN_OK'))           define('Y_READINESS_LAN_OK',          3);
-if(!defined('Y_READINESS_WWW_OK'))           define('Y_READINESS_WWW_OK',          4);
-if(!defined('Y_READINESS_INVALID'))          define('Y_READINESS_INVALID',         -1);
-if(!defined('Y_DISCOVERABLE_FALSE'))         define('Y_DISCOVERABLE_FALSE',        0);
-if(!defined('Y_DISCOVERABLE_TRUE'))          define('Y_DISCOVERABLE_TRUE',         1);
-if(!defined('Y_DISCOVERABLE_INVALID'))       define('Y_DISCOVERABLE_INVALID',      -1);
-if(!defined('Y_CALLBACKMETHOD_POST'))        define('Y_CALLBACKMETHOD_POST',       0);
-if(!defined('Y_CALLBACKMETHOD_GET'))         define('Y_CALLBACKMETHOD_GET',        1);
-if(!defined('Y_CALLBACKMETHOD_PUT'))         define('Y_CALLBACKMETHOD_PUT',        2);
-if(!defined('Y_CALLBACKMETHOD_INVALID'))     define('Y_CALLBACKMETHOD_INVALID',    -1);
-if(!defined('Y_CALLBACKENCODING_FORM'))      define('Y_CALLBACKENCODING_FORM',     0);
-if(!defined('Y_CALLBACKENCODING_JSON'))      define('Y_CALLBACKENCODING_JSON',     1);
-if(!defined('Y_CALLBACKENCODING_JSON_ARRAY')) define('Y_CALLBACKENCODING_JSON_ARRAY', 2);
-if(!defined('Y_CALLBACKENCODING_CSV'))       define('Y_CALLBACKENCODING_CSV',      3);
-if(!defined('Y_CALLBACKENCODING_YOCTO_API')) define('Y_CALLBACKENCODING_YOCTO_API', 4);
-if(!defined('Y_CALLBACKENCODING_JSON_NUM'))  define('Y_CALLBACKENCODING_JSON_NUM', 5);
-if(!defined('Y_CALLBACKENCODING_EMONCMS'))   define('Y_CALLBACKENCODING_EMONCMS',  6);
-if(!defined('Y_CALLBACKENCODING_AZURE'))     define('Y_CALLBACKENCODING_AZURE',    7);
-if(!defined('Y_CALLBACKENCODING_INFLUXDB'))  define('Y_CALLBACKENCODING_INFLUXDB', 8);
-if(!defined('Y_CALLBACKENCODING_MQTT'))      define('Y_CALLBACKENCODING_MQTT',     9);
-if(!defined('Y_CALLBACKENCODING_YOCTO_API_JZON')) define('Y_CALLBACKENCODING_YOCTO_API_JZON', 10);
-if(!defined('Y_CALLBACKENCODING_PRTG'))      define('Y_CALLBACKENCODING_PRTG',     11);
-if(!defined('Y_CALLBACKENCODING_INFLUXDB_V2')) define('Y_CALLBACKENCODING_INFLUXDB_V2', 12);
-if(!defined('Y_CALLBACKENCODING_INVALID'))   define('Y_CALLBACKENCODING_INVALID',  -1);
-if(!defined('Y_MACADDRESS_INVALID'))         define('Y_MACADDRESS_INVALID',        YAPI_INVALID_STRING);
-if(!defined('Y_IPADDRESS_INVALID'))          define('Y_IPADDRESS_INVALID',         YAPI_INVALID_STRING);
-if(!defined('Y_SUBNETMASK_INVALID'))         define('Y_SUBNETMASK_INVALID',        YAPI_INVALID_STRING);
-if(!defined('Y_ROUTER_INVALID'))             define('Y_ROUTER_INVALID',            YAPI_INVALID_STRING);
-if(!defined('Y_CURRENTDNS_INVALID'))         define('Y_CURRENTDNS_INVALID',        YAPI_INVALID_STRING);
-if(!defined('Y_IPCONFIG_INVALID'))           define('Y_IPCONFIG_INVALID',          YAPI_INVALID_STRING);
-if(!defined('Y_PRIMARYDNS_INVALID'))         define('Y_PRIMARYDNS_INVALID',        YAPI_INVALID_STRING);
-if(!defined('Y_SECONDARYDNS_INVALID'))       define('Y_SECONDARYDNS_INVALID',      YAPI_INVALID_STRING);
-if(!defined('Y_NTPSERVER_INVALID'))          define('Y_NTPSERVER_INVALID',         YAPI_INVALID_STRING);
-if(!defined('Y_USERPASSWORD_INVALID'))       define('Y_USERPASSWORD_INVALID',      YAPI_INVALID_STRING);
-if(!defined('Y_ADMINPASSWORD_INVALID'))      define('Y_ADMINPASSWORD_INVALID',     YAPI_INVALID_STRING);
-if(!defined('Y_HTTPPORT_INVALID'))           define('Y_HTTPPORT_INVALID',          YAPI_INVALID_UINT);
-if(!defined('Y_DEFAULTPAGE_INVALID'))        define('Y_DEFAULTPAGE_INVALID',       YAPI_INVALID_STRING);
-if(!defined('Y_WWWWATCHDOGDELAY_INVALID'))   define('Y_WWWWATCHDOGDELAY_INVALID',  YAPI_INVALID_UINT);
-if(!defined('Y_CALLBACKURL_INVALID'))        define('Y_CALLBACKURL_INVALID',       YAPI_INVALID_STRING);
-if(!defined('Y_CALLBACKCREDENTIALS_INVALID')) define('Y_CALLBACKCREDENTIALS_INVALID', YAPI_INVALID_STRING);
-if(!defined('Y_CALLBACKINITIALDELAY_INVALID')) define('Y_CALLBACKINITIALDELAY_INVALID', YAPI_INVALID_UINT);
-if(!defined('Y_CALLBACKSCHEDULE_INVALID'))   define('Y_CALLBACKSCHEDULE_INVALID',  YAPI_INVALID_STRING);
-if(!defined('Y_CALLBACKMINDELAY_INVALID'))   define('Y_CALLBACKMINDELAY_INVALID',  YAPI_INVALID_UINT);
-if(!defined('Y_CALLBACKMAXDELAY_INVALID'))   define('Y_CALLBACKMAXDELAY_INVALID',  YAPI_INVALID_UINT);
-if(!defined('Y_POECURRENT_INVALID'))         define('Y_POECURRENT_INVALID',        YAPI_INVALID_UINT);
+if (!defined('Y_READINESS_DOWN')) {
+    define('Y_READINESS_DOWN', 0);
+}
+if (!defined('Y_READINESS_EXISTS')) {
+    define('Y_READINESS_EXISTS', 1);
+}
+if (!defined('Y_READINESS_LINKED')) {
+    define('Y_READINESS_LINKED', 2);
+}
+if (!defined('Y_READINESS_LAN_OK')) {
+    define('Y_READINESS_LAN_OK', 3);
+}
+if (!defined('Y_READINESS_WWW_OK')) {
+    define('Y_READINESS_WWW_OK', 4);
+}
+if (!defined('Y_READINESS_INVALID')) {
+    define('Y_READINESS_INVALID', -1);
+}
+if (!defined('Y_DISCOVERABLE_FALSE')) {
+    define('Y_DISCOVERABLE_FALSE', 0);
+}
+if (!defined('Y_DISCOVERABLE_TRUE')) {
+    define('Y_DISCOVERABLE_TRUE', 1);
+}
+if (!defined('Y_DISCOVERABLE_INVALID')) {
+    define('Y_DISCOVERABLE_INVALID', -1);
+}
+if (!defined('Y_CALLBACKMETHOD_POST')) {
+    define('Y_CALLBACKMETHOD_POST', 0);
+}
+if (!defined('Y_CALLBACKMETHOD_GET')) {
+    define('Y_CALLBACKMETHOD_GET', 1);
+}
+if (!defined('Y_CALLBACKMETHOD_PUT')) {
+    define('Y_CALLBACKMETHOD_PUT', 2);
+}
+if (!defined('Y_CALLBACKMETHOD_INVALID')) {
+    define('Y_CALLBACKMETHOD_INVALID', -1);
+}
+if (!defined('Y_CALLBACKENCODING_FORM')) {
+    define('Y_CALLBACKENCODING_FORM', 0);
+}
+if (!defined('Y_CALLBACKENCODING_JSON')) {
+    define('Y_CALLBACKENCODING_JSON', 1);
+}
+if (!defined('Y_CALLBACKENCODING_JSON_ARRAY')) {
+    define('Y_CALLBACKENCODING_JSON_ARRAY', 2);
+}
+if (!defined('Y_CALLBACKENCODING_CSV')) {
+    define('Y_CALLBACKENCODING_CSV', 3);
+}
+if (!defined('Y_CALLBACKENCODING_YOCTO_API')) {
+    define('Y_CALLBACKENCODING_YOCTO_API', 4);
+}
+if (!defined('Y_CALLBACKENCODING_JSON_NUM')) {
+    define('Y_CALLBACKENCODING_JSON_NUM', 5);
+}
+if (!defined('Y_CALLBACKENCODING_EMONCMS')) {
+    define('Y_CALLBACKENCODING_EMONCMS', 6);
+}
+if (!defined('Y_CALLBACKENCODING_AZURE')) {
+    define('Y_CALLBACKENCODING_AZURE', 7);
+}
+if (!defined('Y_CALLBACKENCODING_INFLUXDB')) {
+    define('Y_CALLBACKENCODING_INFLUXDB', 8);
+}
+if (!defined('Y_CALLBACKENCODING_MQTT')) {
+    define('Y_CALLBACKENCODING_MQTT', 9);
+}
+if (!defined('Y_CALLBACKENCODING_YOCTO_API_JZON')) {
+    define('Y_CALLBACKENCODING_YOCTO_API_JZON', 10);
+}
+if (!defined('Y_CALLBACKENCODING_PRTG')) {
+    define('Y_CALLBACKENCODING_PRTG', 11);
+}
+if (!defined('Y_CALLBACKENCODING_INFLUXDB_V2')) {
+    define('Y_CALLBACKENCODING_INFLUXDB_V2', 12);
+}
+if (!defined('Y_CALLBACKENCODING_INVALID')) {
+    define('Y_CALLBACKENCODING_INVALID', -1);
+}
+if (!defined('Y_CALLBACKTEMPLATE_OFF')) {
+    define('Y_CALLBACKTEMPLATE_OFF', 0);
+}
+if (!defined('Y_CALLBACKTEMPLATE_ON')) {
+    define('Y_CALLBACKTEMPLATE_ON', 1);
+}
+if (!defined('Y_CALLBACKTEMPLATE_INVALID')) {
+    define('Y_CALLBACKTEMPLATE_INVALID', -1);
+}
+if (!defined('Y_MACADDRESS_INVALID')) {
+    define('Y_MACADDRESS_INVALID', YAPI_INVALID_STRING);
+}
+if (!defined('Y_IPADDRESS_INVALID')) {
+    define('Y_IPADDRESS_INVALID', YAPI_INVALID_STRING);
+}
+if (!defined('Y_SUBNETMASK_INVALID')) {
+    define('Y_SUBNETMASK_INVALID', YAPI_INVALID_STRING);
+}
+if (!defined('Y_ROUTER_INVALID')) {
+    define('Y_ROUTER_INVALID', YAPI_INVALID_STRING);
+}
+if (!defined('Y_CURRENTDNS_INVALID')) {
+    define('Y_CURRENTDNS_INVALID', YAPI_INVALID_STRING);
+}
+if (!defined('Y_IPCONFIG_INVALID')) {
+    define('Y_IPCONFIG_INVALID', YAPI_INVALID_STRING);
+}
+if (!defined('Y_PRIMARYDNS_INVALID')) {
+    define('Y_PRIMARYDNS_INVALID', YAPI_INVALID_STRING);
+}
+if (!defined('Y_SECONDARYDNS_INVALID')) {
+    define('Y_SECONDARYDNS_INVALID', YAPI_INVALID_STRING);
+}
+if (!defined('Y_NTPSERVER_INVALID')) {
+    define('Y_NTPSERVER_INVALID', YAPI_INVALID_STRING);
+}
+if (!defined('Y_USERPASSWORD_INVALID')) {
+    define('Y_USERPASSWORD_INVALID', YAPI_INVALID_STRING);
+}
+if (!defined('Y_ADMINPASSWORD_INVALID')) {
+    define('Y_ADMINPASSWORD_INVALID', YAPI_INVALID_STRING);
+}
+if (!defined('Y_HTTPPORT_INVALID')) {
+    define('Y_HTTPPORT_INVALID', YAPI_INVALID_UINT);
+}
+if (!defined('Y_DEFAULTPAGE_INVALID')) {
+    define('Y_DEFAULTPAGE_INVALID', YAPI_INVALID_STRING);
+}
+if (!defined('Y_WWWWATCHDOGDELAY_INVALID')) {
+    define('Y_WWWWATCHDOGDELAY_INVALID', YAPI_INVALID_UINT);
+}
+if (!defined('Y_CALLBACKURL_INVALID')) {
+    define('Y_CALLBACKURL_INVALID', YAPI_INVALID_STRING);
+}
+if (!defined('Y_CALLBACKCREDENTIALS_INVALID')) {
+    define('Y_CALLBACKCREDENTIALS_INVALID', YAPI_INVALID_STRING);
+}
+if (!defined('Y_CALLBACKINITIALDELAY_INVALID')) {
+    define('Y_CALLBACKINITIALDELAY_INVALID', YAPI_INVALID_UINT);
+}
+if (!defined('Y_CALLBACKSCHEDULE_INVALID')) {
+    define('Y_CALLBACKSCHEDULE_INVALID', YAPI_INVALID_STRING);
+}
+if (!defined('Y_CALLBACKMINDELAY_INVALID')) {
+    define('Y_CALLBACKMINDELAY_INVALID', YAPI_INVALID_UINT);
+}
+if (!defined('Y_CALLBACKMAXDELAY_INVALID')) {
+    define('Y_CALLBACKMAXDELAY_INVALID', YAPI_INVALID_UINT);
+}
+if (!defined('Y_POECURRENT_INVALID')) {
+    define('Y_POECURRENT_INVALID', YAPI_INVALID_UINT);
+}
 //--- (end of YNetwork definitions)
     #--- (YNetwork yapiwrapper)
    #--- (end of YNetwork yapiwrapper)
 //--- (YNetwork declaration)
+//vvvv YNetwork.php
 class YNetwork extends YFunction
 {
-    const READINESS_DOWN                 = 0;
-    const READINESS_EXISTS               = 1;
-    const READINESS_LINKED               = 2;
-    const READINESS_LAN_OK               = 3;
-    const READINESS_WWW_OK               = 4;
-    const READINESS_INVALID              = -1;
-    const MACADDRESS_INVALID             = YAPI_INVALID_STRING;
-    const IPADDRESS_INVALID              = YAPI_INVALID_STRING;
-    const SUBNETMASK_INVALID             = YAPI_INVALID_STRING;
-    const ROUTER_INVALID                 = YAPI_INVALID_STRING;
-    const CURRENTDNS_INVALID             = YAPI_INVALID_STRING;
-    const IPCONFIG_INVALID               = YAPI_INVALID_STRING;
-    const PRIMARYDNS_INVALID             = YAPI_INVALID_STRING;
-    const SECONDARYDNS_INVALID           = YAPI_INVALID_STRING;
-    const NTPSERVER_INVALID              = YAPI_INVALID_STRING;
-    const USERPASSWORD_INVALID           = YAPI_INVALID_STRING;
-    const ADMINPASSWORD_INVALID          = YAPI_INVALID_STRING;
-    const HTTPPORT_INVALID               = YAPI_INVALID_UINT;
-    const DEFAULTPAGE_INVALID            = YAPI_INVALID_STRING;
-    const DISCOVERABLE_FALSE             = 0;
-    const DISCOVERABLE_TRUE              = 1;
-    const DISCOVERABLE_INVALID           = -1;
-    const WWWWATCHDOGDELAY_INVALID       = YAPI_INVALID_UINT;
-    const CALLBACKURL_INVALID            = YAPI_INVALID_STRING;
-    const CALLBACKMETHOD_POST            = 0;
-    const CALLBACKMETHOD_GET             = 1;
-    const CALLBACKMETHOD_PUT             = 2;
-    const CALLBACKMETHOD_INVALID         = -1;
-    const CALLBACKENCODING_FORM          = 0;
-    const CALLBACKENCODING_JSON          = 1;
-    const CALLBACKENCODING_JSON_ARRAY    = 2;
-    const CALLBACKENCODING_CSV           = 3;
-    const CALLBACKENCODING_YOCTO_API     = 4;
-    const CALLBACKENCODING_JSON_NUM      = 5;
-    const CALLBACKENCODING_EMONCMS       = 6;
-    const CALLBACKENCODING_AZURE         = 7;
-    const CALLBACKENCODING_INFLUXDB      = 8;
-    const CALLBACKENCODING_MQTT          = 9;
+    const READINESS_DOWN = 0;
+    const READINESS_EXISTS = 1;
+    const READINESS_LINKED = 2;
+    const READINESS_LAN_OK = 3;
+    const READINESS_WWW_OK = 4;
+    const READINESS_INVALID = -1;
+    const MACADDRESS_INVALID = YAPI::INVALID_STRING;
+    const IPADDRESS_INVALID = YAPI::INVALID_STRING;
+    const SUBNETMASK_INVALID = YAPI::INVALID_STRING;
+    const ROUTER_INVALID = YAPI::INVALID_STRING;
+    const CURRENTDNS_INVALID = YAPI::INVALID_STRING;
+    const IPCONFIG_INVALID = YAPI::INVALID_STRING;
+    const PRIMARYDNS_INVALID = YAPI::INVALID_STRING;
+    const SECONDARYDNS_INVALID = YAPI::INVALID_STRING;
+    const NTPSERVER_INVALID = YAPI::INVALID_STRING;
+    const USERPASSWORD_INVALID = YAPI::INVALID_STRING;
+    const ADMINPASSWORD_INVALID = YAPI::INVALID_STRING;
+    const HTTPPORT_INVALID = YAPI::INVALID_UINT;
+    const DEFAULTPAGE_INVALID = YAPI::INVALID_STRING;
+    const DISCOVERABLE_FALSE = 0;
+    const DISCOVERABLE_TRUE = 1;
+    const DISCOVERABLE_INVALID = -1;
+    const WWWWATCHDOGDELAY_INVALID = YAPI::INVALID_UINT;
+    const CALLBACKURL_INVALID = YAPI::INVALID_STRING;
+    const CALLBACKMETHOD_POST = 0;
+    const CALLBACKMETHOD_GET = 1;
+    const CALLBACKMETHOD_PUT = 2;
+    const CALLBACKMETHOD_INVALID = -1;
+    const CALLBACKENCODING_FORM = 0;
+    const CALLBACKENCODING_JSON = 1;
+    const CALLBACKENCODING_JSON_ARRAY = 2;
+    const CALLBACKENCODING_CSV = 3;
+    const CALLBACKENCODING_YOCTO_API = 4;
+    const CALLBACKENCODING_JSON_NUM = 5;
+    const CALLBACKENCODING_EMONCMS = 6;
+    const CALLBACKENCODING_AZURE = 7;
+    const CALLBACKENCODING_INFLUXDB = 8;
+    const CALLBACKENCODING_MQTT = 9;
     const CALLBACKENCODING_YOCTO_API_JZON = 10;
-    const CALLBACKENCODING_PRTG          = 11;
-    const CALLBACKENCODING_INFLUXDB_V2   = 12;
-    const CALLBACKENCODING_INVALID       = -1;
-    const CALLBACKCREDENTIALS_INVALID    = YAPI_INVALID_STRING;
-    const CALLBACKINITIALDELAY_INVALID   = YAPI_INVALID_UINT;
-    const CALLBACKSCHEDULE_INVALID       = YAPI_INVALID_STRING;
-    const CALLBACKMINDELAY_INVALID       = YAPI_INVALID_UINT;
-    const CALLBACKMAXDELAY_INVALID       = YAPI_INVALID_UINT;
-    const POECURRENT_INVALID             = YAPI_INVALID_UINT;
+    const CALLBACKENCODING_PRTG = 11;
+    const CALLBACKENCODING_INFLUXDB_V2 = 12;
+    const CALLBACKENCODING_INVALID = -1;
+    const CALLBACKTEMPLATE_OFF = 0;
+    const CALLBACKTEMPLATE_ON = 1;
+    const CALLBACKTEMPLATE_INVALID = -1;
+    const CALLBACKCREDENTIALS_INVALID = YAPI::INVALID_STRING;
+    const CALLBACKINITIALDELAY_INVALID = YAPI::INVALID_UINT;
+    const CALLBACKSCHEDULE_INVALID = YAPI::INVALID_STRING;
+    const CALLBACKMINDELAY_INVALID = YAPI::INVALID_UINT;
+    const CALLBACKMAXDELAY_INVALID = YAPI::INVALID_UINT;
+    const POECURRENT_INVALID = YAPI::INVALID_UINT;
     //--- (end of YNetwork declaration)
     //--- (YNetwork attributes)
-    protected $_readiness                = Y_READINESS_INVALID;          // Readiness
-    protected $_macAddress               = Y_MACADDRESS_INVALID;         // MACAddress
-    protected $_ipAddress                = Y_IPADDRESS_INVALID;          // IPAddress
-    protected $_subnetMask               = Y_SUBNETMASK_INVALID;         // IPAddress
-    protected $_router                   = Y_ROUTER_INVALID;             // IPAddress
-    protected $_currentDNS               = Y_CURRENTDNS_INVALID;         // IPAddress
-    protected $_ipConfig                 = Y_IPCONFIG_INVALID;           // IPConfig
-    protected $_primaryDNS               = Y_PRIMARYDNS_INVALID;         // IPAddress
-    protected $_secondaryDNS             = Y_SECONDARYDNS_INVALID;       // IPAddress
-    protected $_ntpServer                = Y_NTPSERVER_INVALID;          // IPAddress
-    protected $_userPassword             = Y_USERPASSWORD_INVALID;       // UserPassword
-    protected $_adminPassword            = Y_ADMINPASSWORD_INVALID;      // AdminPassword
-    protected $_httpPort                 = Y_HTTPPORT_INVALID;           // UInt31
-    protected $_defaultPage              = Y_DEFAULTPAGE_INVALID;        // Text
-    protected $_discoverable             = Y_DISCOVERABLE_INVALID;       // Bool
-    protected $_wwwWatchdogDelay         = Y_WWWWATCHDOGDELAY_INVALID;   // UInt31
-    protected $_callbackUrl              = Y_CALLBACKURL_INVALID;        // Text
-    protected $_callbackMethod           = Y_CALLBACKMETHOD_INVALID;     // HTTPMethod
-    protected $_callbackEncoding         = Y_CALLBACKENCODING_INVALID;   // CallbackEncoding
-    protected $_callbackCredentials      = Y_CALLBACKCREDENTIALS_INVALID; // Credentials
-    protected $_callbackInitialDelay     = Y_CALLBACKINITIALDELAY_INVALID; // UInt31
-    protected $_callbackSchedule         = Y_CALLBACKSCHEDULE_INVALID;   // CallbackSchedule
-    protected $_callbackMinDelay         = Y_CALLBACKMINDELAY_INVALID;   // UInt31
-    protected $_callbackMaxDelay         = Y_CALLBACKMAXDELAY_INVALID;   // UInt31
-    protected $_poeCurrent               = Y_POECURRENT_INVALID;         // UsedCurrent
+    protected int $_readiness = self::READINESS_INVALID;      // Readiness
+    protected string $_macAddress = self::MACADDRESS_INVALID;     // MACAddress
+    protected string $_ipAddress = self::IPADDRESS_INVALID;      // IPAddress
+    protected string $_subnetMask = self::SUBNETMASK_INVALID;     // IPAddress
+    protected string $_router = self::ROUTER_INVALID;         // IPAddress
+    protected string $_currentDNS = self::CURRENTDNS_INVALID;     // IPAddress
+    protected string $_ipConfig = self::IPCONFIG_INVALID;       // IPConfig
+    protected string $_primaryDNS = self::PRIMARYDNS_INVALID;     // IPAddress
+    protected string $_secondaryDNS = self::SECONDARYDNS_INVALID;   // IPAddress
+    protected string $_ntpServer = self::NTPSERVER_INVALID;      // IPAddress
+    protected string $_userPassword = self::USERPASSWORD_INVALID;   // UserPassword
+    protected string $_adminPassword = self::ADMINPASSWORD_INVALID;  // AdminPassword
+    protected int $_httpPort = self::HTTPPORT_INVALID;       // UInt31
+    protected string $_defaultPage = self::DEFAULTPAGE_INVALID;    // Text
+    protected int $_discoverable = self::DISCOVERABLE_INVALID;   // Bool
+    protected int $_wwwWatchdogDelay = self::WWWWATCHDOGDELAY_INVALID; // UInt31
+    protected string $_callbackUrl = self::CALLBACKURL_INVALID;    // Text
+    protected int $_callbackMethod = self::CALLBACKMETHOD_INVALID; // HTTPMethod
+    protected int $_callbackEncoding = self::CALLBACKENCODING_INVALID; // CallbackEncoding
+    protected int $_callbackTemplate = self::CALLBACKTEMPLATE_INVALID; // OnOff
+    protected string $_callbackCredentials = self::CALLBACKCREDENTIALS_INVALID; // Credentials
+    protected int $_callbackInitialDelay = self::CALLBACKINITIALDELAY_INVALID; // UInt31
+    protected string $_callbackSchedule = self::CALLBACKSCHEDULE_INVALID; // CallbackSchedule
+    protected int $_callbackMinDelay = self::CALLBACKMINDELAY_INVALID; // UInt31
+    protected int $_callbackMaxDelay = self::CALLBACKMAXDELAY_INVALID; // UInt31
+    protected int $_poeCurrent = self::POECURRENT_INVALID;     // UsedCurrent
     //--- (end of YNetwork attributes)
-    function __construct($str_func)
+    function __construct(string $str_func)
     {
         //--- (YNetwork constructor)
         parent::__construct($str_func);
@@ -7774,9 +8823,9 @@ class YNetwork extends YFunction
         //--- (end of YNetwork constructor)
     }
     //--- (YNetwork implementation)
-    function _parseAttr($name, $val)
+    function _parseAttr(string $name, mixed $val): int
     {
-        switch($name) {
+        switch ($name) {
         case 'readiness':
             $this->_readiness = intval($val);
             return 1;
@@ -7834,6 +8883,9 @@ class YNetwork extends YFunction
         case 'callbackEncoding':
             $this->_callbackEncoding = intval($val);
             return 1;
+        case 'callbackTemplate':
+            $this->_callbackTemplate = intval($val);
+            return 1;
         case 'callbackCredentials':
             $this->_callbackCredentials = $val;
             return 1;
@@ -7855,381 +8907,399 @@ class YNetwork extends YFunction
         }
         return parent::_parseAttr($name, $val);
     }
-    public function get_readiness()
+    public function get_readiness(): int
     {
         // $res                    is a enumREADINESS;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_READINESS_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::READINESS_INVALID;
             }
         }
         $res = $this->_readiness;
         return $res;
     }
-    public function get_macAddress()
+    public function get_macAddress(): string
     {
         // $res                    is a string;
         if ($this->_cacheExpiration == 0) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_MACADDRESS_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::MACADDRESS_INVALID;
             }
         }
         $res = $this->_macAddress;
         return $res;
     }
-    public function get_ipAddress()
+    public function get_ipAddress(): string
     {
         // $res                    is a string;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_IPADDRESS_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::IPADDRESS_INVALID;
             }
         }
         $res = $this->_ipAddress;
         return $res;
     }
-    public function get_subnetMask()
+    public function get_subnetMask(): string
     {
         // $res                    is a string;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_SUBNETMASK_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::SUBNETMASK_INVALID;
             }
         }
         $res = $this->_subnetMask;
         return $res;
     }
-    public function get_router()
+    public function get_router(): string
     {
         // $res                    is a string;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_ROUTER_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::ROUTER_INVALID;
             }
         }
         $res = $this->_router;
         return $res;
     }
-    public function get_currentDNS()
+    public function get_currentDNS(): string
     {
         // $res                    is a string;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_CURRENTDNS_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::CURRENTDNS_INVALID;
             }
         }
         $res = $this->_currentDNS;
         return $res;
     }
-    public function get_ipConfig()
+    public function get_ipConfig(): string
     {
         // $res                    is a string;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_IPCONFIG_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::IPCONFIG_INVALID;
             }
         }
         $res = $this->_ipConfig;
         return $res;
     }
-    public function set_ipConfig($newval)
+    public function set_ipConfig(string $newval): int
     {
         $rest_val = $newval;
-        return $this->_setAttr("ipConfig",$rest_val);
+        return $this->_setAttr("ipConfig", $rest_val);
     }
-    public function get_primaryDNS()
+    public function get_primaryDNS(): string
     {
         // $res                    is a string;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_PRIMARYDNS_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::PRIMARYDNS_INVALID;
             }
         }
         $res = $this->_primaryDNS;
         return $res;
     }
-    public function set_primaryDNS($newval)
+    public function set_primaryDNS(string $newval): int
     {
         $rest_val = $newval;
-        return $this->_setAttr("primaryDNS",$rest_val);
+        return $this->_setAttr("primaryDNS", $rest_val);
     }
-    public function get_secondaryDNS()
+    public function get_secondaryDNS(): string
     {
         // $res                    is a string;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_SECONDARYDNS_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::SECONDARYDNS_INVALID;
             }
         }
         $res = $this->_secondaryDNS;
         return $res;
     }
-    public function set_secondaryDNS($newval)
+    public function set_secondaryDNS(string $newval): int
     {
         $rest_val = $newval;
-        return $this->_setAttr("secondaryDNS",$rest_val);
+        return $this->_setAttr("secondaryDNS", $rest_val);
     }
-    public function get_ntpServer()
+    public function get_ntpServer(): string
     {
         // $res                    is a string;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_NTPSERVER_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::NTPSERVER_INVALID;
             }
         }
         $res = $this->_ntpServer;
         return $res;
     }
-    public function set_ntpServer($newval)
+    public function set_ntpServer(string $newval): int
     {
         $rest_val = $newval;
-        return $this->_setAttr("ntpServer",$rest_val);
+        return $this->_setAttr("ntpServer", $rest_val);
     }
-    public function get_userPassword()
+    public function get_userPassword(): string
     {
         // $res                    is a string;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_USERPASSWORD_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::USERPASSWORD_INVALID;
             }
         }
         $res = $this->_userPassword;
         return $res;
     }
-    public function set_userPassword($newval)
+    public function set_userPassword(string $newval): int
     {
-        if (strlen($newval) > YAPI_HASH_BUF_SIZE)
-            return $this->_throw(YAPI_INVALID_ARGUMENT,'Password too long :'.$newval);
+        if (strlen($newval) > YAPI::HASH_BUF_SIZE) {
+            return $this->_throw(YAPI::INVALID_ARGUMENT, 'Password too long :'.$newval);
+        }
         $rest_val = $newval;
-        return $this->_setAttr("userPassword",$rest_val);
+        return $this->_setAttr("userPassword", $rest_val);
     }
-    public function get_adminPassword()
+    public function get_adminPassword(): string
     {
         // $res                    is a string;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_ADMINPASSWORD_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::ADMINPASSWORD_INVALID;
             }
         }
         $res = $this->_adminPassword;
         return $res;
     }
-    public function set_adminPassword($newval)
+    public function set_adminPassword(string $newval): int
     {
-        if (strlen($newval) > YAPI_HASH_BUF_SIZE)
-            return $this->_throw(YAPI_INVALID_ARGUMENT,'Password too long :'.$newval);
+        if (strlen($newval) > YAPI::HASH_BUF_SIZE) {
+            return $this->_throw(YAPI::INVALID_ARGUMENT, 'Password too long :'.$newval);
+        }
         $rest_val = $newval;
-        return $this->_setAttr("adminPassword",$rest_val);
+        return $this->_setAttr("adminPassword", $rest_val);
     }
-    public function get_httpPort()
+    public function get_httpPort(): int
     {
         // $res                    is a int;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_HTTPPORT_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::HTTPPORT_INVALID;
             }
         }
         $res = $this->_httpPort;
         return $res;
     }
-    public function set_httpPort($newval)
+    public function set_httpPort(int $newval): int
     {
         $rest_val = strval($newval);
-        return $this->_setAttr("httpPort",$rest_val);
+        return $this->_setAttr("httpPort", $rest_val);
     }
-    public function get_defaultPage()
+    public function get_defaultPage(): string
     {
         // $res                    is a string;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_DEFAULTPAGE_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::DEFAULTPAGE_INVALID;
             }
         }
         $res = $this->_defaultPage;
         return $res;
     }
-    public function set_defaultPage($newval)
+    public function set_defaultPage(string $newval): int
     {
         $rest_val = $newval;
-        return $this->_setAttr("defaultPage",$rest_val);
+        return $this->_setAttr("defaultPage", $rest_val);
     }
-    public function get_discoverable()
+    public function get_discoverable(): int
     {
         // $res                    is a enumBOOL;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_DISCOVERABLE_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::DISCOVERABLE_INVALID;
             }
         }
         $res = $this->_discoverable;
         return $res;
     }
-    public function set_discoverable($newval)
+    public function set_discoverable(int $newval): int
     {
         $rest_val = strval($newval);
-        return $this->_setAttr("discoverable",$rest_val);
+        return $this->_setAttr("discoverable", $rest_val);
     }
-    public function get_wwwWatchdogDelay()
+    public function get_wwwWatchdogDelay(): int
     {
         // $res                    is a int;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_WWWWATCHDOGDELAY_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::WWWWATCHDOGDELAY_INVALID;
             }
         }
         $res = $this->_wwwWatchdogDelay;
         return $res;
     }
-    public function set_wwwWatchdogDelay($newval)
+    public function set_wwwWatchdogDelay(int $newval): int
     {
         $rest_val = strval($newval);
-        return $this->_setAttr("wwwWatchdogDelay",$rest_val);
+        return $this->_setAttr("wwwWatchdogDelay", $rest_val);
     }
-    public function get_callbackUrl()
+    public function get_callbackUrl(): string
     {
         // $res                    is a string;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_CALLBACKURL_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::CALLBACKURL_INVALID;
             }
         }
         $res = $this->_callbackUrl;
         return $res;
     }
-    public function set_callbackUrl($newval)
+    public function set_callbackUrl(string $newval): int
     {
         $rest_val = $newval;
-        return $this->_setAttr("callbackUrl",$rest_val);
+        return $this->_setAttr("callbackUrl", $rest_val);
     }
-    public function get_callbackMethod()
+    public function get_callbackMethod(): int
     {
         // $res                    is a enumHTTPMETHOD;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_CALLBACKMETHOD_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::CALLBACKMETHOD_INVALID;
             }
         }
         $res = $this->_callbackMethod;
         return $res;
     }
-    public function set_callbackMethod($newval)
+    public function set_callbackMethod(int $newval): int
     {
         $rest_val = strval($newval);
-        return $this->_setAttr("callbackMethod",$rest_val);
+        return $this->_setAttr("callbackMethod", $rest_val);
     }
-    public function get_callbackEncoding()
+    public function get_callbackEncoding(): int
     {
         // $res                    is a enumCALLBACKENCODING;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_CALLBACKENCODING_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::CALLBACKENCODING_INVALID;
             }
         }
         $res = $this->_callbackEncoding;
         return $res;
     }
-    public function set_callbackEncoding($newval)
+    public function set_callbackEncoding(int $newval): int
     {
         $rest_val = strval($newval);
-        return $this->_setAttr("callbackEncoding",$rest_val);
+        return $this->_setAttr("callbackEncoding", $rest_val);
     }
-    public function get_callbackCredentials()
+    public function get_callbackTemplate(): int
+    {
+        // $res                    is a enumONOFF;
+        if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::CALLBACKTEMPLATE_INVALID;
+            }
+        }
+        $res = $this->_callbackTemplate;
+        return $res;
+    }
+    public function set_callbackTemplate(int $newval): int
+    {
+        $rest_val = strval($newval);
+        return $this->_setAttr("callbackTemplate", $rest_val);
+    }
+    public function get_callbackCredentials(): string
     {
         // $res                    is a string;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_CALLBACKCREDENTIALS_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::CALLBACKCREDENTIALS_INVALID;
             }
         }
         $res = $this->_callbackCredentials;
         return $res;
     }
-    public function set_callbackCredentials($newval)
+    public function set_callbackCredentials(string $newval): int
     {
         $rest_val = $newval;
-        return $this->_setAttr("callbackCredentials",$rest_val);
+        return $this->_setAttr("callbackCredentials", $rest_val);
     }
-    public function callbackLogin($username,$password)
+    public function callbackLogin(string $username,string $password): int
     {
         $rest_val = sprintf("%s:%s", $username, $password);
         return $this->_setAttr("callbackCredentials",$rest_val);
     }
-    public function get_callbackInitialDelay()
+    public function get_callbackInitialDelay(): int
     {
         // $res                    is a int;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_CALLBACKINITIALDELAY_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::CALLBACKINITIALDELAY_INVALID;
             }
         }
         $res = $this->_callbackInitialDelay;
         return $res;
     }
-    public function set_callbackInitialDelay($newval)
+    public function set_callbackInitialDelay(int $newval): int
     {
         $rest_val = strval($newval);
-        return $this->_setAttr("callbackInitialDelay",$rest_val);
+        return $this->_setAttr("callbackInitialDelay", $rest_val);
     }
-    public function get_callbackSchedule()
+    public function get_callbackSchedule(): string
     {
         // $res                    is a string;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_CALLBACKSCHEDULE_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::CALLBACKSCHEDULE_INVALID;
             }
         }
         $res = $this->_callbackSchedule;
         return $res;
     }
-    public function set_callbackSchedule($newval)
+    public function set_callbackSchedule(string $newval): int
     {
         $rest_val = $newval;
-        return $this->_setAttr("callbackSchedule",$rest_val);
+        return $this->_setAttr("callbackSchedule", $rest_val);
     }
-    public function get_callbackMinDelay()
+    public function get_callbackMinDelay(): int
     {
         // $res                    is a int;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_CALLBACKMINDELAY_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::CALLBACKMINDELAY_INVALID;
             }
         }
         $res = $this->_callbackMinDelay;
         return $res;
     }
-    public function set_callbackMinDelay($newval)
+    public function set_callbackMinDelay(int $newval): int
     {
         $rest_val = strval($newval);
-        return $this->_setAttr("callbackMinDelay",$rest_val);
+        return $this->_setAttr("callbackMinDelay", $rest_val);
     }
-    public function get_callbackMaxDelay()
+    public function get_callbackMaxDelay(): int
     {
         // $res                    is a int;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_CALLBACKMAXDELAY_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::CALLBACKMAXDELAY_INVALID;
             }
         }
         $res = $this->_callbackMaxDelay;
         return $res;
     }
-    public function set_callbackMaxDelay($newval)
+    public function set_callbackMaxDelay(int $newval): int
     {
         $rest_val = strval($newval);
-        return $this->_setAttr("callbackMaxDelay",$rest_val);
+        return $this->_setAttr("callbackMaxDelay", $rest_val);
     }
-    public function get_poeCurrent()
+    public function get_poeCurrent(): int
     {
         // $res                    is a int;
         if ($this->_cacheExpiration <= YAPI::GetTickCount()) {
-            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI_SUCCESS) {
-                return Y_POECURRENT_INVALID;
+            if ($this->load(YAPI::$_yapiContext->GetCacheValidity()) != YAPI::SUCCESS) {
+                return self::POECURRENT_INVALID;
             }
         }
         $res = $this->_poeCurrent;
         return $res;
     }
-    public static function FindNetwork($func)
+    public static function FindNetwork(string $func): YNetwork
     {
         // $obj                    is a YNetwork;
         $obj = YFunction::_FindFromCache('Network', $func);
@@ -8239,149 +9309,252 @@ class YNetwork extends YFunction
         }
         return $obj;
     }
-    public function useDHCP($fallbackIpAddr,$fallbackSubnetMaskLen,$fallbackRouter)
+    public function useDHCP(string $fallbackIpAddr, int $fallbackSubnetMaskLen, string $fallbackRouter): int
     {
         return $this->set_ipConfig(sprintf('DHCP:%s/%d/%s', $fallbackIpAddr, $fallbackSubnetMaskLen, $fallbackRouter));
     }
-    public function useDHCPauto()
+    public function useDHCPauto(): int
     {
         return $this->set_ipConfig('DHCP:');
     }
-    public function useStaticIP($ipAddress,$subnetMaskLen,$router)
+    public function useStaticIP(string $ipAddress, int $subnetMaskLen, string $router): int
     {
         return $this->set_ipConfig(sprintf('STATIC:%s/%d/%s', $ipAddress, $subnetMaskLen, $router));
     }
-    public function ping($host)
+    public function ping(string $host): string
     {
         // $content                is a bin;
         $content = $this->_download(sprintf('ping.txt?host=%s',$host));
         return $content;
     }
-    public function triggerCallback()
+    public function triggerCallback(): int
     {
         return $this->set_callbackMethod($this->get_callbackMethod());
     }
-    public function set_periodicCallbackSchedule($interval,$offset)
+    public function set_periodicCallbackSchedule(string $interval, int $offset): int
     {
         return $this->set_callbackSchedule(sprintf('every %s+%d',$interval,$offset));
     }
-    public function readiness()
-    { return $this->get_readiness(); }
-    public function macAddress()
-    { return $this->get_macAddress(); }
-    public function ipAddress()
-    { return $this->get_ipAddress(); }
-    public function subnetMask()
-    { return $this->get_subnetMask(); }
-    public function router()
-    { return $this->get_router(); }
-    public function currentDNS()
-    { return $this->get_currentDNS(); }
-    public function ipConfig()
-    { return $this->get_ipConfig(); }
-    public function setIpConfig($newval)
-    { return $this->set_ipConfig($newval); }
-    public function primaryDNS()
-    { return $this->get_primaryDNS(); }
-    public function setPrimaryDNS($newval)
-    { return $this->set_primaryDNS($newval); }
-    public function secondaryDNS()
-    { return $this->get_secondaryDNS(); }
-    public function setSecondaryDNS($newval)
-    { return $this->set_secondaryDNS($newval); }
-    public function ntpServer()
-    { return $this->get_ntpServer(); }
-    public function setNtpServer($newval)
-    { return $this->set_ntpServer($newval); }
-    public function userPassword()
-    { return $this->get_userPassword(); }
-    public function setUserPassword($newval)
-    { return $this->set_userPassword($newval); }
-    public function adminPassword()
-    { return $this->get_adminPassword(); }
-    public function setAdminPassword($newval)
-    { return $this->set_adminPassword($newval); }
-    public function httpPort()
-    { return $this->get_httpPort(); }
-    public function setHttpPort($newval)
-    { return $this->set_httpPort($newval); }
-    public function defaultPage()
-    { return $this->get_defaultPage(); }
-    public function setDefaultPage($newval)
-    { return $this->set_defaultPage($newval); }
-    public function discoverable()
-    { return $this->get_discoverable(); }
-    public function setDiscoverable($newval)
-    { return $this->set_discoverable($newval); }
-    public function wwwWatchdogDelay()
-    { return $this->get_wwwWatchdogDelay(); }
-    public function setWwwWatchdogDelay($newval)
-    { return $this->set_wwwWatchdogDelay($newval); }
-    public function callbackUrl()
-    { return $this->get_callbackUrl(); }
-    public function setCallbackUrl($newval)
-    { return $this->set_callbackUrl($newval); }
-    public function callbackMethod()
-    { return $this->get_callbackMethod(); }
-    public function setCallbackMethod($newval)
-    { return $this->set_callbackMethod($newval); }
-    public function callbackEncoding()
-    { return $this->get_callbackEncoding(); }
-    public function setCallbackEncoding($newval)
-    { return $this->set_callbackEncoding($newval); }
-    public function callbackCredentials()
-    { return $this->get_callbackCredentials(); }
-    public function setCallbackCredentials($newval)
-    { return $this->set_callbackCredentials($newval); }
-    public function callbackInitialDelay()
-    { return $this->get_callbackInitialDelay(); }
-    public function setCallbackInitialDelay($newval)
-    { return $this->set_callbackInitialDelay($newval); }
-    public function callbackSchedule()
-    { return $this->get_callbackSchedule(); }
-    public function setCallbackSchedule($newval)
-    { return $this->set_callbackSchedule($newval); }
-    public function callbackMinDelay()
-    { return $this->get_callbackMinDelay(); }
-    public function setCallbackMinDelay($newval)
-    { return $this->set_callbackMinDelay($newval); }
-    public function callbackMaxDelay()
-    { return $this->get_callbackMaxDelay(); }
-    public function setCallbackMaxDelay($newval)
-    { return $this->set_callbackMaxDelay($newval); }
-    public function poeCurrent()
-    { return $this->get_poeCurrent(); }
-    public function nextNetwork()
-    {   $resolve = YAPI::resolveFunction($this->_className, $this->_func);
-        if($resolve->errorType != YAPI_SUCCESS) return null;
+    public function readiness(): int
+{
+    return $this->get_readiness();
+}
+    public function macAddress(): string
+{
+    return $this->get_macAddress();
+}
+    public function ipAddress(): string
+{
+    return $this->get_ipAddress();
+}
+    public function subnetMask(): string
+{
+    return $this->get_subnetMask();
+}
+    public function router(): string
+{
+    return $this->get_router();
+}
+    public function currentDNS(): string
+{
+    return $this->get_currentDNS();
+}
+    public function ipConfig(): string
+{
+    return $this->get_ipConfig();
+}
+    public function setIpConfig(string $newval): int
+{
+    return $this->set_ipConfig($newval);
+}
+    public function primaryDNS(): string
+{
+    return $this->get_primaryDNS();
+}
+    public function setPrimaryDNS(string $newval): int
+{
+    return $this->set_primaryDNS($newval);
+}
+    public function secondaryDNS(): string
+{
+    return $this->get_secondaryDNS();
+}
+    public function setSecondaryDNS(string $newval): int
+{
+    return $this->set_secondaryDNS($newval);
+}
+    public function ntpServer(): string
+{
+    return $this->get_ntpServer();
+}
+    public function setNtpServer(string $newval): int
+{
+    return $this->set_ntpServer($newval);
+}
+    public function userPassword(): string
+{
+    return $this->get_userPassword();
+}
+    public function setUserPassword(string $newval): int
+{
+    return $this->set_userPassword($newval);
+}
+    public function adminPassword(): string
+{
+    return $this->get_adminPassword();
+}
+    public function setAdminPassword(string $newval): int
+{
+    return $this->set_adminPassword($newval);
+}
+    public function httpPort(): int
+{
+    return $this->get_httpPort();
+}
+    public function setHttpPort(int $newval): int
+{
+    return $this->set_httpPort($newval);
+}
+    public function defaultPage(): string
+{
+    return $this->get_defaultPage();
+}
+    public function setDefaultPage(string $newval): int
+{
+    return $this->set_defaultPage($newval);
+}
+    public function discoverable(): int
+{
+    return $this->get_discoverable();
+}
+    public function setDiscoverable(int $newval): int
+{
+    return $this->set_discoverable($newval);
+}
+    public function wwwWatchdogDelay(): int
+{
+    return $this->get_wwwWatchdogDelay();
+}
+    public function setWwwWatchdogDelay(int $newval): int
+{
+    return $this->set_wwwWatchdogDelay($newval);
+}
+    public function callbackUrl(): string
+{
+    return $this->get_callbackUrl();
+}
+    public function setCallbackUrl(string $newval): int
+{
+    return $this->set_callbackUrl($newval);
+}
+    public function callbackMethod(): int
+{
+    return $this->get_callbackMethod();
+}
+    public function setCallbackMethod(int $newval): int
+{
+    return $this->set_callbackMethod($newval);
+}
+    public function callbackEncoding(): int
+{
+    return $this->get_callbackEncoding();
+}
+    public function setCallbackEncoding(int $newval): int
+{
+    return $this->set_callbackEncoding($newval);
+}
+    public function callbackTemplate(): int
+{
+    return $this->get_callbackTemplate();
+}
+    public function setCallbackTemplate(int $newval): int
+{
+    return $this->set_callbackTemplate($newval);
+}
+    public function callbackCredentials(): string
+{
+    return $this->get_callbackCredentials();
+}
+    public function setCallbackCredentials(string $newval): int
+{
+    return $this->set_callbackCredentials($newval);
+}
+    public function callbackInitialDelay(): int
+{
+    return $this->get_callbackInitialDelay();
+}
+    public function setCallbackInitialDelay(int $newval): int
+{
+    return $this->set_callbackInitialDelay($newval);
+}
+    public function callbackSchedule(): string
+{
+    return $this->get_callbackSchedule();
+}
+    public function setCallbackSchedule(string $newval): int
+{
+    return $this->set_callbackSchedule($newval);
+}
+    public function callbackMinDelay(): int
+{
+    return $this->get_callbackMinDelay();
+}
+    public function setCallbackMinDelay(int $newval): int
+{
+    return $this->set_callbackMinDelay($newval);
+}
+    public function callbackMaxDelay(): int
+{
+    return $this->get_callbackMaxDelay();
+}
+    public function setCallbackMaxDelay(int $newval): int
+{
+    return $this->set_callbackMaxDelay($newval);
+}
+    public function poeCurrent(): int
+{
+    return $this->get_poeCurrent();
+}
+    public function nextNetwork(): ?YNetwork
+    {
+        $resolve = YAPI::resolveFunction($this->_className, $this->_func);
+        if ($resolve->errorType != YAPI::SUCCESS) {
+            return null;
+        }
         $next_hwid = YAPI::getNextHardwareId($this->_className, $resolve->result);
-        if($next_hwid == null) return null;
+        if ($next_hwid == null) {
+            return null;
+        }
         return self::FindNetwork($next_hwid);
     }
-    public static function FirstNetwork()
-    {   $next_hwid = YAPI::getFirstHardwareId('Network');
-        if($next_hwid == null) return null;
+    public static function FirstNetwork(): ?YNetwork
+    {
+        $next_hwid = YAPI::getFirstHardwareId('Network');
+        if ($next_hwid == null) {
+            return null;
+        }
         return self::FindNetwork($next_hwid);
     }
     //--- (end of YNetwork implementation)
-};
+}
+//^^^^ YNetwork.php
 //--- (YNetwork functions)
-function yFindNetwork($func)
+function yFindNetwork(string $func): YNetwork
 {
     return YNetwork::FindNetwork($func);
 }
-function yFirstNetwork()
+function yFirstNetwork(): ?YNetwork
 {
     return YNetwork::FirstNetwork();
 }
 //--- (end of YNetwork functions)
 
-define('NOTIF_FILE', 'VHUB4WEB-YN*.byn');   // Name pattern for the notification buffers filesconst NOTIF_FILE_ENDSIZE = 32768;const NOTIF_POS_WRAP = 0x100000000;const NOTIF_MAX_LEN = 69;const NOTIF_NAME = 'YN010';const NOTIF_PRODNAME = 'YN011';const NOTIF_CHILD = 'YN012';const NOTIF_FIRMWARE = 'YN013';const NOTIF_FUNCNAME = 'YN014';const NOTIF_FUNCVAL = 'YN015';const NOTIF_STREAMREADY = 'YN016';const NOTIF_LOG = 'YN017';const NOTIF_FUNCNAMEYDX = 'YN018';const NOTIF_PRODINFO = 'YN019';const NOTIF_CONFCHGYDX = 'YN01s';const NOTIF_FLUSHV2YDX = 'YN01t';const NOTIF_FUNCV2YDX = 'u';const NOTIF_TIMEV2YDX = 'v';const NOTIF_DEVLOGYDX = 'YN01w';const NOTIF_TIMEVALYDX = 'x';const NOTIF_FUNCVALYDX = 'y';const NOTIF_TIMEAVGYDX = 'z';class NotifStream{    protected VHubServer $server;    protected string $datadir;    protected string $notfile;    protected int $filepos;     // Absolute offset of first notification in file    protected int $abspos;      // Current absolute position within stream    protected int $curpos;      // Current position within file    protected int $reqlen;      // Requested length, if any    private int $avail;         // Quantity of notification available to send    protected mixed $fd;    public static function StreamAt(VHubServerHTTPRequest $httpReq, VHubServer $parent, int $position): NotifStream    {        $datadir = $parent->getDataDir();        $regexpr = '~^'.str_replace('*', '([0-9]+)', NOTIF_FILE).'$~';        $filelist = [];        foreach (glob($datadir.NOTIF_FILE) as $filepath) {            $filename = substr($filepath, strlen($datadir));            if(preg_match($regexpr, $filename, $matches)) {                $filelist[] = intVal($matches[1], 10);            }        }        if(sizeof($filelist) == 0) {            $filepos = 0;        } else {            sort($filelist);            if(max($filelist) - min($filelist) > (NOTIF_POS_WRAP/4)) {                // list of positions is wrapping, reorder them accordingly                for($i = 1; $i < sizeof($filelist); $i++) {                    if($filelist[$i] - $filelist[$i-1] > (NOTIF_POS_WRAP/4)) break;                }                $filelist = array_merge(array_slice($filelist, $i), array_slice($filelist, 0, $i));            }            if(sizeof($filelist) > 4) {                // cleanup oldest notification files                $notfile = sprintf(str_replace('*', '%010u', NOTIF_FILE), $filelist[0]);                $fullpath = $parent->getDataDir().$notfile;                if(file_exists($fullpath)) {                    @unlink($fullpath);                }            }            if($position == -1) {                // use the latest file                $filepos = $filelist[sizeof($filelist)-1];            } else {                // use the file containin the requested position, or the oldest file available                $filepos = $filelist[0];                for($i = 1; $i < sizeof($filelist); $i++) {                    if($position >= $filelist[$i] && $position < $filelist[$i] + (NOTIF_POS_WRAP/4)) {                        $filepos = $filelist[$i];                    }                }            }        }        VHubServer::Log($httpReq, LOG_CLIENTREQ, 5, 'Open stream at '.$position.', using file @'.$filepos);        return new NotifStream($parent, $filepos, $position);    }    public function __construct(VHubServer $parent, int $filepos, int $position)    {        $this->server = $parent;        $this->datadir = $parent->getDataDir();        $this->filepos = $filepos;        $this->abspos = $position;        $this->curpos = $position - $filepos;        $this->reqlen = -1;        $this->avail = 0;        $this->fd = null;    }    protected function openNotFile(VHubServerHTTPRequest $httpReq, string $mode, bool $readonly): bool    {        $this->notfile = sprintf(str_replace('*', '%010u', NOTIF_FILE), $this->filepos);        $fullpath = $this->datadir.$this->notfile;        if($readonly && !file_exists($fullpath)) {            $this->fd = null;            return false;        }        try {            $this->fd = @fopen($fullpath, $mode);        } catch(Throwable) {}        if($this->fd === false) {            $this->fd = null;            return false;        }        return true;    }    public function openForRead(VHubServerHTTPRequest $httpReq, int $length): int    {        if($length == 0) {            // default limit when flush is available but chunks help to improve performace            $length = 0x7f00;        }        if($length >= 0) {            // minimum value should allow for at least one notification            if($length < NOTIF_MAX_LEN + 15) {                $length = NOTIF_MAX_LEN + 15;            }        }        $this->reqlen = $length;        if($this->openNotFile($httpReq, 'rb', true)) {            fseek($this->fd, 0, SEEK_END);            $endpos = ftell($this->fd);        } else {            // file does not yet exist            $endpos = 0;        }        if($this->abspos == -1) {            $this->abspos = $this->filepos + $endpos;            $this->curpos = $endpos;        }        if($endpos > $this->curpos && !is_null($this->fd)) {            fseek($this->fd, $this->curpos, SEEK_SET);            $this->avail = $endpos;        }        return $this->abspos;    }    public function predictSize(): int    {        return max($this->reqlen, $this->avail);    }    public function readMore(VHubServerHTTPRequest $httpReq, int $maxlen): string    {        // switch to next file if needed        if($this->curpos >= NOTIF_FILE_ENDSIZE) {            if(!is_null($this->fd)) {                fclose($this->fd);            }            $this->filepos = $this->abspos;            $this->curpos = 0;            $this->openForRead($httpReq, -1);        }        // make sure the log file has already been created        if(is_null($this->fd)) {            return "";        }        // read as much as permitted from the current notification file        if($maxlen > 0) {            $rsize = $maxlen;        } else {            $rsize = NOTIF_FILE_ENDSIZE;        }        $result = fread($this->fd, $rsize);        $rsize = strlen($result);        if($rsize == 0) {            return $result;        }        if($result[$rsize-1] != "\n") {            // make sure we stop on a complete notification            while ($rsize > 0 && $result[$rsize - 1] != "\n") {                $rsize--;            }            $result = substr($result, 0, $rsize);            $this->curpos += $rsize;            fseek($this->fd, $this->curpos, SEEK_SET);            if($maxlen > 0) {                // pad reply to the full requested size to force a flush and get a new buffer                $result .= str_repeat("\n", $maxlen - $rsize);            }        } else {            $this->curpos += $rsize;        }        $this->abspos += $rsize;        return $result;    }    public function openForAppend(VHubServerHTTPRequest $httpReq): int    {        if(!$this->openNotFile($httpReq, 'a', false)) {            VHubServer::Log($httpReq, LOG_VHUBSERVER, 1, 'Fail to open for append '.$this->notfile);            $endpos = 0;        } else {            fseek($this->fd, 0, SEEK_END);            $endpos = ftell($this->fd);        }        $this->abspos = $this->filepos + $endpos;        $this->curpos = $endpos;        return $this->abspos;    }    public function close(VHubServerHTTPRequest $httpReq): void    {        if(!is_null($this->fd)) {            fclose($this->fd);        }    }    protected function decodeTimestamp(array $report, float &$duration): float    {        $time = $report[0] + 0x100 * $report[1] + 0x10000 * $report[2] + 0x1000000 * $report[3];        $ms = $report[4] * 4;        if (sizeof($report) > 5) {            $mixedByte = $report[5];            $ms += $mixedByte >> 6;            $duration_ms = $report[6];            $duration_ms += ($mixedByte & 0xf) * 0x100;            if ($mixedByte & 0x10) {                $duration = $duration_ms;            } else {                $duration = $duration_ms / 1000.0;            }        } else {            $duration = 0.0;        }        return $time + $ms / 1000.0;    }    public function appendNotif(VHubServerHTTPRequest $httpReq, string $notif): void    {        // switch to next file if needed        if($this->curpos >= NOTIF_FILE_ENDSIZE) {            fclose($this->fd);            $this->filepos = $this->abspos;            $this->curpos = 0;            $this->openForAppend($httpReq, );        }        fwrite($this->fd, $notif."\n");    }    public function appendModuleNotification(VHubServerHTTPRequest $httpReq, array $wpVal): void    {        $serial = $wpVal['serialNumber'];        $devYdxA = chr(65+$wpVal['index']);        $this->appendNotif($httpReq, NOTIF_NAME.$serial.','.$wpVal['logicalName'].','.$wpVal['beacon'].','.$devYdxA);    }    public function appendModuleArrivalNotifications(VHubServerHTTPRequest $httpReq, string $cloudSerial, array $wpVal): void    {        $serial = $wpVal['serialNumber'];        $this->appendNotif($httpReq, NOTIF_CHILD.$cloudSerial.','.$serial.',1');        $this->appendModuleNotification($httpReq, $wpVal);        $this->appendNotif($httpReq, NOTIF_PRODINFO.$serial.','.sprintf('%04x', $wpVal['productId']));    }    public function appendModuleRemovalNotifications(VHubServerHTTPRequest $httpReq, string $cloudSerial, string $serial): void    {        $this->appendNotif($httpReq, NOTIF_CHILD.$cloudSerial.','.$serial.',0');    }    public function appendFunctionNameNotification(VHubServerHTTPRequest $httpReq, array $ypVal): void    {        $hwidParts = explode('.', $ypVal['hardwareId']);        $this->appendNotif($httpReq, NOTIF_FUNCNAMEYDX.$hwidParts[0].','.$hwidParts[1].','.$ypVal['logicalName'].','.$ypVal['index'].','.$ypVal['baseType']);    }    public function appendFunctionValNotification(VHubServerHTTPRequest $httpReq, array $ypVal): void    {        $hwidParts = explode('.', $ypVal['hardwareId']);        $serial = $hwidParts[0];        $devydx = $this->server->apiroot->cloudConf->getDevYdx($serial);        if($devydx < 0) return;        $funydx = $ypVal['index'];        $devYdxA = chr(65+($devydx & 63));        $funYdxA = chr(48+$funydx+(($devydx & 128) ? 64 : 0));        $this->appendNotif($httpReq, NOTIF_FUNCVALYDX.$devYdxA.$funYdxA.$ypVal['advertisedValue']);        // FIXME: Make sure no buffer overflow can happen in API in since some advertiseValue        //        should actually have been advertised using V2 notifications (6 bytes, etc)    }    public function handleTrueTimedReportNotification(VHubServerHTTPRequest $httpReq, string $serial, array $rawReports): void    {        VHubServer::Log($httpReq, LOG_DATALOGGER, 5, "Processing timed reports for {$serial}: ".sizeof($rawReports)." records");        // 1. Forward timed reports in text mode        $devydx = $this->server->apiroot->cloudConf->getDevYdx($serial);        if($devydx < 0) return;        foreach($rawReports as $funydx => $rawReport) {            $devYdxA = chr(65+($devydx & 63));            $funYdxA = chr(48+$funydx+(($devydx & 128) ? 64 : 0));            $msg = NOTIF_TIMEV2YDX.$devYdxA.$funYdxA;            for($i = 0; $i < sizeof($rawReport); $i++) {                $msg .= sprintf('%02x', $rawReport[$i]);            }            $this->appendNotif($httpReq, $msg);        }        // 2. Add data to the dataLogger        $datalogger = YDataLogger::FindDataLogger("{$serial}.dataLogger");        $emulogger = $datalogger->get_userData();        if(is_null($emulogger)) {            $emulogger = new DataLogger($this->server, $serial);            $datalogger->set_userData($emulogger);        }        $timestamp = 0;        $duration = 0;        $newReports = [];        $module = YModule::FindModule($serial);        foreach($rawReports as $funydx => $rawReport) {            if($funydx == 15) {                $timestamp = $this->decodeTimestamp($rawReport, $duration);                VHubServer::Log($httpReq, LOG_DATALOGGER, 5, "TimedReport for {$serial}: stamp={$timestamp}, duration={$duration}");            } else if($timestamp) {                $functionId = $module->functionId($funydx);                $sensor = YSensor::FindSensor("{$serial}.{$functionId}");                $unit = $sensor->get_unit();                $freqStr = $sensor->get_reportFrequency();                if($freqStr == 'OFF') continue;                $freq = new DataFrequency($freqStr);                array_unshift($rawReport, 2); // prepend Timed Report V2 signature                $measure = $sensor->_decodeTimedReport($timestamp, $duration, $rawReport);                $newReports[$functionId] = [ 'sensor' => $sensor, 'measure' => $measure, 'unit' => $unit, 'freq' => $freq ];            }        }        if(sizeof($newReports) > 0) {            $emulogger->appendMeasures($httpReq, $newReports);        }    }    public function appendEmulatedTimedReportNotification(VHubServerHTTPRequest $httpReq, string $serial, array $reports): void    {        $devydx = $this->server->apiroot->cloudConf->getDevYdx($serial);        if($devydx < 0) return;        $timestamp = $reports[array_key_first($reports)]['measure']->get_startTimeUTC();        $funydx = 15; // special funYdx for the timestamp        $devYdxA = chr(65+($devydx & 127));        $funYdxA = chr(48+$funydx+(($devydx & 128) ? 64 : 0));        $msg = NOTIF_TIMEV2YDX.$devYdxA.$funYdxA;        for($i = 0; $i < 4; $i++) {            $msg .= sprintf('%02x', $timestamp & 0xff);            $timestamp >>= 8;        }        $this->appendNotif($httpReq, $msg.'0003e8');        foreach($reports as $functionId => $report) {            $measure = $report['measure'];            $value = $measure->get_averageValue();            if(is_nan($value)) continue;            $report = round($value * 1000);            $hardwareId = $serial.'.'.$functionId;            $funydx = $this->server->apiroot->funYdxByHwId[$hardwareId];            $funYdxA = chr(48+$funydx+(($devydx & 128) ? 64 : 0));            $msg = NOTIF_TIMEV2YDX.$devYdxA.$funYdxA;            while(true) {                $lo = $report & 0xff;                $msg .= sprintf('%02x', $lo);                $report >>= 8;                if($report >= 0) {                    if(($lo & 0x80)==0 && $report == 0) break;                } else {                    if(($lo & 0x80)!=0 && $report == -1) break;                }            }            $this->appendNotif($httpReq, $msg);        }    }    public function appendDeviceLogNotification(VHubServerHTTPRequest $httpReq, string $serial): void    {        $devydx = $this->server->apiroot->cloudConf->getDevYdx($serial);        if($devydx < 0) return;        $devYdxA = chr(65+($devydx & 63));        $devYdxB = chr(48+(($devydx & 128) ? 64 : 0));        $this->appendNotif($httpReq, NOTIF_LOG.$devYdxA.$devYdxB);    }    public function appendConfigChangeNotification(VHubServerHTTPRequest $httpReq, string $serial): void    {        $devydx = $this->server->apiroot->cloudConf->getDevYdx($serial);        if($devydx < 0) return;        $devYdxA = chr(65+($devydx & 63));        $devYdxB = chr(48+(($devydx & 128) ? 64 : 0));        $this->appendNotif($httpReq, NOTIF_CONFCHGYDX.$devYdxA.$devYdxB);    }}
-const TARHEADER_PATH_OFS = 0;const TARHEADER_MODESTR_OFS = 100;const TARHEADER_UIDSTR_OFS = 108;const TARHEADER_GIDSTR_OFS = 116;const TARHEADER_SIZESTR_OFS = 124;const TARHEADER_UNIXTIMESTR_OFS = 136;const TARHEADER_CHECKSUMSTR_OFS = 148;const TARHEADER_TYPEFLAG_OFS = 156;const TARHEADER_LINKNAME_OFS = 157;const TARHEADER_MAGIC_OFS = 257;const TARHEADER_MAGICVER_OFS = 263;const TARHEADER_PAD_OFS = 265;const TAROP_LOAD_FILE = 0;      // first functions require shared Read-only accessconst TAROP_LIST_FILES = 1;const TAROP_WORKON_FILES = 2;   // must stay the first TAR op requiring Read-write accessconst TAROP_UPDATE_FILE = 3;    // must stay the first TAR op requiring Read-write access and causing file rewriteconst TAROP_REPLACE_FILE = 4;const TAROP_DELETE_FILE = 5;function decodeUint(string $buf, int $ofs, int $size): float{    $res = 0;    for($i = $size-1; $i >= 0; $i--) {        $res = ($res << 8) + ord($buf[$ofs+$i]);    }    return $res;}function decodeFloat(string $buf, int $ofs, bool $flipBit): float{    $intVal = ord($buf[$ofs]) + 0x100*ord($buf[$ofs+1]) + 0x10000*ord($buf[$ofs+2]) + 0x1000000*ord($buf[$ofs+3]);    if($flipBit) {        if($intVal == 0xffffffff) {            return NAN;        }        $intVal ^= 0x80000000;    }    if($intVal > 0x7fffffff) {        $intVal -= 0x100000000;    }    return $intVal / 1000.0;}function encodeUint(int $value, int $size): string{    $data = chr($value & 0xff);    for($i = 1; $i < $size; $i++) {        $value = $value >> 8;        $data .= chr($value & 0xff);    }    return $data;}function encodeFloat(float $value, bool $flipBit): string{    if($flipBit) {        if(is_nan($value)) {            $intVal = 0xffffffff;        } else {            $intVal = intval(round($value * 1000));            $intVal ^= 0x80000000;        }    } else {        $intVal = intval(round($value * 1000));    }    $intVal &= 0xffffffff;    return chr($intVal & 0xff).chr(($intVal >> 8) & 0xff)        .chr(($intVal >> 16) & 0xff).chr(($intVal >> 24) & 0xff);}function parseOctal(string $buffer, int $ofs, int $maxlen): int{    for($len = 0; $len < $maxlen; $len++) {        if(ord($buffer[$ofs+$len]) == 0) break;    }    $octalStr = substr($buffer, $ofs, $len);    return intval(base_convert($octalStr, 8, 10));}class TarObject{    public string $path;    public string $header;    public string $content;    public int $contentSize;    public int $storageSize;    public int $modifTime;    public int $tarOffset;    public int $crc;    public bool $gzipEncoded;    public function __construct(VHubServerHTTPRequest $httpReq, int $tarOffset, int $fileSize, string $header)    {        $headerlen = strlen($header);        $maxpathlen = min($headerlen, 99);        for($pathlen = 0; $pathlen < $maxpathlen; $pathlen++) {            if(ord($header[$pathlen]) == 0) break;        }        $this->path = substr($header, 0, $pathlen);        $this->contentSize = $fileSize;        $this->storageSize = ($fileSize + 511) & ~0x1ff;        $this->gzipEncoded = false;        if($headerlen >= 256) {            VHubServer::Log($httpReq, LOG_TARFILE, 5, "Found ".$this->path." (size=".$this->contentSize.")");            $this->header = $header;            $this->modifTime = parseOctal($header, TARHEADER_UNIXTIMESTR_OFS, 12);        } else {            $this->header = str_repeat(chr(0), 512);            $this->modifTime = time();            $this->safecopyz($this->path, TARHEADER_PATH_OFS, TARHEADER_MODESTR_OFS);            $this->safecopyz('0100777', TARHEADER_MODESTR_OFS, TARHEADER_UIDSTR_OFS);            $this->safecopyz('0000000', TARHEADER_UIDSTR_OFS, TARHEADER_GIDSTR_OFS);            $this->safecopyz('0000000', TARHEADER_GIDSTR_OFS, TARHEADER_SIZESTR_OFS);            $this->header[TARHEADER_TYPEFLAG_OFS] = '0';            $this->safecopyz('ustar', TARHEADER_MAGIC_OFS, TARHEADER_MAGICVER_OFS);            $this->header[TARHEADER_MAGICVER_OFS] = '0';            $this->header[TARHEADER_MAGICVER_OFS+1] = '0';        }        $this->tarOffset = $tarOffset;    }    public function u32toOctal(int $number, int $headerOffset, int $ndigits): void    {        $octal = base_convert(strval($number), 10, 8);        $octal = str_repeat('0', $ndigits-strlen($octal)).$octal;        for($i = 0; $i < $ndigits; $i++) {            $this->header[$headerOffset+$i] = $octal[$i];        }        $this->header[$headerOffset+$i] = chr(0);    }    public function memset(string $char, int $headerOffset, int $rep): void    {        for($i = 0; $i < $rep; $i++) {            $this->header[$headerOffset+$i] = $char[0];        }    }    public function safecopyz(string $data, int $headerOffset, int $endOffset): void    {        $len = strlen($data);        if($headerOffset + $len >= $endOffset) {            $len = $endOffset - $headerOffset - 1;        }        for($i = 0; $i < $len; $i++) {            $this->header[$headerOffset+$i] = $data[$i];        }        $this->header[$headerOffset+$len] = chr(0);    }    public function updateTarHeader(): void    {        $this->u32toOctal($this->contentSize, TARHEADER_SIZESTR_OFS, 11);        $this->u32toOctal($this->modifTime, TARHEADER_UNIXTIMESTR_OFS, 11);        $this->memset(' ', TARHEADER_CHECKSUMSTR_OFS, 8);        $checksum = 0;        for ($i = 0; $i < 512; $i++) {            $checksum += ord($this->header[$i]);        }        $this->u32toOctal($checksum, TARHEADER_CHECKSUMSTR_OFS, 7);    }}class TarFile{    protected VHubServer $server;    protected string $tarfile;    protected string $blankbuf;    protected array $userFiles;    protected mixed $workfd;    protected int $tarfilesize;    public function __construct(VHubServer $parent, string $tarname)    {        $this->server = $parent;        $this->tarfile = $tarname;        $this->blankbuf = str_repeat(chr(0), 1024);        $this->userFiles = [];        $this->workfd = null;        $this->tarfilesize = 0;    }    public function formatTarFile(VHubServerHTTPRequest $httpReq): void    {        $fp = $this->server->frewrite($httpReq, $this->tarfile);        fwrite($fp, $this->blankbuf, 1024);        $this->server->fclose($httpReq, $fp, $this->tarfile);    }    public function searchTarFile(VHubServerHTTPRequest $httpReq, string $path): ?TarObject    {        $obj = $this->processTarFile($httpReq, $path, TAROP_LOAD_FILE);        return $obj;    }    public function knownFile(string $path): ?TarObject    {        foreach($this->userFiles as $ufile) {            if($ufile->path == $path) return $ufile;        }        return null;    }    public function knownFilesCount(): int    {        return sizeof($this->userFiles);    }    public function knownFilesMatching(string $pattern): array    {        $res = [];        foreach($this->userFiles as $ufile) {            if(fnmatch($pattern, $ufile->path, 0)) {                $res[] = $ufile;            }        }        return $res;    }    public function tarSize(): int    {        if($this->tarfilesize > 0) {            return $this->tarfilesize;        }        if (!$this->server->fexists($this->tarfile)) {            return 0;        }        return $this->server->filesize($this->tarfile);    }    public function processTarFile(VHubServerHTTPRequest $httpReq, string $targetPath, int $operation, string $newContent = ''): mixed    {        VHubServer::Log($httpReq, LOG_TARFILE, 5, "processTarFile ".$this->tarfile." for ".$targetPath.", op=".$operation);        $res = ($operation == TAROP_LIST_FILES || $operation == TAROP_WORKON_FILES ? [] : null);        if(!$this->server->fexists($this->tarfile)) {            VHubServer::Log($httpReq, LOG_TARFILE, 3, "User container file does not yet exist ({$this->tarfile})");            $this->formatTarFile($httpReq);            return $res;        }        if($operation < TAROP_WORKON_FILES) {            // non-exclusive access is required            $fp = $this->server->fopen_ro($httpReq, $this->tarfile);            $newfile = null;        } else {            // exclusive read-write access for update            if($operation == TAROP_REPLACE_FILE) {                $names = explode('|', $targetPath);                $targetPath = $names[0];                $newPath = $names[1];                $operation = TAROP_UPDATE_FILE;            } else {                $newPath = $targetPath;            }            if($operation == TAROP_UPDATE_FILE) {                $newfile = new TarObject($httpReq, -1, strlen($newContent), $newPath);                $newfile->content = $newContent;                $newfile->crc = crc32($newfile->content);            } else {                $newfile = null;            }            $fp = $this->server->fopen_rw($httpReq, $this->tarfile);        }        $rewriteFrom = -1;        $this->userFiles = [];        $tarOffset = 0;        while(($rec = fread($fp, 512)) !== false) {            // end of file is marked by a zero block            if (ord($rec[0]) == 0) {                if($operation >= TAROP_UPDATE_FILE) {                    fseek($fp, $tarOffset, SEEK_SET); // rewind prior to zero block                }                break;            }            // skip over directories silently            if ($rec[TARHEADER_TYPEFLAG_OFS] == '5') {                $tarOffset += 512;                continue;            }            // make sure this is a plain file            if ($rec[TARHEADER_TYPEFLAG_OFS] != 0 && $rec[TARHEADER_TYPEFLAG_OFS] != '0') {                VHubServer::Log($httpReq, LOG_TARFILE, 2, "Unexpected record type in .tar file header at {$tarOffset}, ignoring end of file");                break;            }            // verify checksum to make sure we are not out of sync            $checkstr = substr($rec, TARHEADER_CHECKSUMSTR_OFS, 8);            $checksum = parseOctal($rec, TARHEADER_CHECKSUMSTR_OFS, 8);            for($i = 0; $i < 8; $i++) {                $rec[TARHEADER_CHECKSUMSTR_OFS+$i] = ' ';            }            $checkcheck = 0;            for ($i = 0; $i < 512; $i++) {                $checkcheck += ord($rec[$i]);            }            //VHubServer::Log($httpReq, LOG_TARFILE, 5, "Checksums: $checksum vs $checkcheck");            if ($checksum != $checkcheck) {                VHubServer::Log($httpReq, LOG_TARFILE, 2, "Checksum error in .tar file header at {$tarOffset}, ignoring end of file");                break;            }            for($i = 0; $i < 8; $i++) {                $rec[TARHEADER_CHECKSUMSTR_OFS+$i] = $checkstr[$i];            }            // make sure the file size makes sense (not more than half the "flash" size)            $fsize = parseOctal($rec, TARHEADER_SIZESTR_OFS, 12);            if ($fsize >= USERFILE_MAX_SIZE) {                VHubServer::Log($httpReq, LOG_TARFILE, 2, "File in .tar file at {$tarOffset} is too large, ignoring end of file");                break;            }            // all checks OK, we can now load the file into our list            $obj = new TarObject($httpReq, $tarOffset, $fsize, $rec);            VHubServer::Log($httpReq, LOG_TARFILE, 5, "Tar object at {$tarOffset}: {$obj->path}, size={$fsize} ({$obj->storageSize})");            if($obj->path == $targetPath || ($obj->path == $targetPath.'.gz' && $operation == TAROP_LOAD_FILE)) {                // this is the target path (load or update operation)                if ($operation == TAROP_LOAD_FILE) {                    // load the complete file                    $obj->content = fread($fp, $obj->contentSize);                    $obj->crc = crc32($obj->content);                    $obj->gzipEncoded = ($obj->path == $targetPath.'.gz');                    if($obj->storageSize > $obj->contentSize) {                        fseek($fp, $obj->storageSize - $obj->contentSize, SEEK_CUR);                    }                    $res = $obj;                } else if($operation == TAROP_UPDATE_FILE) {                    // must update this file                    if ($obj->storageSize == $newfile->storageSize) {                        // same storage size, update on the fly                        VHubServer::Log($httpReq, LOG_TARFILE, 5, "Same storage size, updating on the fly");                        $obj = $newfile;                        $obj->tarOffset = $tarOffset;                        $obj->updateTarHeader();                        fseek($fp, $tarOffset, SEEK_SET); // rewind to header                        fwrite($fp, $obj->header);                        fwrite($fp, $obj->content);                        if($obj->storageSize > $obj->contentSize) {                            fwrite($fp, $this->blankbuf, $obj->storageSize - $obj->contentSize);                        }                        $res = $obj;                        $newfile = null;                    } else {                        // different size, prepare to move file to the end (skip over current content)                        VHubServer::Log($httpReq, LOG_TARFILE, 4, "New version of {$obj->path} has a different storage size, must rewrite tar file from $tarOffset");                        $rewriteFrom = sizeof($this->userFiles);                        fseek($fp, $obj->storageSize, SEEK_CUR);                        continue;                    }                } else if($operation == TAROP_DELETE_FILE) {                    // must remove this file (skip over current content)                    VHubServer::Log($httpReq, LOG_TARFILE, 4, "Deleting {$obj->path}, must rewrite tar file from $tarOffset");                    $rewriteFrom = sizeof($this->userFiles);                    fseek($fp, $obj->storageSize, SEEK_CUR);                    continue;                } else if($operation == TAROP_LIST_FILES) {                    // compute CRC of all files matching targetpath pattern                    $content = fread($fp, $obj->contentSize);                    if($obj->storageSize > $obj->contentSize) {                        fseek($fp, $obj->storageSize - $obj->contentSize, SEEK_CUR);                    }                    $obj->crc = crc32($content);                    $res[] = $obj;                }            } else if($rewriteFrom >= 0) {                // about to move a file to the end, load remaining content                $obj->tarOffset = $tarOffset;                $obj->content = fread($fp, $obj->contentSize);                if($obj->storageSize > $obj->contentSize) {                    fseek($fp, $obj->storageSize - $obj->contentSize, SEEK_CUR);                }            } else if($operation == TAROP_WORKON_FILES) {                // compute CRC of all files matching targetpath pattern                if(fnmatch($targetPath, $obj->path, 0)) {                    $res[] = $obj;                }                // skip over content                fseek($fp, $obj->storageSize, SEEK_CUR);            } else if($operation == TAROP_LIST_FILES) {                // compute CRC of all files matching targetpath pattern                if(fnmatch($targetPath, $obj->path, 0)) {                    $content = fread($fp, $obj->contentSize);                    if($obj->storageSize > $obj->contentSize) {                        fseek($fp, $obj->storageSize - $obj->contentSize, SEEK_CUR);                    }                    $obj->crc = crc32($content);                    $res[] = $obj;                } else {                    // skip over content                    fseek($fp, $obj->storageSize, SEEK_CUR);                }            } else {                // skip over content                fseek($fp, $obj->storageSize, SEEK_CUR);            }            $this->userFiles[] = $obj;            // prepare to handle next record in .tar file            $tarOffset += 512 + $obj->storageSize;        }        if($operation >= TAROP_UPDATE_FILE) {            // append updated file at the end if not updated on the file            if($operation == TAROP_UPDATE_FILE && !is_null($newfile)) {                if($tarOffset + $newfile->storageSize > FILES_MAX_SIZE) {                    VHubServer::Log($httpReq, LOG_TARFILE, 2, "TAR file is too big to add a new file");                } else {                    if ($rewriteFrom < 0) {                        $rewriteFrom = sizeof($this->userFiles);                    }                    $newfile->tarOffset = $tarOffset;                    $newfile->updateTarHeader();                    $this->userFiles[] = $newfile;                    $res = $newfile;                }            }            // rewrite part of the archive if a file is beeing moved            if ($rewriteFrom >= 0) {                if(isset($this->userFiles[$rewriteFrom])) {                    // rewrite archive from first moved file                    $obj = $this->userFiles[$rewriteFrom];                    fseek($fp, $obj->tarOffset, SEEK_SET);                    VHubServer::Log($httpReq, LOG_TARFILE, 5, "Rewriting tar file starting at {$obj->path} at {$obj->tarOffset}");                    for ($i = $rewriteFrom; $i < sizeof($this->userFiles); $i++) {                        $obj = $this->userFiles[$i];                        fwrite($fp, $obj->header);                        fwrite($fp, $obj->content);                        if($obj->storageSize > $obj->contentSize) {                            fwrite($fp, $this->blankbuf, $obj->storageSize - $obj->contentSize);                        }                    }                }            }            // append terminal block in any case            fwrite($fp, $this->blankbuf, 1024);            // truncate file at current position            ftruncate($fp, ftell($fp));        }        if($operation == TAROP_WORKON_FILES) {            $this->workfd = $fp;        } else {            $this->server->fclose($httpReq, $fp, $this->tarfile);        }        return $res;    }    public function tarWorkRead(TarObject $obj, int $relofs, int $size): string    {        if($relofs >= $obj->contentSize) {            return '';        }        fseek($this->workfd, $obj->tarOffset + 512 + $relofs, SEEK_SET);        if($relofs + $size > $obj->contentSize) {            $size = $obj->contentSize - $relofs;        }        return fread($this->workfd, $size);    }    public function tarWorkReadUint(TarObject $obj, int $relofs, int $size): int    {        if($relofs >= $obj->contentSize) {            return -1;        }        fseek($this->workfd, $obj->tarOffset + 512 + $relofs, SEEK_SET);        if($relofs + $size > $obj->contentSize) {            $size = $obj->contentSize - $relofs;        }        $res = 0;        $data = fread($this->workfd, $size);        for($i = $size-1; $i >= 0; $i--) {            $res = ($res << 8) + ord($data[$i]);        }        return $res;    }    public function tarWorkWrite(TarObject $obj, int $relofs, string $data): void    {        if($relofs >= $obj->contentSize) {            return;        }        $absofs = $obj->tarOffset + 512 + $relofs;        fseek($this->workfd, $obj->tarOffset + 512 + $relofs, SEEK_SET);        $size = strlen($data);        if($relofs + $size > $obj->contentSize) {            $size = $obj->contentSize - $relofs;        }        try {            fwrite($this->workfd, $data, $size);        } catch(Throwable $err) {            VHubServer::Log($httpReq, LOG_DATALOGGER, 2, "Error writing to file {$this->workfd} in tarWorkWrite: ".$err->getMessage());            VHubServer::Log($httpReq, LOG_DATALOGGER, 2, "   while writing {$size}/".strlen($data)." bytes at offset {$absofs} ({$relofs})");        }    }    public function tarWorkWriteUint(TarObject $obj, int $relofs, int $value, int $size): void    {        if($relofs >= $obj->contentSize) {            return;        }        fseek($this->workfd, $obj->tarOffset + 512 + $relofs, SEEK_SET);        if($relofs + $size > $obj->contentSize) {            $size = $obj->contentSize - $relofs;        }        $data = chr($value & 0xff);        for($i = 1; $i < $size; $i++) {            $value = $value >> 8;            $data .= chr($value & 0xff);        }        fwrite($this->workfd, $data, $size);    }    public function tarWorkDone(VHubServerHTTPRequest $httpReq): void    {        if(!is_null($this->workfd)) {            $this->server->fclose($httpReq, $this->workfd, $this->tarfile);        }    }}class YfsObject{    public string $path;    public string $header;    public string $content;    public int $contentSize;    public int $crc;    public bool $gzipEncoded;    public function __construct(string $header, mixed $fd)    {        $nameLen = ord($header[8]);        $this->path = substr($header, 9, $nameLen);        $this->header = $header;        $this->contentSize = ord($header[0]) + 0x100*ord($header[1]) + 0x10000*ord($header[2]);        $this->gzipEncoded = ((ord($header[3]) & 0x80) != 0);        $this->crc = ord($header[4]) + 0x100*ord($header[5]) + 0x10000*ord($header[6]) + 0x1000000*ord($header[7]);        if($this->contentSize > 0) {            $prefix = ($this->gzipEncoded ? "\x1f\x8b\x08\x00\x00\x00\x00\x00" : '');            $this->content = $prefix.fread($fd, $this->contentSize);        } else {            $this->content = '';        }    }}class YfsFile{    protected VHubServer $server;    protected string $yfspath;    protected mixed $fd;    protected int $nFiles;    protected int $pageSize;    protected array $index;    public function __construct(VHubServer $parent, string $yfspath)    {        $this->server = $parent;        $this->yfspath = $yfspath;        $this->fd = null;        $this->nFiles = 0;        $this->pageSize = 0;        $this->index = [];    }    protected function loadIndex(VHubServerHTTPRequest $httpReq): void    {        if(substr($this->yfspath, 0, 5) == 'data:') {            VHubServer::Log($httpReq, LOG_TARFILE, 5, "Open YFS image from memory, size=".(strlen($this->yfspath)-5));            $this->fd = fopen('php://memory', 'r+b');            fwrite($this->fd, substr($this->yfspath, 5));            rewind($this->fd);        } else {            VHubServer::Log($httpReq, LOG_TARFILE, 5, "Open YFS image from disk, path len=".strlen($this->yfspath));            $this->fd = fopen($this->yfspath, 'rb');        }        if($this->fd === false) {            VHubServer::Log($httpReq, LOG_TARFILE, 2, "Cannot open YFS image");            return;        }        $header = fread($this->fd, 12);        if(substr($header, 0, 4) != 'YFS3') {            VHubServer::Log($httpReq, LOG_TARFILE, 2, "YFS image is corrupt");            fclose($this->fd);            $this->fd = false;            return;        }        $nfiles = ord($header[10]) + 256 * ord($header[11]);        $tocBuff = fread($this->fd, 6 * $nfiles);        // determine the YFS page size by looking at the length of the first file wrapping page zero        $prevPage = 0;        $prevOfs = ftell($this->fd);        for($i = 0; $i < $nfiles; $i++) {            $ofs = 2*$nfiles + 4*$i;            $dataPage = ord($tocBuff[$ofs+0]) + 256 * ord($tocBuff[$ofs+1]);            $dataOfs = ord($tocBuff[$ofs+2]) + 256 * ord($tocBuff[$ofs+3]);            if($dataPage > 0) break;            $prevPage = $dataPage;            $prevOfs = $dataOfs;        }        // read header of previous file        fseek($this->fd, $prevOfs, SEEK_SET);        $header = fread($this->fd, 10);        $pathlen = ord($header[8]);        $hdrlen = ($pathlen + 10) & ~1;        $contentStorage = (ord($header[0]) + 0x100*ord($header[1]) + 0x10000*ord($header[2]) + 1) & ~1;        $pageSize = ($prevOfs + $hdrlen + $contentStorage - $dataOfs) / ($dataPage - $prevPage);        $this->pageSize = intVal(round($pageSize/2)*2); // round to 2, just in case        // now parse the complete index        for($i = 0; $i < $nfiles; $i++) {            $nameHash = ord($tocBuff[2*$i]) + 256 * ord($tocBuff[2*$i+1]);            $ofs = 2*$nfiles + 4*$i;            $dataPage = ord($tocBuff[$ofs+0]) + 256 * ord($tocBuff[$ofs+1]);            $dataOfs = ord($tocBuff[$ofs+2]) + 256 * ord($tocBuff[$ofs+3]) + $this->pageSize * $dataPage;            if(isset($this->index[$nameHash])) {                $this->index[$nameHash][] = $dataOfs;            } else {                $this->index[$nameHash] = [ $dataOfs ];            }        }        $this->nFiles = $nfiles;    }    protected function nameHash(string $name): int    {        $hash = 0;        $nameLen = strlen($name);        for($i = 0; $i < $nameLen; $i++) {            $hash = (($hash << 1) + ord($name[$i])) & 0xffff;        }        if($hash == 0xffff) {            // 0xffff is a reserved value            $hash--;        }        return $hash;    }    public function search(VHubServerHTTPRequest $httpReq, string $path): ?YfsObject    {        if(is_null($this->fd)) {            // preload index            $this->loadIndex($httpReq);        }        if($this->fd === false) {            // failed to preload index, fail every file            return null;        }        // compute hash, lookup in index, seek in file at dataOfs, verify filename        $hash = $this->nameHash($path);        if(!isset($this->index[$hash])) {            return null;        }        $pathlen = strlen($path);        $candidates = $this->index[$hash];        foreach($candidates as $dataOfs) {            // load file header            $hdrlen = ($pathlen + 10) & ~1;            fseek($this->fd, $dataOfs, SEEK_SET);            $filehdr = fread($this->fd, $hdrlen);            // verify that file name len matches            if(ord($filehdr[8]) != $pathlen) {                continue;            }            // verify that file name matches            if(substr($filehdr, 9, $pathlen) != $path) {                continue;            }            return new YfsObject($filehdr, $this->fd);        }        return null;    }    public function loadAll(VHubServerHTTPRequest $httpReq): array    {        if(is_null($this->fd)) {            // preload index            $this->loadIndex($httpReq);        }        // default to no file found if we failed to load index        $result = [];        if($this->fd === false) {            VHubServer::Log($httpReq, LOG_TARFILE, 2, "Failed to load YFS file index");        } else {            foreach($this->index as $hash => $filelist) {                foreach ($filelist as $dataOfs) {                    // load file header                    fseek($this->fd, $dataOfs, SEEK_SET);                    $filehdr = fread($this->fd, 10);                    if(strlen($filehdr) > 8) {                        $pathlen = ord($filehdr[8]);                        VHubServer::Log($httpReq, LOG_TARFILE, 4, "YFS object at {$dataOfs}: size={$pathlen}");                        $filehdr .= fread($this->fd, $pathlen & ~1);                        $result[] = new YfsObject($filehdr, $this->fd);                    } else {                        VHubServer::Log($httpReq, LOG_TARFILE, 2, "YFS object at {$dataOfs}: bad header");                    }                }            }        }        return $result;    }}class FileServer{    protected VHubServer $server;    protected YfsFile $yfsFiles;    protected TarFile $ownFiles;    protected array $deviceFiles;    public array $specialUploadFiles = [        'txdata', 'logs.txt', 'rgb:', 'hsl:', 'sendSMS',        'layer0', 'layer1', 'layer2', 'layer3', 'layer4', 'layer5'    ];    public array $specialDownloadFiles = [        'display.gif', 'rgb.bin'    ];    public function __construct(VHubServer $parent)    {        $this->server = $parent;        $this->yfsFiles = new YfsFile($parent, UIFILE);        $this->ownFiles = new TarFile($parent, 'VHUB4WEB-files.tar');        $this->deviceFiles = [];    }    public function sendContentHeader(VHubServerHTTPRequest $httpReq, string $extension): void    {        switch(strtolower($extension)) {            case 'json':            case 'jzon':                $mimetype = 'application/json; charset=iso-8859-1';                break;            case 'html':            case '':                $mimetype = 'text/html';                break;            case 'js':                $mimetype = 'application/javascript';                break;            case 'xml':                $mimetype = 'text/xml';                break;            case 'txt':                $mimetype = 'text/plain';                break;            case 'png':                $mimetype = 'image/png';                break;            case 'gif':                $mimetype = 'image/gif';                break;            case 'css':                $mimetype = 'text/css';                break;            case 'jpeg':            case 'jpg':                $mimetype = 'image/jpeg';                break;            case 'svg':                $mimetype = 'image/svg+xml';                break;            case 'byn':            case 'bin':                $mimetype = 'text/plain; charset=x-user-defined';                break;            default:                $mimetype = 'application/'.$extension;        }        $httpReq->putHeader('Content-Type: '.$mimetype);    }    public function accessDeviceFiles(VHubServerHTTPRequest $httpReq, string $serial): TarFile    {        if(!isset($this->deviceFiles[$serial])) {            $this->deviceFiles[$serial] = new TarFile($this->server, $serial.'.tar');        }        return $this->deviceFiles[$serial];    }    public function loadDeviceFile(VHubServerHTTPRequest $httpReq, string $serial, string $subfile): ?string    {        $tarfile = $this->accessDeviceFiles($httpReq, $serial);        $obj = $tarfile->searchTarFile($httpReq, $subfile);        if(is_null($obj)) {            return null;        }        return $obj->content;    }    public function isKnownDeviceFile(VHubServerHTTPRequest $httpReq, string $serial, string $subfile): bool    {        $tarfile = $this->accessDeviceFiles($httpReq, $serial);        $existing = $tarfile->knownFile($subfile);        if(is_null($existing)) {            $existing = $tarfile->knownFile($subfile.'.gz');            if(is_null($existing)) {                return false;            }        }        return true;    }    public function saveDeviceFile(VHubServerHTTPRequest $httpReq, string $serial, string $subfile, string $content): void    {        $tarfile = $this->accessDeviceFiles($httpReq, $serial);        if(str_ends_with($subfile, '.json') || str_ends_with($subfile, '.trace')) {            $existing = $tarfile->knownFile($subfile);            if(is_null($existing)) {                // Reserve extra space for future growth                $padsize = (str_contains($serial, 'HUB') ? 8192 : 1024);                $padsize += strlen($content) >> 1;            } else {                // Keep allocated size unchanged, unless growth is really needed                $padsize = $existing->storageSize - strlen($content) - 1;                if($padsize < 0) {                    $padsize = $existing->storageSize >> 1;                }            }            $content .= str_repeat(' ', $padsize);        }        if($subfile != 'api.json') {            VHubServer::Log($httpReq, LOG_FILESYNC, 4, "Archiving file {$subfile} for {$serial}");        }        $tarfile->processTarFile($httpReq, $subfile, TAROP_UPDATE_FILE, $content);    }    public function saveAllDeviceFiles(VHubServerHTTPRequest $httpReq, string $serial, string $fscontent): void    {        if(substr($fscontent, 0, 2) == 'S3') {            VHubServer::Log($httpReq, LOG_TARFILE, 5, "New _FS file format found in {$serial}");            $yfs = new YfsFile($this->server, 'data:YF' . $fscontent);        } else if(substr($fscontent, 0, 3) == 'FS3') {            VHubServer::Log($httpReq, LOG_TARFILE, 2, "Old _FS file format found in {$serial}");            $yfs = new YfsFile($this->server, 'data:Y' . $fscontent);        } else {            VHubServer::Log($httpReq, LOG_TARFILE, 2, "Bad _FS file content for {$serial}");            return;        }        $files = $yfs->loadAll($httpReq);        VHubServer::Log($httpReq, LOG_TARFILE, 5, "Number of files found: ".sizeof($files));        foreach($files as $yfsfile) {            VHubServer::Log($httpReq, LOG_TARFILE, 5, "YFS file found: {$yfsfile->path} (size={$yfsfile->contentSize})");            $savepath = 'yfs/'.$yfsfile->path;            if($yfsfile->gzipEncoded) {                $savepath .= '.gz';            }            $this->saveDeviceFile($httpReq, $serial, $savepath, $yfsfile->content);        }    }    public function filesCmd(VHubServerHTTPRequest $httpReq, string $action, string $fname): void    {        $res = [];        switch($action) {            case 'dir':                $objs = $this->ownFiles->processTarFile($httpReq, $fname, TAROP_LIST_FILES);                $res = [];                foreach($objs as $obj) {                    $crc = ($obj->crc > 0x7fffffff ? $obj->crc - 0x100000000 : $obj->crc);                    $res[] = ['name' => $obj->path, 'size' => $obj->contentSize, 'crc' => $crc];                }                break;            case 'stat':                $objs = $this->ownFiles->processTarFile($httpReq, $fname, TAROP_LIST_FILES);                if(sizeof($objs) == 0) {                    $res = ['stat' => 'absent', 'size' => 0, 'crc' => 0];                } else {                    $obj = $objs[0];                    $crc = ($obj->crc > 0x7fffffff ? $obj->crc - 0x100000000 : $obj->crc);                    $res = ['stat' => 'present', 'size' => $obj->contentSize, 'crc' => $crc];                }                break;            case 'del':                $this->ownFiles->processTarFile($httpReq, $fname, TAROP_DELETE_FILE);                $res = ['res' => 'ok'];                break;            case 'format':                $this->ownFiles->formatTarFile($httpReq);                $res = ['res' => 'ok'];                break;        }        $this->server->apiroot->api->files->updateStats($httpReq, $this->ownFiles->knownFilesCount(), $this->ownFiles->tarSize());        $this->sendContentHeader($httpReq, 'json');        $httpReq->put(json_encode($res));    }    public function deviceFilesCmd(VHubServerHTTPRequest $httpReq, string $serial, string $action, string $fname): void    {        $tarfile = $this->accessDeviceFiles($httpReq, $serial);        $res = [];        switch($action) {            case 'dir':                $objs = $tarfile->processTarFile($httpReq, 'files/'.$fname, TAROP_LIST_FILES);                $res = [];                foreach($objs as $obj) {                    // all results are expected to be in 'files/' subdirectory                    $devpath = $obj->path;                    if(substr($devpath, 0, 6) != 'files/') continue;                    $devpath = substr($devpath, 6);                    $crc = ($obj->crc > 0x7fffffff ? $obj->crc - 0x100000000 : $obj->crc);                    $res[] = ['name' => $devpath, 'size' => $obj->contentSize, 'crc' => $crc];                }                break;            case 'stat':                $objs = $tarfile->processTarFile($httpReq, 'files/'.$fname, TAROP_LIST_FILES);                if(sizeof($objs) == 0) {                    $res = ['stat' => 'absent', 'size' => 0, 'crc' => 0];                } else {                    $obj = $objs[0];                    $crc = ($obj->crc > 0x7fffffff ? $obj->crc - 0x100000000 : $obj->crc);                    $res = ['stat' => 'present', 'size' => $obj->contentSize, 'crc' => $crc];                }                break;            case 'del':                // schedule deletion on device                $apinode = $this->server->apiroot->bySerial->subnode($serial);                $apinode->fileList->deleteOnDevice($fname);                // remove from tarball                $tarfile->processTarFile($httpReq, 'files/'.$fname, TAROP_DELETE_FILE);                $res = ['res' => 'ok'];                break;            case 'format':                // schedule format on device                $apinode = $this->server->apiroot->bySerial->subnode($serial);                $apinode->fileList->formatOnDevice();                // remove all user files from tarball                $objs = $tarfile->processTarFile($httpReq, 'files/*', TAROP_LIST_FILES);                for($i = 0; $i < sizeof($objs); $i++) {                    $tarfile->processTarFile($httpReq, 'files/'.$objs[$i]->path, TAROP_DELETE_FILE);                }                $res = ['res' => 'ok'];                break;        }        $this->sendContentHeader($httpReq, 'json');        $httpReq->put(json_encode($res));    }    public function filesUpload(VHubServerHTTPRequest $httpReq, string $path, string $content): void    {        $this->ownFiles->processTarFile($httpReq, $path, TAROP_UPDATE_FILE, $content);        $this->server->apiroot->api->files->updateStats($httpReq, $this->ownFiles->knownFilesCount(), $this->ownFiles->tarSize());    }    public function deviceFilesUpload(VHubServerHTTPRequest $httpReq, string $serial, string $path, string $content): void    {        // For other special upload files, put in -pending req only and exit        if(array_search($path, $this->specialUploadFiles) !== FALSE) {            $this->server->scheduleUploadOnDevice($httpReq, $serial, $path, $content);            return;        }        // Firmware update is handled in a special way        if($path == 'firmware' || $path == 'firmwareConf' || $path == 'Xfirmw') {            return;        }        // For regular user files, put content in tarball and update filelist for synchronization        $tarfile = $this->accessDeviceFiles($httpReq, $serial);        $tarfile->processTarFile($httpReq, 'files/'.$path, TAROP_UPDATE_FILE, $content);        $newfile = $tarfile->knownFile('files/'.$path);        $apinode = $this->server->apiroot->bySerial->subnode($serial);        $apinode->fileList->uploadToDevice($httpReq, $path, $newfile->contentSize, $newfile->crc);    }    public function sendFileContent(VHubServerHTTPRequest $httpReq, string $content, string $extension, ?int $crc = null): void    {        if(is_null($crc)) {            $crc = crc32($content);        }        $this->sendContentHeader($httpReq, $extension);        $httpReq->putHeader('Content-Length: '.strlen($content));        $httpReq->putHeader('Cache-Control: no-cache');        $httpReq->putHeader('ETag: '.dechex($crc));        $httpReq->put($content);    }    public function sendFile(VHubServerHTTPRequest $httpReq, string $path, string $extension): void    {        // if a local mount override is in place, search it first        if(defined('MOUNT_SERVER_FILES')) {            foreach(MOUNT_SERVER_FILES as $mountDir) {                $fullPath = $mountDir.'/'.$path;                if(file_exists($fullPath)) {                    $content = file_get_contents($fullPath);                    if(str_ends_with($fullPath, '.html') && strpos($content, ' rel="icon"') !== FALSE) {                        $favicon = false;                        foreach(MOUNT_SERVER_FILES as $mountDirAgain) {                            $faviconPath = $mountDirAgain . '/favicon.svg';                            if(file_exists($faviconPath)) {                                $favicon = base64_encode(file_get_contents($faviconPath));                                break;                            }                        }                        if($favicon) {                            $content = preg_replace('~(rel="icon" id="favicon" type="image/svg[+]xml" href="data:image/svg[+]xml;base64,)[^"]*~', '$1'.$favicon, $content);                        }                    }                    // use special e-tag to identify mounted file                    $crc = 0xFF00000000 + crc32($content);                    $this->sendFileContent($httpReq, $content, $extension, $crc);                    return;                }            }        }        // search in embedded UI files        $obj = $this->yfsFiles->search($httpReq, $path);        if(is_null($obj)) {            // search in user files            $obj = $this->ownFiles->searchTarFile($httpReq, $path);            if(is_null($obj)) {                // not found neither                $httpReq->putStatus(404);                Print("Sorry, the requested file ".htmlspecialchars($path)." does not exist on server");                return;            }        }        $content = $obj->content;        $crc = $obj->crc;        if($obj->gzipEncoded) {            $httpReq->putHeader('Content-Encoding: gzip');        }        $this->sendFileContent($httpReq, $content, $extension, $crc);    }    public function sendDeviceFile(VHubServerHTTPRequest $httpReq, string $serial, string $subfile, string $extension): void    {        if(!isset($this->deviceFiles[$serial])) {            $this->deviceFiles[$serial] = new TarFile($this->server, $serial.'.tar');        }        $tarfile = $this->deviceFiles[$serial];        if(array_search($subfile, $this->specialDownloadFiles) !== FALSE) {            // special files are in root directory            $obj = $tarfile->searchTarFile($httpReq, $subfile);        } else {            // search for regular files in yfs/, then files/, then standard EmbeddedUI            VHubServer::Log($httpReq, LOG_TARFILE, 4, "Search for ".'yfs/'.$subfile);            $obj = $tarfile->searchTarFile($httpReq, 'yfs/'.$subfile);            if(is_null($obj)) {                VHubServer::Log($httpReq, LOG_TARFILE, 4, "Search for ".'files/'.$subfile);                $obj = $tarfile->searchTarFile($httpReq, 'files/'.$subfile);            }            if(is_null($obj)) {                // fallback to standard EmbeddedUI file if available                $subpath = $subfile;                $obj = $this->yfsFiles->search($httpReq, $subpath);            }        }        if(is_null($obj)) {            // file not found            $httpReq->putStatus(404);            Print("Sorry, the requested device file ".htmlspecialchars($subfile)." does not exist on ".htmlspecialchars($serial)." [vhub4web]\r\n");            return;        }        $content = $obj->content;        $crc = $obj->crc;        if($obj->gzipEncoded) {            $httpReq->putHeader('Content-Encoding: gzip');        }        $this->sendFileContent($httpReq, $content, $extension, $crc);    }}
-class DataFrequency{    public string $freqStr;    public float $period;    public int $nb;    public bool $perSec;    public bool $perMin;    public bool $perHour;    protected int $maxSeqRowsCache;    public function __construct(mixed $timebase)  // string|int|float    {        $this->maxSeqRowsCache = 0;        $this->perSec = false;        $this->perMin = false;        $this->perHour = false;        if(is_string($timebase)) {            if(strlen($timebase) == 2) {                // binary representation (two bytes)                $freq = ord($timebase[0]);                $this->nb = max($freq, 1);                $period = 1.0 / $this->nb;                $unit = ord($timebase[1]) & 7;                if($unit == 2) {                    $period *= 60;                    $this->perMin = true;                    $this->freqStr = $this->nb.'/m';                } else if($unit == 4) {                    $period *= 3600;                    $this->perHour = true;                    $this->freqStr = $this->nb.'/h';                } else {                    $this->perSec = true;                    $this->freqStr = $this->nb.'/s';                }                $this->period = $period;            } else {                // device-like frequency, eg "30/m"                $pos = strpos($timebase, '/');                if($pos === False) {                    $freq = floatval($timebase);                    $this->nb = max($freq, 1);                    $this->freqStr = $this->nb.'/s';                    $this->perSec = true;                    $this->period = 1.0 / $freq;                } else {                    $this->freqStr = $timebase;                    $freq = intval(substr($timebase, 0, $pos));                    $this->nb = max($freq, 1);                    $period = 1.0 / $this->nb;                    $unit = substr($timebase, $pos+1);                    if($unit == 'm') {                        $period *= 60;                        $this->perMin = true;                    } else if($unit == 'h') {                        $period *= 3600;                        $this->perHour = true;                    } else {                        $this->perSec = true;                    }                    $this->period = $period;                }            }        } else if(is_numeric($timebase) && $timebase > 0) {            // period in seconds            $this->period = $timebase;            if($this->period <= 1) {                $freq = intval(round(1.0 / $this->period));                $this->nb = min($freq, 100);                $this->perSec = true;                $this->freqStr = $this->nb.'/s';            } elseif($this->period <= 60) {                $this->nb = intval(round(60.0 / $this->period));                $this->perMin = true;                $this->freqStr = $this->nb.'/m';            } else {                $freq = intval(round(3600.0 / $this->period));                $this->nb = max($freq, 1);                $this->perHour = true;                $this->freqStr = $this->nb.'/h';            }        }    }    public function alignTimestamp(float $timestamp): float    {        if($this->period < 1) {            $alignmentErr = fmod($timestamp, $this->period);        } else {            $timestamp = intval(round($timestamp));            $timeofday = $timestamp % 86400;            $alignmentErr = $timeofday % intval($this->period);        }        if($alignmentErr < $this->period / 2) {            $timestamp -= $alignmentErr;        } else {            $timestamp += $this->period - $alignmentErr;        }        return $timestamp;    }    public function encoded(): string    {        if($this->perHour) {            return chr($this->nb).chr(4);        } else if($this->perMin) {            return chr($this->nb).chr(2);        } else {            return chr($this->nb).chr(1);        }    }    public function maxSeqRows(): int    {        if($this->maxSeqRowsCache <= 0) {            $count = $this->nb;            $maxRecs = ($this->perSec ? 250 : 120);            // multiple of time units that make sense            // (number of hours, 5-min periods or 5-sec periods)            $timeMult = [ 12, 6, 3, 2, 1 ];            if(!$this->perHour) {                // current total is a second or a minute                for($i = 0; $i < sizeof($timeMult); $i++) {                    $better = $count*5*$timeMult[$i];                    if($better <= $maxRecs) {                        // use 12min sequences instead of 10min (far more efficient)                        if($better == 120 && $this->perMin && $this->nb == 12) {                            $better = 144;                        }                        $count = $better;                        break;                    }                }                if($i == 0 || $i >= sizeof($timeMult)) {                    if($count*3 < $maxRecs) $count *= 3;                    else if($count*2 < $maxRecs) $count *= 2;                }            } else {                if($count <= 5) {                    // up to 5 measures per hour => full day                    return $count*24;                }                for($i = 0; $i < sizeof($timeMult); $i++) {                    $better = $count*$timeMult[$i];                    if($better <= $maxRecs) {                        $count = $better;                        break;                    }                }            }            $this->maxSeqRowsCache = $count;        }        return $this->maxSeqRowsCache;    }}class DataFile{    public int $startstamp;    public int $stopstamp;    public string $functionid;    public string $unit;    public TarObject $tarObject;    public function __construct(TarObject $tarObject)    {        if(preg_match('~^datalogger/([0-9]+)-([a-zA-Z0-9]+)-(.*)-20[0-9]{2}-[0-9]{2}-[0-9]{2}.bin$~', $tarObject->path, $matches)) {            $this->startstamp = intval($matches[1]);            $this->functionid = $matches[2];            $this->unit = $matches[3];        } else {            $this->startstamp = -1;            $this->functionid = '???';            $this->unit = '';        }        $this->stopstamp = time(); // default value, will be overriden when better known        $this->tarObject = $tarObject;    }}const DATASEQ_HEADER_SIZE = 28;   // first functions require shared Read-only accessclass DataSeq{    protected TarFile $tarFile;    protected ?TarObject $tarObj;    protected int $seqOfs;    protected int $dataOfs;    protected int $nextSeqStampCache;    protected string $header;    protected string $data;    public int $runIdx;                  // offset 0-3: run number    public int $utcStamp;                // offset 4-7: start UTC timestamp    public DataFrequency $frequency;     // offset 8-9: measure frequency    public int $firstDur;                // offset 10-11: duration of 1st measure (s/ms)    public int $firstMs;                 // offset 12-13: ms offset of 1st measure    public int $nRows;                   // offset 14-15: number of measures (max 250)    public float $avgVal;                // offset 16-19: sequence average (when complete)    public float $minVal;                // offset 20-23: sequence min value (when complete)    public float $maxVal;                // offset 24-27: sequence max value (when complete)    public array $measures;              // one s32 (instant) or three s32 (avg/min/max) per time unit    public function __construct(TarFile $tarFile, ?TarObject $tarObj, int $seqOfs)    {        $this->tarFile = $tarFile;        $this->tarObj = $tarObj;        $this->seqOfs = $seqOfs;        $this->dataOfs = $seqOfs + DATASEQ_HEADER_SIZE;        $this->nextSeqStampCache = 0;        $this->header = '';        $this->data = '';        $this->nRows = 0;        $this->avgVal = NAN;        $this->minVal = NAN;        $this->maxVal = NAN;        $this->measures = [];    }    public function loadSeq(VHubServerHTTPRequest $httpReq, bool $withData): void    {        $header = $this->tarFile->tarWorkRead($this->tarObj, $this->seqOfs, 28);        $this->header = $header;        $this->runIdx = ord($header[0]) + 0x100*ord($header[1]) + 0x10000*ord($header[2]) + 0x1000000*ord($header[3]);        $this->utcStamp = ord($header[4]) + 0x100*ord($header[5]) + 0x10000*ord($header[6]) + 0x1000000*ord($header[7]);        $this->frequency = new DataFrequency(substr($header, 8, 2));        $this->firstDur = ord($header[10]) + 0x100*ord($header[11]);        $this->firstMs = ord($header[12]) + 0x100*ord($header[13]);        $this->nRows = ord($header[14]) + 0x100*ord($header[15]);        $this->avgVal = decodeFloat($header, 16, true);        $this->minVal = decodeFloat($header, 20, false);        $this->maxVal = decodeFloat($header, 24, false);        if($withData) {            $rsize = 4 * $this->nRows;            if($this->frequency->perSec) {                $data = $this->tarFile->tarWorkRead($this->tarObj, $this->dataOfs, $rsize);                for($pos = 0; $pos < $rsize; $pos += 4) {                    $this->measures[] = decodeFloat($data, $pos, true);                }            } else {                $rsize *= 3;                $data = $this->tarFile->tarWorkRead($this->tarObj, $this->dataOfs, $rsize);                for($pos = 0; $pos < $rsize; $pos += 12) {                    $avgVal = decodeFloat($data, $pos, true);                    $this->measures[] = $avgVal;                    if(!is_nan($avgVal)) {                        $this->measures[] = decodeFloat($data, $pos+4, false);                        $this->measures[] = decodeFloat($data, $pos+8, false);                    } else {                        $this->measures[] = NAN;                        $this->measures[] = NAN;                    }                }            }            $this->data = $data;        }    }    public function storageSize(): int    {        if($this->frequency->perSec) {            return DATASEQ_HEADER_SIZE + 4 * $this->nRows;        } else {            return DATASEQ_HEADER_SIZE + 12 * $this->nRows;        }    }    public function isClosed(): bool    {        return !is_nan($this->avgVal);    }    public function getAvgMinMax(): array    {        if($this->isClosed()) {            return [ $this->avgVal, $this->minVal, $this->maxVal ];        }        $nval = 1;        if($this->frequency->perSec) {            if(sizeof($this->measures) == 0) {                // sequence not yet loaded                $rsize = 4 * $this->nRows;                $data = $this->tarFile->tarWorkRead($this->tarObj, $this->dataOfs, $rsize);                for($pos = 0; $pos < $rsize; $pos += 4) {                    $this->measures[] = decodeFloat($data, $pos, true);                }                $this->data = $data;            }            $value = $this->measures[0];            $sum = $value;            $minVal = $value;            $maxVal = $value;            for($i = 1; $i < $this->nRows; $i++) {                $value = $this->measures[$i];                if(!is_nan($value)) {                    $nval++;                    $sum += $value;                    if($value < $minVal) {                        $minVal = $value;                    }                    if($value > $maxVal) {                        $maxVal = $value;                    }                }            }        } else {            if(sizeof($this->measures) == 0) {                // sequence not yet loaded                $rsize = 12 * $this->nRows;                $data = $this->tarFile->tarWorkRead($this->tarObj, $this->dataOfs, $rsize);                for($pos = 0; $pos < $rsize; $pos += 12) {                    $avgVal = decodeFloat($data, $pos, true);                    $this->measures[] = $avgVal;                    if(!is_nan($avgVal)) {                        $this->measures[] = decodeFloat($data, $pos+4, false);                        $this->measures[] = decodeFloat($data, $pos+8, false);                    } else {                        $this->measures[] = NAN;                        $this->measures[] = NAN;                    }                }                $this->data = $data;            }            $sum = $this->measures[0];            $minVal = $this->measures[1];            $maxVal = $this->measures[2];            for($i = 1; $i < $this->nRows; $i++) {                $avgVal = $this->measures[3*$i];                if(!is_nan($avgVal)) {                    $nval++;                    $sum += $avgVal;                    if($this->measures[3*$i+1] < $minVal) {                        $minVal = $this->measures[3*$i+1];                    }                    if($this->measures[3*$i+2] > $maxVal) {                        $maxVal = $this->measures[3*$i+2];                    }                }            }        }        $avgVal = round(1000 * $sum / $nval) / 1000.0;        return [ $avgVal, $minVal, $maxVal ];    }    public function closeSeq(VHubServerHTTPRequest $httpReq): void    {        $avgMinMax = $this->getAvgMinMax();        VHubServer::Log($httpReq, LOG_DATALOGGER, 4, 'Closing sequence, summary: avg='.$avgMinMax[0].' min='.$avgMinMax[1].' max='.$avgMinMax[2]);        $this->avgVal = $avgMinMax[0];        $this->minVal = $avgMinMax[1];        $this->maxVal = $avgMinMax[2];        $buff = encodeFloat($this->avgVal, true).            encodeFloat($this->minVal, false).            encodeFloat($this->maxVal, false);        $this->tarFile->tarWorkWrite($this->tarObj, $this->seqOfs+16, $buff);    }    // Return the timestamp of the last measure inserted in the sequence    public function lastStamp(): float    {        if($this->frequency->perSec) {            $endFirstRow = $this->utcStamp + ($this->firstMs + $this->firstDur) / 1000;        } else {            $endFirstRow = $this->utcStamp + $this->firstDur;        }        return $endFirstRow + ($this->nRows-1) * $this->frequency->period;    }    // Compute the timestamp of the next sequence to start    public function nextSeqStartStamp(): int    {        if($this->nextSeqStampCache <= 0) {            $count = $this->frequency->maxSeqRows();            $seqPeriod = intval(round($this->frequency->period * $count));            $this->nextSeqStampCache = $this->utcStamp - ($this->utcStamp % $seqPeriod) + $seqPeriod;        }        return $this->nextSeqStampCache;    }    // Setup the sequence given the first measure, initializing the header as required    // (use for creating a new sequence when no header data is available yet)    public function initialize(DataFrequency $freq, YMeasure $measure): void    {        $startTime = $measure->get_startTimeUTC();        $endTime = $measure->get_endTimeUTC();        $avgVal = $measure->get_averageValue();        $minVal = $measure->get_minValue();        $maxVal = $measure->get_maxValue();        $this->runIdx = 0;        $this->frequency = $freq;        if($freq->perSec) {            $this->utcStamp = intval(floor($startTime));            $this->firstMs = intval(round(1000 * ($startTime - $this->utcStamp)));            $this->firstDur = intval(round(1000 * $freq->period));        } else {            $this->utcStamp = intval(round($startTime));            $this->firstMs = 0;            $this->firstDur = intval(round($endTime)) - $this->utcStamp;            if(is_nan($minVal)) $minVal = $avgVal;            if(is_nan($maxVal)) $maxVal = $avgVal;        }        $this->nRows = 1;        $this->header =            encodeUint($this->runIdx, 4).encodeUint($this->utcStamp, 4).$freq->encoded().            encodeUint($this->firstDur, 2).encodeUint($this->firstMs, 2).encodeUint($this->nRows, 2).            encodeFloat($this->avgVal, true).encodeFloat($this->minVal, false).encodeFloat($this->maxVal, false);        if($freq->perSec) {            $this->measures[] = $avgVal;            $this->data .= encodeFloat($avgVal, true);        } else {            $this->measures[] = $avgVal;            $this->measures[] = $minVal;            $this->measures[] = $maxVal;            $this->data .= encodeFloat($avgVal, true).encodeFloat($minVal, false).encodeFloat($maxVal, false);        }    }    // Return the raw buffer representing header for current sequence    //    // For compatibility with devices, leave nRows to 0xffff as long    // as the sequence is not closed.    //    public function getRawHeader(): string    {        $res = $this->header;        if(!$this->isClosed()) {            $res[14] = chr(255);            $res[15] = chr(255);        }        return $res;    }    // Return the raw buffer representing data for current sequence    //    public function getRawData(): string    {        return $this->data;    }    // Return the raw buffer representing header and data for current sequence    //    public function getRawBytes(): string    {        return $this->header.$this->data;    }    // Flush current sequence to Tar file worker (including header)    //    public function flush(): void    {        $this->tarFile->tarWorkWrite($this->tarObj, $this->seqOfs, $this->getRawBytes());    }    // Attempt to add a single measure to an existing sequence    // - The sequence is expected to be open    // - The timestamp is expected to be after current sequence start    // - Intermediate "holes" are automatically added if needed    // - If the new measure cannot fit in current sequence close it and return false    // - Once the sequence is complete, it will automatically be closed    public function appendMeasure(VHubServerHTTPRequest $httpReq, DataFrequency $freq, YMeasure $measure): bool    {        if($this->frequency->freqStr != $freq->freqStr) {            VHubServer::Log($httpReq, LOG_DATALOGGER, 5, "Recording frequency changed from {$this->frequency->freqStr} to {$freq->freqStr}");            $this->closeSeq($httpReq);            return false;        }        $startTime = $measure->get_startTimeUTC();        $endTime = $measure->get_endTimeUTC();        $nextSeqStamp = $this->nextSeqStartStamp();        if($startTime >= $nextSeqStamp) {            VHubServer::Log($httpReq, LOG_DATALOGGER, 5, "Timestamp beyond sequence end ({$startTime} >= {$nextSeqStamp})");            $this->closeSeq($httpReq);            return false;        }        $prevEndTime = $this->lastStamp();        if($startTime < $prevEndTime) {            // duplicate data for same timestamp, probably a rounding issue: silently drop            VHubServer::Log($httpReq, LOG_DATALOGGER, 5, "Timestamp {$startTime} < {$prevEndTime}, dropping measure");            return true;        }        $skipRows = intval(($startTime - $prevEndTime) / $this->frequency->period + 0.001); // safe round down        $avgVal = $measure->get_averageValue();        $minVal = $measure->get_minValue();        $maxVal = $measure->get_maxValue();        if($this->frequency->perSec) {            $data = str_repeat(chr(0xff), 4*$skipRows);            $data .= encodeFloat($avgVal, true);            $this->tarFile->tarWorkWrite($this->tarObj, $this->dataOfs + 4*$this->nRows, $data);            if(sizeof($this->measures) > 0) {                $this->data .= $data;                for ($i = 0; $i < $skipRows; $i++) {                    $this->measures[] = NAN;                }                $this->measures[] = $avgVal;            }        } else {            if(is_nan($minVal)) $minVal = $avgVal;            if(is_nan($maxVal)) $maxVal = $avgVal;            $data = str_repeat(chr(0xff), 12*$skipRows);            $data .= encodeFloat($avgVal, true).encodeFloat($minVal, false).encodeFloat($maxVal, false);            $this->tarFile->tarWorkWrite($this->tarObj, $this->dataOfs + 12*$this->nRows, $data);            if(sizeof($this->measures) > 0) {                $this->data .= $data;                for($i = 0; $i < 3*$skipRows; $i++) {                    $this->measures[] = NAN;                }                $this->measures[] = $avgVal;                $this->measures[] = $minVal;                $this->measures[] = $maxVal;            }        }        $this->nRows += $skipRows + 1;        $this->tarFile->tarWorkWriteUint($this->tarObj, $this->seqOfs + 14, $this->nRows, 2);        if($endTime >= $nextSeqStamp) {            VHubServer::Log($httpReq, LOG_DATALOGGER, 4, "This is the last measure of the sequence ({$endTime} >= {$nextSeqStamp})");            $this->closeSeq($httpReq);        }        return true;    }}class DataLogger{    protected VHubServer $server;    protected FileServer $filesrv;    protected string $serial;    protected ?TarFile $tarfile;    public function __construct(VHubServer $parent, string $serial)    {        $this->server = $parent;        $this->filesrv = $parent->files;        $this->serial = $serial;        $this->tarfile = null;    }    public function recorderEncode(string $data): string    {        $nwords = strlen($data) >> 1;        $wbuff = [];        for($pos = 0; $pos < $nwords; $pos++) {            $wbuff[$pos] = ord($data[2*$pos])+256*ord($data[2*$pos+1]);        }        $res = '';        for($pos = 0; $pos < $nwords; $pos++) {            $val = $wbuff[$pos];            if($val == 0) {                $res .= '*';                continue;            } else if($val == 0x7fff) {                $res .= 'Y';                continue;            } else if($val == 0xffff) {                $res .= 'X';                continue;            }            for ($dist = 1; $dist <= $pos && $dist <= 30; $dist++) {                if ($wbuff[$pos - $dist] == $val) break;            }            if ($dist <= $pos && $dist <= 30) {                $res .= chr(96 + $dist);            } else {                $res .= chr(48 + ($val & 0x1f)); // 5 lowest bits                $val >>= 5;                $res .= chr(48 + ($val & 0x1f)); // 5 medium bits                $val >>= 5;                $val += 48;                if ($val == 92) {                    $res .= 'z';                } else {                    $res .= chr($val);                }            }        }        return $res;    }    protected function accessData(VHubServerHTTPRequest $httpReq, string $fnpattern = '*'): array    {        $this->tarfile = $this->filesrv->accessDeviceFiles($httpReq, $this->serial);        $tarObjects = $this->tarfile->processTarFile($httpReq, 'datalogger/'.$fnpattern, TAROP_WORKON_FILES);        usort($tarObjects, function(TarObject $a, TarObject $b) { return strcmp($a->path, $b->path); });        $res = [];        foreach($tarObjects as $tarObj) {            $df = new DataFile($tarObj);            if(!isset($res[$df->functionid])) {                $res[$df->functionid] = [ $df ];            } else {                $res[$df->functionid][] = $df;            }        }        // determine the last usage date of each datafile based on startstamp of next file        foreach($res as $functionid => $functionFiles) {            for($i = 1; $i < sizeof($functionFiles); $i++) {                $functionFiles[$i-1]->stopstamp = $functionFiles[$i]->startstamp;            }        }        return $res;    }    protected function canAddDataFile(VHubServerHTTPRequest $httpReq, array $dataFiles, ?DataFile &$oldestDataFile): bool    {        $nFiles = 0;        $oldestDataFile = null;        $oldestStamp = time();        foreach($dataFiles as $functionid => $functionFiles) {            $nFiles += sizeof($functionFiles);            $df = $functionFiles[0];            if($oldestStamp > $df->stopstamp) {                $oldestStamp = $df->stopstamp;                $oldestDataFile = $df;            }        }        return $nFiles < DATAFILE_MAX_COUNT;    }    protected function loadSeq(VHubServerHTTPRequest $httpReq, DataFile $dataFile, int $seqOfs, bool $withData = true): DataSeq    {        $dataSeq = new DataSeq($this->tarfile, $dataFile->tarObject, $seqOfs);        $dataSeq->loadSeq($httpReq, $withData);        return $dataSeq;    }    public function appendMeasures(VHubServerHTTPRequest $httpReq, array $reports): void    {        $dataFiles = $this->accessData($httpReq);        $lastSeqOfs = [];        $mustCreate = [];        $mustAdd = [];        foreach($reports as $functionid => $report) {            $hardwareid = "{$this->serial}.{$functionid}";            $freq = $report['freq'];            $measure = $report['measure'];            $startTime = $measure->get_startTimeUTC();            $endTime = $measure->get_endTimeUTC();            $value = $measure->get_averageValue();            VHubServer::Log($httpReq, LOG_DATALOGGER, 5, "@{$startTime}-{$endTime}: {$hardwareid}: {$value} {$report['unit']}");            if($endTime < time()-(2*86400)) {                VHubServer::Log($httpReq, LOG_DATALOGGER, 3, "Timestamp {$endTime} for {$hardwareid} is more than a 48h in the past, dropping data");                continue;            }            if($endTime > time()+(2*86400)) {                VHubServer::Log($httpReq, LOG_DATALOGGER, 3, "Timestamp {$endTime} for {$hardwareid} is more than a 48h in the future, dropping data");                continue;            }            if(!isset($dataFiles[$functionid])) {                VHubServer::Log($httpReq, LOG_DATALOGGER, 5, "No datafile for {$hardwareid} yet, must create one");                $mustCreate[$functionid] = $report;                continue;            }            $lastFile = $dataFiles[$functionid][sizeof($dataFiles[$functionid])-1];            if($endTime < $lastFile->startstamp) {                VHubServer::Log($httpReq, LOG_DATALOGGER, 3, "Timestamp {$endTime} for {$hardwareid} is going back, dropping data");                continue;            }            $lastSeqOfs[$functionid] = $this->tarfile->tarWorkReadUint($lastFile->tarObject, 0, 4);            $dataSeq = $this->loadSeq($httpReq, $lastFile, $lastSeqOfs[$functionid], false);            if($dataSeq->isClosed()) {                VHubServer::Log($httpReq, LOG_DATALOGGER, 5, "Current sequence for {$hardwareid} is closed, opening a new sequence");                $mustAdd[$functionid] = $report;                continue;            }            if($startTime < $dataSeq->lastStamp()) {                VHubServer::Log($httpReq, LOG_DATALOGGER, 3, "Timestamp {$startTime} for {$hardwareid} is going back, dropping data");                continue;            }            if(!$dataSeq->appendMeasure($httpReq, $freq, $measure)) {                VHubServer::Log($httpReq, LOG_DATALOGGER, 5, "Could not add measure to current sequence {$hardwareid}, opening a new sequence");                $mustAdd[$functionid] = $report;                continue;            }        }        foreach($mustAdd as $functionid => $report) {            $hardwareid = "{$this->serial}.{$functionid}";            $lastFile = $dataFiles[$functionid][sizeof($dataFiles[$functionid])-1];            $seqOfs = $lastSeqOfs[$functionid];            $dataSeq = $this->loadSeq($httpReq, $lastFile, $seqOfs, false);            $seqOfs += $dataSeq->storageSize();            // ensure we have space for one more sequence            $seqMaxSize = $freq->maxSeqRows() * 4;            if(!$freq->perSec) $seqMaxSize *= 3;            $seqMaxSize += DATASEQ_HEADER_SIZE;            if($seqOfs + $seqMaxSize > DATAFILE_MAX_SIZE) {                VHubServer::Log($httpReq, LOG_DATALOGGER, 5, "Datafile for {$hardwareid} is full, must create new file");                $mustCreate[$functionid] = $report;                continue;            }            // create new data sequence in file            VHubServer::Log($httpReq, LOG_DATALOGGER, 5, "New datastream for {$hardwareid}");            $dataSeq = new DataSeq($this->tarfile, $lastFile->tarObject, $seqOfs);            $dataSeq->initialize($freq, $report['measure']);            $dataSeq->flush();            // update position of last sequence position at start of file            $this->tarfile->tarWorkWriteUint($lastFile->tarObject, 0, $seqOfs, 4);        }        // Release tar file anyway to allow exclusive read/write mode for adding a file        $this->tarfile->tarWorkDone($httpReq);        if(sizeof($mustCreate) == 0) {            return;        }        // Add missing data files in tar archive        $datapad = str_repeat(chr(255), DATAFILE_MAX_SIZE);        foreach($mustCreate as $functionid => $report) {            $measure = $report['measure'];            $utcstamp = intval(round($measure->get_startTimeUTC()));            $prefix = 'datalogger/'.$utcstamp.'-';            $cleanUnit = str_replace('/', '_', $report['unit']);            $suffix = '-'.date('Y-m-d', $utcstamp).'.bin';            $subfile = $prefix.$functionid.'-'.$cleanUnit.$suffix;            $seqOfs = 4;            $dataSeq = new DataSeq($this->tarfile, null, $seqOfs);            $dataSeq->initialize($freq, $measure);            $content = encodeUint($seqOfs, 4).$dataSeq->getRawBytes();            $content .= substr($datapad, strlen($content));            if($this->canAddDataFile($httpReq, $dataFiles, $oldestDataFile)) {                VHubServer::Log($httpReq, LOG_DATALOGGER, 3, "Creating {$subfile} for {$this->serial}");                $this->tarfile->processTarFile($httpReq, $subfile, TAROP_UPDATE_FILE, $content);            } else {                $oldsubfile = $oldestDataFile->tarObject->path;                VHubServer::Log($httpReq, LOG_DATALOGGER, 3, "Creating {$subfile} for {$this->serial}, replacing oldest file {$oldsubfile}");                $this->tarfile->processTarFile($httpReq, $oldsubfile.'|'.$subfile, TAROP_REPLACE_FILE, $content);            }            // refresh file list            $dataFiles = $this->accessData($httpReq);        }    }    public function printIndex(VHubServerHTTPRequest $httpReq, APISensorNode $sensorNode, string $functionid, string $runmatch, int $fromStamp, int $toStamp, bool $verbose): void    {        $unit = $sensorNode->getattr('unit');        $calib = $sensorNode->getattr('calibrationParam');        $httpReq->put('{"id":"'.$functionid.'","unit":"'.$unit.'","calib":"'.$calib.'","cal":"*","bulk":"128","streams":'."[\n");        $sep = '';        $dataFiles = $this->accessData($httpReq, '*-'.$functionid.'-*');        if(isset($dataFiles[$functionid])) {            $functionFiles = $dataFiles[$functionid];        } else {            $functionFiles = [];        }        VHubServer::Log($httpReq, LOG_DATALOGGER, 5, "Found ".sizeof($functionFiles). " file matching functionId $functionid");        for($i = 0; $i < sizeof($functionFiles); $i++) {            // filter out files not relevant for the requested period and unit            $dataFile = $functionFiles[$i];            VHubServer::Log($httpReq, LOG_DATALOGGER, 5, "Check unit");            $cleanUnit = str_replace('/', '_', $unit);            if($dataFile->unit != $cleanUnit) continue;            if($i+1 < sizeof($functionFiles)) {                VHubServer::Log($httpReq, LOG_DATALOGGER, 5, "Check start timestamp");                if($functionFiles[$i+1]->startstamp <= $fromStamp) continue;            }            VHubServer::Log($httpReq, LOG_DATALOGGER, 5, "Check end timestamp");            if($dataFile->startstamp > $toStamp) break;            if($i+1 < sizeof($functionFiles)) {                VHubServer::Log($httpReq, LOG_DATALOGGER, 5, "Check next timestamp");                $nextFile = $functionFiles[$i+1];                if($nextFile->startstamp <= $fromStamp) {                    continue;                }            }            // data file might contain data for the requested period            $lastSeqOfs = $this->tarfile->tarWorkReadUint($dataFile->tarObject, 0, 4);            VHubServer::Log($httpReq, LOG_DATALOGGER, 5, "Last sequence at offset $lastSeqOfs");            for($seqOfs = 4; $seqOfs <= $lastSeqOfs; ) {                $dataSeq = $this->loadSeq($httpReq, $dataFile, $seqOfs, false);                $duration = intVal(round($dataSeq->nRows * $dataSeq->frequency->period));                VHubServer::Log($httpReq, LOG_DATALOGGER, 5, "Sequence at $seqOfs start stamp: ".$dataSeq->utcStamp);                if($dataSeq->utcStamp >= $toStamp) break;                VHubServer::Log($httpReq, LOG_DATALOGGER, 5, "Sequence at $seqOfs end stamp: ".($dataSeq->utcStamp+$duration));                if($dataSeq->utcStamp+$duration > $fromStamp &&                    ($runmatch == '' || intval($runmatch) == $dataSeq->runIdx)) {                    if ($verbose) {                        $avgMinMax = $dataSeq->getAvgMinMax();                        $avgVal = $avgMinMax[0];                        $minVal = $avgMinMax[1];                        $maxVal = $avgMinMax[2];                        $httpReq->put($sep . '{"run":' . $dataSeq->runIdx . ',"utc":' . $dataSeq->utcStamp . ',"dur":' . $duration .                            ',"freq":"' . $dataSeq->frequency->freqStr . '","val":[' . $minVal . ',' . $avgVal . ',' . $maxVal . ']}' . "\n");                    } else {                        $httpReq->put($sep . '"' . $this->recorderEncode($dataSeq->getRawHeader()) . '"' . "\n");                    }                    $sep = ',';                }                $seqOfs += $dataSeq->storageSize();            }        }        $this->tarfile->tarWorkDone($httpReq);        $httpReq->put("]}");    }    public function printRun(VHubServerHTTPRequest $httpReq, string $functionid, string $runmatch, array $utcStamps, bool $verbose): void    {        $dataFiles = $this->accessData($httpReq, '*-'.$functionid.'-*');        if(isset($dataFiles[$functionid])) {            $functionFiles = $dataFiles[$functionid];        } else {            $functionFiles = [];        }        $isFirst = true;        $minStamp = min($utcStamps);        $stampIdx = 0;        for($fi = 0; $fi < sizeof($functionFiles); $fi++) {            // filter out files not relevant for the requested period and unit            $dataFile = $functionFiles[$fi];            if($fi+1 < sizeof($functionFiles)) {                $nextFile = $functionFiles[$fi+1];                if($nextFile->startstamp <= $minStamp) {                    continue;                }            }            // data file might contain data for the requested period            $lastSeqOfs = $this->tarfile->tarWorkReadUint($dataFile->tarObject, 0, 4);            for($seqOfs = 4; $seqOfs <= $lastSeqOfs; ) {                $dataSeq = $this->loadSeq($httpReq, $dataFile, $seqOfs, false);                $duration = intVal(round($dataSeq->nRows * $dataSeq->frequency->period));                if($dataSeq->utcStamp == $utcStamps[$stampIdx] &&                    ($runmatch == '' || intval($runmatch) == $dataSeq->runIdx)) {                    VHubServer::Log($httpReq, LOG_DATALOGGER, 5, "Using sequence starting at {$dataSeq->utcStamp}, {$dataSeq->nRows} rows, {$duration}s");                    $dataSeq->loadSeq($httpReq, true);                    if ($verbose) {                        $httpReq->put($isFirst ? '[' : ",\n[");                        $sep = '';                        $measures = $dataSeq->measures;                        if($dataSeq->frequency->perSec) {                            for($i = 0; $i < sizeof($measures); $i++) {                                $httpReq->put($sep.$measures[$i]."\n");                                $sep = ',';                            }                        } else {                            for($i = 0; $i+2 < sizeof($measures); $i += 3) {                                $httpReq->put($sep."[".$measures[$i+1].','.$measures[$i].','.$measures[$i+2]."]\n");                                $sep = ',';                            }                        }                        $httpReq->put(']');                    } else {                        $httpReq->put(($isFirst ? '"' : "\n,\"") . $this->recorderEncode($dataSeq->getRawData()) . '"');                    }                    $isFirst = false;                    $stampIdx++;                    if($stampIdx >= sizeof($utcStamps)) {                        // exit outside loop                        $fi = sizeof($functionFiles);                        break;                    }                }                $seqOfs += $dataSeq->storageSize();            }        }        $this->tarfile->tarWorkDone($httpReq);    }}
+define('NOTIF_FILE', 'VHUB4WEB-YN*.byn');   // Name pattern for the notification buffers filesconst NOTIF_FILE_ENDSIZE = 32768;const NOTIF_POS_WRAP = 0x100000000;const NOTIF_MAX_LEN = 69;const NOTIF_NAME = 'YN010';const NOTIF_PRODNAME = 'YN011';const NOTIF_CHILD = 'YN012';const NOTIF_FIRMWARE = 'YN013';const NOTIF_FUNCNAME = 'YN014';const NOTIF_FUNCVAL = 'YN015';const NOTIF_STREAMREADY = 'YN016';const NOTIF_LOG = 'YN017';const NOTIF_FUNCNAMEYDX = 'YN018';const NOTIF_PRODINFO = 'YN019';const NOTIF_CONFCHGYDX = 'YN01s';const NOTIF_FLUSHV2YDX = 'YN01t';const NOTIF_FUNCV2YDX = 'u';const NOTIF_TIMEV2YDX = 'v';const NOTIF_DEVLOGYDX = 'YN01w';const NOTIF_TIMEVALYDX = 'x';const NOTIF_FUNCVALYDX = 'y';const NOTIF_TIMEAVGYDX = 'z';class NotifStream{    protected VHubServer $server;    protected string $datadir;    protected string $notfile;    protected int $filepos;     // Absolute offset of first notification in file    protected int $abspos;      // Current absolute position within stream    protected int $curpos;      // Current position within file    protected int $reqlen;      // Requested length, if any    private int $avail;         // Quantity of notification available to send    protected mixed $fd;    public static function StreamAt(VHubServerHTTPRequest $httpReq, VHubServer $parent, int $position): NotifStream    {        $datadir = $parent->getDataDir();        $regexpr = '~^'.str_replace('*', '([0-9]+)', NOTIF_FILE).'$~';        $filelist = [];        foreach (glob($datadir.NOTIF_FILE) as $filepath) {            $filename = substr($filepath, strlen($datadir));            if(preg_match($regexpr, $filename, $matches)) {                $filelist[] = intVal($matches[1], 10);            }        }        if(sizeof($filelist) == 0) {            $filepos = 0;        } else {            sort($filelist);            if(max($filelist) - min($filelist) > (NOTIF_POS_WRAP/4)) {                // list of positions is wrapping, reorder them accordingly                for($i = 1; $i < sizeof($filelist); $i++) {                    if($filelist[$i] - $filelist[$i-1] > (NOTIF_POS_WRAP/4)) break;                }                $filelist = array_merge(array_slice($filelist, $i), array_slice($filelist, 0, $i));            }            if(sizeof($filelist) > 4) {                // cleanup oldest notification files                $notfile = sprintf(str_replace('*', '%010u', NOTIF_FILE), $filelist[0]);                $fullpath = $parent->getDataDir().$notfile;                if(file_exists($fullpath)) {                    @unlink($fullpath);                }            }            if($position == -1) {                // use the latest file                $filepos = $filelist[sizeof($filelist)-1];            } else {                // use the file containin the requested position, or the oldest file available                $filepos = $filelist[0];                for($i = 1; $i < sizeof($filelist); $i++) {                    if($position >= $filelist[$i] && $position < $filelist[$i] + (NOTIF_POS_WRAP/4)) {                        $filepos = $filelist[$i];                    }                }            }        }        VHubServer::Log($httpReq, LOG_CLIENTREQ, 5, 'Open stream at '.$position.', using file @'.$filepos);        return new NotifStream($parent, $filepos, $position);    }    public function __construct(VHubServer $parent, int $filepos, int $position)    {        $this->server = $parent;        $this->datadir = $parent->getDataDir();        $this->filepos = $filepos;        $this->abspos = $position;        $this->curpos = $position - $filepos;        $this->reqlen = -1;        $this->avail = 0;        $this->fd = null;    }    protected function openNotFile(VHubServerHTTPRequest $httpReq, string $mode, bool $readonly): bool    {        $this->notfile = sprintf(str_replace('*', '%010u', NOTIF_FILE), $this->filepos);        $fullpath = $this->datadir.$this->notfile;        if($readonly && !file_exists($fullpath)) {            $this->fd = null;            return false;        }        try {            $this->fd = @fopen($fullpath, $mode);        } catch(Throwable) {}        if($this->fd === false) {            $this->fd = null;            return false;        }        return true;    }    public function openForRead(VHubServerHTTPRequest $httpReq, int $length): int    {        if($length == 0) {            // default limit when flush is available but chunks help to improve performace            $length = 0x7f00;        }        if($length >= 0) {            // minimum value should allow for at least one notification            if($length < NOTIF_MAX_LEN + 15) {                $length = NOTIF_MAX_LEN + 15;            }        }        $this->reqlen = $length;        if($this->openNotFile($httpReq, 'rb', true)) {            fseek($this->fd, 0, SEEK_END);            $endpos = ftell($this->fd);        } else {            // file does not yet exist            $endpos = 0;        }        if($this->abspos == -1) {            $this->abspos = $this->filepos + $endpos;            $this->curpos = $endpos;        }        if($endpos > $this->curpos && !is_null($this->fd)) {            fseek($this->fd, $this->curpos, SEEK_SET);            $this->avail = $endpos - $this->curpos;        }        return $this->abspos;    }    public function predictSize(): int    {        return max($this->reqlen, $this->avail);    }    public function readMore(VHubServerHTTPRequest $httpReq, int $maxlen): string    {        // switch to next file if needed        if($this->curpos >= NOTIF_FILE_ENDSIZE) {            if(!is_null($this->fd)) {                fclose($this->fd);            }            $this->filepos = $this->abspos;            $this->curpos = 0;            $this->openForRead($httpReq, -1);        }        // make sure the log file has already been created        if(is_null($this->fd)) {            return "";        }        // read as much as permitted from the current notification file        if($maxlen > 0) {            $rsize = $maxlen;        } else {            $rsize = NOTIF_FILE_ENDSIZE;        }        $result = fread($this->fd, $rsize);        $rsize = strlen($result);        if($rsize == 0) {            return $result;        }        if($result[$rsize-1] != "\n") {            // make sure we stop on a complete notification            while ($rsize > 0 && $result[$rsize - 1] != "\n") {                $rsize--;            }            $result = substr($result, 0, $rsize);            $this->curpos += $rsize;            fseek($this->fd, $this->curpos, SEEK_SET);            if($maxlen > 0) {                // pad reply to the full requested size to force a flush and get a new buffer                $result .= str_repeat("\n", $maxlen - $rsize);            }        } else {            $this->curpos += $rsize;        }        $this->abspos += $rsize;        return $result;    }    public function openForAppend(VHubServerHTTPRequest $httpReq): int    {        if(!$this->openNotFile($httpReq, 'a', false)) {            VHubServer::Log($httpReq, LOG_VHUBSERVER, 1, 'Fail to open for append '.$this->notfile);            $endpos = 0;        } else {            fseek($this->fd, 0, SEEK_END);            $endpos = ftell($this->fd);        }        $this->abspos = $this->filepos + $endpos;        $this->curpos = $endpos;        return $this->abspos;    }    public function close(VHubServerHTTPRequest $httpReq): void    {        if(!is_null($this->fd)) {            fclose($this->fd);        }    }    protected function decodeTimestamp(array $report, float &$duration): float    {        $time = $report[0] + 0x100 * $report[1] + 0x10000 * $report[2] + 0x1000000 * $report[3];        $ms = $report[4] * 4;        if (sizeof($report) > 5) {            $mixedByte = $report[5];            $ms += $mixedByte >> 6;            $duration_ms = $report[6];            $duration_ms += ($mixedByte & 0xf) * 0x100;            if ($mixedByte & 0x10) {                $duration = $duration_ms;            } else {                $duration = $duration_ms / 1000.0;            }        } else {            $duration = 0.0;        }        return $time + $ms / 1000.0;    }    public function appendNotif(VHubServerHTTPRequest $httpReq, string $notif): void    {        // switch to next file if needed        if($this->curpos >= NOTIF_FILE_ENDSIZE) {            fclose($this->fd);            $this->filepos = $this->abspos;            $this->curpos = 0;            $this->openForAppend($httpReq, );        }        fwrite($this->fd, $notif."\n");    }    public function appendModuleNotification(VHubServerHTTPRequest $httpReq, array $wpVal): void    {        $serial = $wpVal['serialNumber'];        $devYdxA = chr(65+$wpVal['index']);        $this->appendNotif($httpReq, NOTIF_NAME.$serial.','.$wpVal['logicalName'].','.$wpVal['beacon'].','.$devYdxA);    }    public function appendModuleArrivalNotifications(VHubServerHTTPRequest $httpReq, string $cloudSerial, array $wpVal): void    {        $serial = $wpVal['serialNumber'];        $this->appendNotif($httpReq, NOTIF_CHILD.$cloudSerial.','.$serial.',1');        $this->appendModuleNotification($httpReq, $wpVal);        $this->appendNotif($httpReq, NOTIF_PRODINFO.$serial.','.sprintf('%04x', $wpVal['productId']));    }    public function appendModuleRemovalNotifications(VHubServerHTTPRequest $httpReq, string $cloudSerial, string $serial): void    {        $this->appendNotif($httpReq, NOTIF_CHILD.$cloudSerial.','.$serial.',0');    }    public function appendFunctionNameNotification(VHubServerHTTPRequest $httpReq, array $ypVal): void    {        $hwidParts = explode('.', $ypVal['hardwareId']);        $this->appendNotif($httpReq, NOTIF_FUNCNAMEYDX.$hwidParts[0].','.$hwidParts[1].','.$ypVal['logicalName'].','.$ypVal['index'].','.$ypVal['baseType']);    }    public function appendFunctionValNotification(VHubServerHTTPRequest $httpReq, array $ypVal): void    {        $hwidParts = explode('.', $ypVal['hardwareId']);        $serial = $hwidParts[0];        $devydx = $this->server->apiroot->cloudConf->getDevYdx($serial);        if($devydx < 0) return;        $funydx = $ypVal['index'];        $devYdxA = chr(65+($devydx & 63));        $funYdxA = chr(48+$funydx+(($devydx & 128) ? 64 : 0));        $this->appendNotif($httpReq, NOTIF_FUNCVALYDX.$devYdxA.$funYdxA.$ypVal['advertisedValue']);        // FIXME: Make sure no buffer overflow can happen in API in since some advertiseValue        //        should actually have been advertised using V2 notifications (6 bytes, etc)    }    public function handleTrueTimedReportNotification(VHubServerHTTPRequest $httpReq, string $serial, array $rawReports): void    {        VHubServer::Log($httpReq, LOG_DATALOGGER, 5, "Processing timed reports for {$serial}: ".sizeof($rawReports)." records");        // 1. Forward timed reports in text mode        $devydx = $this->server->apiroot->cloudConf->getDevYdx($serial);        if($devydx < 0) return;        foreach($rawReports as $funydx => $rawReport) {            $devYdxA = chr(65+($devydx & 63));            $funYdxA = chr(48+$funydx+(($devydx & 128) ? 64 : 0));            $msg = NOTIF_TIMEV2YDX.$devYdxA.$funYdxA;            for($i = 0; $i < sizeof($rawReport); $i++) {                $msg .= sprintf('%02x', $rawReport[$i]);            }            $this->appendNotif($httpReq, $msg);        }        // 2. Add data to the dataLogger        $datalogger = YDataLogger::FindDataLogger("{$serial}.dataLogger");        $emulogger = $datalogger->get_userData();        if(is_null($emulogger)) {            $emulogger = new DataLogger($this->server, $serial);            $datalogger->set_userData($emulogger);        }        $serverTimestamp = time();        $timestamp = 0;        $duration = 0;        $newReports = [];        $module = YModule::FindModule($serial);        foreach($rawReports as $funydx => $rawReport) {            if($funydx == 15) {                $devTimestamp = $this->decodeTimestamp($rawReport, $duration);                if($devTimestamp > $serverTimestamp+2*86400) {                    // device timestamp more than a day in the future, this should never happen                    VHubServer::Log($httpReq, LOG_HTTPCALLBACK, 2, "Timestamp of {$serial} is more than a 48h in the future (".$devTimestamp."), ignoring timed report");                } else if($devTimestamp < $serverTimestamp-2*86400) {                    // device timestamp more than a day in the past, this should never happen                    VHubServer::Log($httpReq, LOG_HTTPCALLBACK, 2, "Timestamp of {$serial} is more than a 48h in the past (".$devTimestamp."), ignoring timed report");                } else {                    $timestamp = $devTimestamp;                    VHubServer::Log($httpReq, LOG_DATALOGGER, 5, "TimedReport for {$serial}: stamp={$timestamp}, duration={$duration}");                }            } else if($timestamp) {                $functionId = $module->functionId($funydx);                $sensor = YSensor::FindSensor("{$serial}.{$functionId}");                $unit = $sensor->get_unit();                $freqStr = $sensor->get_reportFrequency();                if($freqStr == 'OFF') continue;                $freq = new DataFrequency($freqStr);                array_unshift($rawReport, 2); // prepend Timed Report V2 signature                $measure = $sensor->_decodeTimedReport($timestamp, $duration, $rawReport);                $newReports[$functionId] = [ 'sensor' => $sensor, 'measure' => $measure, 'unit' => $unit, 'freq' => $freq ];            }        }        if(sizeof($newReports) > 0) {            $emulogger->appendMeasures($httpReq, $newReports);        }    }    public function appendEmulatedTimedReportNotification(VHubServerHTTPRequest $httpReq, string $serial, array $reports): void    {        $devydx = $this->server->apiroot->cloudConf->getDevYdx($serial);        if($devydx < 0) return;        $timestamp = $reports[array_key_first($reports)]['measure']->get_startTimeUTC();        $funydx = 15; // special funYdx for the timestamp        $devYdxA = chr(65+($devydx & 127));        $funYdxA = chr(48+$funydx+(($devydx & 128) ? 64 : 0));        $msg = NOTIF_TIMEV2YDX.$devYdxA.$funYdxA;        for($i = 0; $i < 4; $i++) {            $msg .= sprintf('%02x', $timestamp & 0xff);            $timestamp >>= 8;        }        $this->appendNotif($httpReq, $msg.'0003e8');        foreach($reports as $functionId => $report) {            $measure = $report['measure'];            $value = $measure->get_averageValue();            if(is_nan($value)) continue;            $report = round($value * 1000);            $hardwareId = $serial.'.'.$functionId;            $funydx = $this->server->apiroot->funYdxByHwId[$hardwareId];            $funYdxA = chr(48+$funydx+(($devydx & 128) ? 64 : 0));            $msg = NOTIF_TIMEV2YDX.$devYdxA.$funYdxA;            while(true) {                $lo = $report & 0xff;                $msg .= sprintf('%02x', $lo);                $report >>= 8;                if($report >= 0) {                    if(($lo & 0x80)==0 && $report == 0) break;                } else {                    if(($lo & 0x80)!=0 && $report == -1) break;                }            }            $this->appendNotif($httpReq, $msg);        }    }    public function appendDeviceLogNotification(VHubServerHTTPRequest $httpReq, string $serial): void    {        $devydx = $this->server->apiroot->cloudConf->getDevYdx($serial);        if($devydx < 0) return;        $devYdxA = chr(65+($devydx & 63));        $devYdxB = chr(48+(($devydx & 128) ? 64 : 0));        $this->appendNotif($httpReq, NOTIF_LOG.$devYdxA.$devYdxB);    }    public function appendConfigChangeNotification(VHubServerHTTPRequest $httpReq, string $serial): void    {        $devydx = $this->server->apiroot->cloudConf->getDevYdx($serial);        if($devydx < 0) return;        $devYdxA = chr(65+($devydx & 63));        $devYdxB = chr(48+(($devydx & 128) ? 64 : 0));        $this->appendNotif($httpReq, NOTIF_CONFCHGYDX.$devYdxA.$devYdxB);    }}
+const TARHEADER_PATH_OFS = 0;const TARHEADER_MODESTR_OFS = 100;const TARHEADER_UIDSTR_OFS = 108;const TARHEADER_GIDSTR_OFS = 116;const TARHEADER_SIZESTR_OFS = 124;const TARHEADER_UNIXTIMESTR_OFS = 136;const TARHEADER_CHECKSUMSTR_OFS = 148;const TARHEADER_TYPEFLAG_OFS = 156;const TARHEADER_LINKNAME_OFS = 157;const TARHEADER_MAGIC_OFS = 257;const TARHEADER_MAGICVER_OFS = 263;const TARHEADER_PAD_OFS = 265;const TAROP_LOAD_FILE = 0;      // first functions require shared Read-only accessconst TAROP_LIST_FILES = 1;const TAROP_WORKON_FILES = 2;   // must stay the first TAR op requiring Read-write accessconst TAROP_UPDATE_FILE = 3;    // must stay the first TAR op requiring Read-write access and causing file rewriteconst TAROP_REPLACE_FILE = 4;const TAROP_DELETE_FILE = 5;function decodeUint(string $buf, int $ofs, int $size): float{    $res = 0;    for($i = $size-1; $i >= 0; $i--) {        $res = ($res << 8) + ord($buf[$ofs+$i]);    }    return $res;}function decodeFloat(string $buf, int $ofs, bool $flipBit): float{    $intVal = ord($buf[$ofs]) + 0x100*ord($buf[$ofs+1]) + 0x10000*ord($buf[$ofs+2]) + 0x1000000*ord($buf[$ofs+3]);    if($flipBit) {        if($intVal == 0xffffffff) {            return NAN;        }        $intVal ^= 0x80000000;    }    if($intVal > 0x7fffffff) {        $intVal -= 0x100000000;    }    return $intVal / 1000.0;}function encodeUint(int $value, int $size): string{    $data = chr($value & 0xff);    for($i = 1; $i < $size; $i++) {        $value = $value >> 8;        $data .= chr($value & 0xff);    }    return $data;}function encodeFloat(float $value, bool $flipBit): string{    if($flipBit) {        if(is_nan($value)) {            $intVal = 0xffffffff;        } else {            $intVal = intval(round($value * 1000));            $intVal ^= 0x80000000;        }    } else {        $intVal = intval(round($value * 1000));    }    $intVal &= 0xffffffff;    return chr($intVal & 0xff).chr(($intVal >> 8) & 0xff)        .chr(($intVal >> 16) & 0xff).chr(($intVal >> 24) & 0xff);}function parseOctal(string $buffer, int $ofs, int $maxlen): int{    for($len = 0; $len < $maxlen; $len++) {        if(ord($buffer[$ofs+$len]) == 0) break;    }    $octalStr = substr($buffer, $ofs, $len);    return intval(base_convert($octalStr, 8, 10));}class TarObject{    public string $path;    public string $header;    public string $content;    public int $contentSize;    public int $storageSize;    public int $modifTime;    public int $tarOffset;    public int $crc;    public bool $gzipEncoded;    public function __construct(VHubServerHTTPRequest $httpReq, int $tarOffset, int $fileSize, string $header)    {        $headerlen = strlen($header);        $maxpathlen = min($headerlen, 99);        for($pathlen = 0; $pathlen < $maxpathlen; $pathlen++) {            if(ord($header[$pathlen]) == 0) break;        }        $this->path = substr($header, 0, $pathlen);        $this->contentSize = $fileSize;        $this->storageSize = ($fileSize + 511) & ~0x1ff;        $this->gzipEncoded = false;        if($headerlen >= 256) {            VHubServer::Log($httpReq, LOG_TARFILE, 5, "Found ".$this->path." (size=".$this->contentSize.")");            $this->header = $header;            $this->modifTime = parseOctal($header, TARHEADER_UNIXTIMESTR_OFS, 12);        } else {            $this->header = str_repeat(chr(0), 512);            $this->modifTime = time();            $this->safecopyz($this->path, TARHEADER_PATH_OFS, TARHEADER_MODESTR_OFS);            $this->safecopyz('0100777', TARHEADER_MODESTR_OFS, TARHEADER_UIDSTR_OFS);            $this->safecopyz('0000000', TARHEADER_UIDSTR_OFS, TARHEADER_GIDSTR_OFS);            $this->safecopyz('0000000', TARHEADER_GIDSTR_OFS, TARHEADER_SIZESTR_OFS);            $this->header[TARHEADER_TYPEFLAG_OFS] = '0';            $this->safecopyz('ustar', TARHEADER_MAGIC_OFS, TARHEADER_MAGICVER_OFS);            $this->header[TARHEADER_MAGICVER_OFS] = '0';            $this->header[TARHEADER_MAGICVER_OFS+1] = '0';        }        $this->tarOffset = $tarOffset;    }    public function u32toOctal(int $number, int $headerOffset, int $ndigits): void    {        $octal = base_convert(strval($number), 10, 8);        $octal = str_repeat('0', $ndigits-strlen($octal)).$octal;        for($i = 0; $i < $ndigits; $i++) {            $this->header[$headerOffset+$i] = $octal[$i];        }        $this->header[$headerOffset+$i] = chr(0);    }    public function memset(string $char, int $headerOffset, int $rep): void    {        for($i = 0; $i < $rep; $i++) {            $this->header[$headerOffset+$i] = $char[0];        }    }    public function safecopyz(string $data, int $headerOffset, int $endOffset): void    {        $len = strlen($data);        if($headerOffset + $len >= $endOffset) {            $len = $endOffset - $headerOffset - 1;        }        for($i = 0; $i < $len; $i++) {            $this->header[$headerOffset+$i] = $data[$i];        }        $this->header[$headerOffset+$len] = chr(0);    }    public function updateTarHeader(): void    {        $this->u32toOctal($this->contentSize, TARHEADER_SIZESTR_OFS, 11);        $this->u32toOctal($this->modifTime, TARHEADER_UNIXTIMESTR_OFS, 11);        $this->memset(' ', TARHEADER_CHECKSUMSTR_OFS, 8);        $checksum = 0;        for ($i = 0; $i < 512; $i++) {            $checksum += ord($this->header[$i]);        }        $this->u32toOctal($checksum, TARHEADER_CHECKSUMSTR_OFS, 7);    }}class TarFile{    protected VHubServer $server;    protected string $tarfile;    protected string $blankbuf;    protected array $userFiles;    protected mixed $workfd;    protected int $tarfilesize;    public function __construct(VHubServer $parent, string $tarname)    {        $this->server = $parent;        $this->tarfile = $tarname;        $this->blankbuf = str_repeat(chr(0), 1024);        $this->userFiles = [];        $this->workfd = null;        $this->tarfilesize = 0;    }    public function formatTarFile(VHubServerHTTPRequest $httpReq): void    {        $fp = $this->server->frewrite($httpReq, $this->tarfile);        fwrite($fp, $this->blankbuf, 1024);        $this->server->fclose($httpReq, $fp, $this->tarfile);    }    public function searchTarFile(VHubServerHTTPRequest $httpReq, string $path): ?TarObject    {        $obj = $this->processTarFile($httpReq, $path, TAROP_LOAD_FILE);        return $obj;    }    public function knownFile(string $path): ?TarObject    {        foreach($this->userFiles as $ufile) {            if($ufile->path == $path) return $ufile;        }        return null;    }    public function knownFilesCount(): int    {        return sizeof($this->userFiles);    }    public function knownFilesMatching(string $pattern): array    {        $res = [];        foreach($this->userFiles as $ufile) {            if(fnmatch($pattern, $ufile->path, 0)) {                $res[] = $ufile;            }        }        return $res;    }    public function tarSize(): int    {        if($this->tarfilesize > 0) {            return $this->tarfilesize;        }        if (!$this->server->fexists($this->tarfile)) {            return 0;        }        return $this->server->filesize($this->tarfile);    }    public function processTarFile(VHubServerHTTPRequest $httpReq, string $targetPath, int $operation, string $newContent = ''): mixed    {        VHubServer::Log($httpReq, LOG_TARFILE, 5, "processTarFile ".$this->tarfile." for ".$targetPath.", op=".$operation);        $res = ($operation == TAROP_LIST_FILES || $operation == TAROP_WORKON_FILES ? [] : null);        if(!$this->server->fexists($this->tarfile)) {            VHubServer::Log($httpReq, LOG_TARFILE, 3, "User container file does not yet exist ({$this->tarfile})");            $this->formatTarFile($httpReq);            return $res;        }        if($operation < TAROP_WORKON_FILES) {            // non-exclusive access is required            $fp = $this->server->fopen_ro($httpReq, $this->tarfile);            $newfile = null;        } else {            // exclusive read-write access for update            if($operation == TAROP_REPLACE_FILE) {                $names = explode('|', $targetPath);                $targetPath = $names[0];                $newPath = $names[1];                $operation = TAROP_UPDATE_FILE;            } else {                $newPath = $targetPath;            }            if($operation == TAROP_UPDATE_FILE) {                $newfile = new TarObject($httpReq, -1, strlen($newContent), $newPath);                $newfile->content = $newContent;                $newfile->crc = crc32($newfile->content);            } else {                $newfile = null;            }            $fp = $this->server->fopen_rw($httpReq, $this->tarfile);        }        $rewriteFrom = -1;        $this->userFiles = [];        $tarOffset = 0;        while(($rec = fread($fp, 512)) !== false) {            // end of file is marked by a zero block            if (ord($rec[0]) == 0) {                if($operation >= TAROP_UPDATE_FILE) {                    fseek($fp, $tarOffset, SEEK_SET); // rewind prior to zero block                }                break;            }            // skip over directories silently            if ($rec[TARHEADER_TYPEFLAG_OFS] == '5') {                $tarOffset += 512;                continue;            }            // make sure this is a plain file            if ($rec[TARHEADER_TYPEFLAG_OFS] != 0 && $rec[TARHEADER_TYPEFLAG_OFS] != '0') {                VHubServer::Log($httpReq, LOG_TARFILE, 2, "Unexpected record type in .tar file header at {$tarOffset}, ignoring end of file");                break;            }            // verify checksum to make sure we are not out of sync            $checkstr = substr($rec, TARHEADER_CHECKSUMSTR_OFS, 8);            $checksum = parseOctal($rec, TARHEADER_CHECKSUMSTR_OFS, 8);            for($i = 0; $i < 8; $i++) {                $rec[TARHEADER_CHECKSUMSTR_OFS+$i] = ' ';            }            $checkcheck = 0;            for ($i = 0; $i < 512; $i++) {                $checkcheck += ord($rec[$i]);            }            //VHubServer::Log($httpReq, LOG_TARFILE, 5, "Checksums: $checksum vs $checkcheck");            if ($checksum != $checkcheck) {                VHubServer::Log($httpReq, LOG_TARFILE, 2, "Checksum error in .tar file header at {$tarOffset}, ignoring end of file");                break;            }            for($i = 0; $i < 8; $i++) {                $rec[TARHEADER_CHECKSUMSTR_OFS+$i] = $checkstr[$i];            }            // make sure the file size makes sense (not more than half the "flash" size)            $fsize = parseOctal($rec, TARHEADER_SIZESTR_OFS, 12);            if ($fsize >= USERFILE_MAX_SIZE) {                VHubServer::Log($httpReq, LOG_TARFILE, 2, "File in .tar file at {$tarOffset} is too large, ignoring end of file");                break;            }            // all checks OK, we can now load the file into our list            $obj = new TarObject($httpReq, $tarOffset, $fsize, $rec);            VHubServer::Log($httpReq, LOG_TARFILE, 5, "Tar object at {$tarOffset}: {$obj->path}, size={$fsize} ({$obj->storageSize})");            if($obj->path == $targetPath || ($obj->path == $targetPath.'.gz' && $operation == TAROP_LOAD_FILE)) {                // this is the target path (load or update operation)                if ($operation == TAROP_LOAD_FILE) {                    // load the complete file                    $obj->content = fread($fp, $obj->contentSize);                    $obj->crc = crc32($obj->content);                    $obj->gzipEncoded = ($obj->path == $targetPath.'.gz');                    if($obj->storageSize > $obj->contentSize) {                        fseek($fp, $obj->storageSize - $obj->contentSize, SEEK_CUR);                    }                    $res = $obj;                } else if($operation == TAROP_UPDATE_FILE) {                    // must update this file                    if ($obj->storageSize == $newfile->storageSize) {                        // same storage size, update on the fly                        VHubServer::Log($httpReq, LOG_TARFILE, 5, "Same storage size, updating on the fly");                        $obj = $newfile;                        $obj->tarOffset = $tarOffset;                        $obj->updateTarHeader();                        fseek($fp, $tarOffset, SEEK_SET); // rewind to header                        fwrite($fp, $obj->header);                        fwrite($fp, $obj->content);                        if($obj->storageSize > $obj->contentSize) {                            fwrite($fp, $this->blankbuf, $obj->storageSize - $obj->contentSize);                        }                        $res = $obj;                        $newfile = null;                    } else {                        // different size, prepare to move file to the end (skip over current content)                        VHubServer::Log($httpReq, LOG_TARFILE, 4, "New version of {$obj->path} has a different storage size, must rewrite tar file from $tarOffset");                        $rewriteFrom = sizeof($this->userFiles);                        fseek($fp, $obj->storageSize, SEEK_CUR);                        continue;                    }                } else if($operation == TAROP_DELETE_FILE) {                    // must remove this file (skip over current content)                    VHubServer::Log($httpReq, LOG_TARFILE, 4, "Deleting {$obj->path}, must rewrite tar file from $tarOffset");                    $rewriteFrom = sizeof($this->userFiles);                    fseek($fp, $obj->storageSize, SEEK_CUR);                    continue;                } else if($operation == TAROP_LIST_FILES) {                    // compute CRC of all files matching targetpath pattern                    $content = fread($fp, $obj->contentSize);                    if($obj->storageSize > $obj->contentSize) {                        fseek($fp, $obj->storageSize - $obj->contentSize, SEEK_CUR);                    }                    $obj->crc = crc32($content);                    $res[] = $obj;                }            } else if($rewriteFrom >= 0) {                // about to move a file to the end, load remaining content                $obj->tarOffset = $tarOffset;                if($obj->contentSize) {                    $obj->content = fread($fp, $obj->contentSize);                } else {                    $obj->content = '';                }                if($obj->storageSize > $obj->contentSize) {                    fseek($fp, $obj->storageSize - $obj->contentSize, SEEK_CUR);                }            } else if($operation == TAROP_WORKON_FILES) {                // compute CRC of all files matching targetpath pattern                if(fnmatch($targetPath, $obj->path, 0)) {                    $res[] = $obj;                }                // skip over content                fseek($fp, $obj->storageSize, SEEK_CUR);            } else if($operation == TAROP_LIST_FILES) {                // compute CRC of all files matching targetpath pattern                if(fnmatch($targetPath, $obj->path, 0)) {                    $content = fread($fp, $obj->contentSize);                    if($obj->storageSize > $obj->contentSize) {                        fseek($fp, $obj->storageSize - $obj->contentSize, SEEK_CUR);                    }                    $obj->crc = crc32($content);                    $res[] = $obj;                } else {                    // skip over content                    fseek($fp, $obj->storageSize, SEEK_CUR);                }            } else {                // skip over content                fseek($fp, $obj->storageSize, SEEK_CUR);            }            $this->userFiles[] = $obj;            // prepare to handle next record in .tar file            $tarOffset += 512 + $obj->storageSize;        }        if($operation >= TAROP_UPDATE_FILE) {            // append updated file at the end if not updated on the file            if($operation == TAROP_UPDATE_FILE && !is_null($newfile)) {                if($tarOffset + $newfile->storageSize > FILES_MAX_SIZE) {                    VHubServer::Log($httpReq, LOG_TARFILE, 2, "TAR file is too big to add a new file");                } else {                    if ($rewriteFrom < 0) {                        $rewriteFrom = sizeof($this->userFiles);                    }                    $newfile->tarOffset = $tarOffset;                    $newfile->updateTarHeader();                    $this->userFiles[] = $newfile;                    $res = $newfile;                }            }            // rewrite part of the archive if a file is beeing moved            if ($rewriteFrom >= 0) {                if(isset($this->userFiles[$rewriteFrom])) {                    // rewrite archive from first moved file                    $obj = $this->userFiles[$rewriteFrom];                    fseek($fp, $obj->tarOffset, SEEK_SET);                    VHubServer::Log($httpReq, LOG_TARFILE, 5, "Rewriting tar file starting at {$obj->path} at {$obj->tarOffset}");                    for ($i = $rewriteFrom; $i < sizeof($this->userFiles); $i++) {                        $obj = $this->userFiles[$i];                        fwrite($fp, $obj->header);                        fwrite($fp, $obj->content);                        if($obj->storageSize > $obj->contentSize) {                            fwrite($fp, $this->blankbuf, $obj->storageSize - $obj->contentSize);                        }                    }                }            }            // append terminal block in any case            fwrite($fp, $this->blankbuf, 1024);            // truncate file at current position            ftruncate($fp, ftell($fp));        }        if($operation == TAROP_WORKON_FILES) {            $this->workfd = $fp;        } else {            $this->server->fclose($httpReq, $fp, $this->tarfile);        }        return $res;    }    public function tarWorkRead(TarObject $obj, int $relofs, int $size): string    {        if($relofs >= $obj->contentSize) {            return '';        }        fseek($this->workfd, $obj->tarOffset + 512 + $relofs, SEEK_SET);        if($relofs + $size > $obj->contentSize) {            $size = $obj->contentSize - $relofs;        }        return fread($this->workfd, $size);    }    public function tarWorkReadUint(TarObject $obj, int $relofs, int $size): int    {        if($relofs >= $obj->contentSize) {            return -1;        }        fseek($this->workfd, $obj->tarOffset + 512 + $relofs, SEEK_SET);        if($relofs + $size > $obj->contentSize) {            $size = $obj->contentSize - $relofs;        }        $res = 0;        $data = fread($this->workfd, $size);        for($i = $size-1; $i >= 0; $i--) {            $res = ($res << 8) + ord($data[$i]);        }        return $res;    }    public function tarWorkWrite(TarObject $obj, int $relofs, string $data): void    {        if($relofs >= $obj->contentSize) {            return;        }        $absofs = $obj->tarOffset + 512 + $relofs;        fseek($this->workfd, $obj->tarOffset + 512 + $relofs, SEEK_SET);        $size = strlen($data);        if($relofs + $size > $obj->contentSize) {            $size = $obj->contentSize - $relofs;        }        try {            fwrite($this->workfd, $data, $size);        } catch(Throwable $err) {            VHubServer::Log($httpReq, LOG_DATALOGGER, 2, "Error writing to file {$this->workfd} in tarWorkWrite: ".$err->getMessage());            VHubServer::Log($httpReq, LOG_DATALOGGER, 2, "   while writing {$size}/".strlen($data)." bytes at offset {$absofs} ({$relofs})");        }    }    public function tarWorkWriteUint(TarObject $obj, int $relofs, int $value, int $size): void    {        if($relofs >= $obj->contentSize) {            return;        }        fseek($this->workfd, $obj->tarOffset + 512 + $relofs, SEEK_SET);        if($relofs + $size > $obj->contentSize) {            $size = $obj->contentSize - $relofs;        }        $data = chr($value & 0xff);        for($i = 1; $i < $size; $i++) {            $value = $value >> 8;            $data .= chr($value & 0xff);        }        fwrite($this->workfd, $data, $size);    }    public function tarWorkDone(VHubServerHTTPRequest $httpReq): void    {        if(!is_null($this->workfd)) {            $this->server->fclose($httpReq, $this->workfd, $this->tarfile);        }    }}class YfsObject{    public string $path;    public string $header;    public string $content;    public int $contentSize;    public int $crc;    public bool $gzipEncoded;    public function __construct(string $header, mixed $fd)    {        $nameLen = ord($header[8]);        $this->path = substr($header, 9, $nameLen);        $this->header = $header;        $this->contentSize = ord($header[0]) + 0x100*ord($header[1]) + 0x10000*ord($header[2]);        $this->gzipEncoded = ((ord($header[3]) & 0x80) != 0);        $this->crc = ord($header[4]) + 0x100*ord($header[5]) + 0x10000*ord($header[6]) + 0x1000000*ord($header[7]);        if($this->contentSize > 0) {            $prefix = ($this->gzipEncoded ? "\x1f\x8b\x08\x00\x00\x00\x00\x00" : '');            $this->content = $prefix.fread($fd, $this->contentSize);        } else {            $this->content = '';        }    }}class YfsFile{    protected VHubServer $server;    protected string $yfspath;    protected mixed $fd;    protected int $nFiles;    protected int $pageSize;    protected array $index;    public function __construct(VHubServer $parent, string $yfspath)    {        $this->server = $parent;        $this->yfspath = $yfspath;        $this->fd = null;        $this->nFiles = 0;        $this->pageSize = 0;        $this->index = [];    }    protected function loadIndex(VHubServerHTTPRequest $httpReq): void    {        if(substr($this->yfspath, 0, 5) == 'data:') {            VHubServer::Log($httpReq, LOG_TARFILE, 5, "Open YFS image from memory, size=".(strlen($this->yfspath)-5));            $this->fd = fopen('php://memory', 'r+b');            fwrite($this->fd, substr($this->yfspath, 5));            rewind($this->fd);        } else {            VHubServer::Log($httpReq, LOG_TARFILE, 5, "Open YFS image from disk, path len=".strlen($this->yfspath));            $this->fd = fopen($this->yfspath, 'rb');        }        if($this->fd === false) {            VHubServer::Log($httpReq, LOG_TARFILE, 2, "Cannot open YFS image");            return;        }        $header = fread($this->fd, 12);        if(substr($header, 0, 4) != 'YFS3') {            VHubServer::Log($httpReq, LOG_TARFILE, 2, "YFS image is corrupt");            fclose($this->fd);            $this->fd = false;            return;        }        $nfiles = ord($header[10]) + 256 * ord($header[11]);        $tocBuff = fread($this->fd, 6 * $nfiles);        // determine the YFS page size by looking at the length of the first file wrapping page zero        $prevPage = 0;        $prevOfs = ftell($this->fd);        for($i = 0; $i < $nfiles; $i++) {            $ofs = 2*$nfiles + 4*$i;            $dataPage = ord($tocBuff[$ofs+0]) + 256 * ord($tocBuff[$ofs+1]);            $dataOfs = ord($tocBuff[$ofs+2]) + 256 * ord($tocBuff[$ofs+3]);            if($dataPage > 0) break;            $prevPage = $dataPage;            $prevOfs = $dataOfs;        }        // read header of previous file        fseek($this->fd, $prevOfs, SEEK_SET);        $header = fread($this->fd, 10);        $pathlen = ord($header[8]);        $hdrlen = ($pathlen + 10) & ~1;        $contentStorage = (ord($header[0]) + 0x100*ord($header[1]) + 0x10000*ord($header[2]) + 1) & ~1;        $pageSize = ($prevOfs + $hdrlen + $contentStorage - $dataOfs) / ($dataPage - $prevPage);        $this->pageSize = intVal(round($pageSize/2)*2); // round to 2, just in case        // now parse the complete index        for($i = 0; $i < $nfiles; $i++) {            $nameHash = ord($tocBuff[2*$i]) + 256 * ord($tocBuff[2*$i+1]);            $ofs = 2*$nfiles + 4*$i;            $dataPage = ord($tocBuff[$ofs+0]) + 256 * ord($tocBuff[$ofs+1]);            $dataOfs = ord($tocBuff[$ofs+2]) + 256 * ord($tocBuff[$ofs+3]) + $this->pageSize * $dataPage;            if(isset($this->index[$nameHash])) {                $this->index[$nameHash][] = $dataOfs;            } else {                $this->index[$nameHash] = [ $dataOfs ];            }        }        $this->nFiles = $nfiles;    }    protected function nameHash(string $name): int    {        $hash = 0;        $nameLen = strlen($name);        for($i = 0; $i < $nameLen; $i++) {            $hash = (($hash << 1) + ord($name[$i])) & 0xffff;        }        if($hash == 0xffff) {            // 0xffff is a reserved value            $hash--;        }        return $hash;    }    public function search(VHubServerHTTPRequest $httpReq, string $path): ?YfsObject    {        if(is_null($this->fd)) {            // preload index            $this->loadIndex($httpReq);        }        if($this->fd === false) {            // failed to preload index, fail every file            return null;        }        // compute hash, lookup in index, seek in file at dataOfs, verify filename        $hash = $this->nameHash($path);        if(!isset($this->index[$hash])) {            return null;        }        $pathlen = strlen($path);        $candidates = $this->index[$hash];        foreach($candidates as $dataOfs) {            // load file header            $hdrlen = ($pathlen + 10) & ~1;            fseek($this->fd, $dataOfs, SEEK_SET);            $filehdr = fread($this->fd, $hdrlen);            // verify that file name len matches            if(ord($filehdr[8]) != $pathlen) {                continue;            }            // verify that file name matches            if(substr($filehdr, 9, $pathlen) != $path) {                continue;            }            return new YfsObject($filehdr, $this->fd);        }        return null;    }    public function loadAll(VHubServerHTTPRequest $httpReq): array    {        if(is_null($this->fd)) {            // preload index            $this->loadIndex($httpReq);        }        // default to no file found if we failed to load index        $result = [];        if($this->fd === false) {            VHubServer::Log($httpReq, LOG_TARFILE, 2, "Failed to load YFS file index");        } else {            foreach($this->index as $hash => $filelist) {                foreach ($filelist as $dataOfs) {                    // load file header                    fseek($this->fd, $dataOfs, SEEK_SET);                    $filehdr = fread($this->fd, 10);                    if(strlen($filehdr) > 8) {                        $pathlen = ord($filehdr[8]);                        VHubServer::Log($httpReq, LOG_TARFILE, 4, "YFS object at {$dataOfs}: size={$pathlen}");                        $filehdr .= fread($this->fd, $pathlen & ~1);                        $result[] = new YfsObject($filehdr, $this->fd);                    } else {                        VHubServer::Log($httpReq, LOG_TARFILE, 2, "YFS object at {$dataOfs}: bad header");                    }                }            }        }        return $result;    }}class FileServer{    protected VHubServer $server;    protected YfsFile $yfsFiles;    protected TarFile $ownFiles;    protected array $deviceFiles;    public string $specialUploadFiles = '~^(txdata|logs\.txt|sendSMS)|((rgb|hsl|(layer[0-9])):.*)$~';    public array $specialDownloadFiles = [        'display.gif', 'rgb.bin'    ];    public function __construct(VHubServer $parent)    {        $this->server = $parent;        $this->yfsFiles = new YfsFile($parent, UIFILE);        $this->ownFiles = new TarFile($parent, 'VHUB4WEB-files.tar');        $this->deviceFiles = [];    }    public function sendContentHeader(VHubServerHTTPRequest $httpReq, string $extension): void    {        switch(strtolower($extension)) {            case 'json':            case 'jzon':                $mimetype = 'application/json; charset=iso-8859-1';                break;            case 'html':            case '':                $mimetype = 'text/html';                break;            case 'js':                $mimetype = 'application/javascript';                break;            case 'xml':                $mimetype = 'text/xml';                break;            case 'txt':                $mimetype = 'text/plain';                break;            case 'png':                $mimetype = 'image/png';                break;            case 'gif':                $mimetype = 'image/gif';                break;            case 'css':                $mimetype = 'text/css';                break;            case 'jpeg':            case 'jpg':                $mimetype = 'image/jpeg';                break;            case 'svg':                $mimetype = 'image/svg+xml';                break;            case 'byn':            case 'bin':                $mimetype = 'text/plain; charset=x-user-defined';                break;            default:                $mimetype = 'application/'.$extension;        }        $httpReq->putHeader('Content-Type: '.$mimetype);    }    public function accessDeviceFiles(VHubServerHTTPRequest $httpReq, string $serial): TarFile    {        if(!isset($this->deviceFiles[$serial])) {            $this->deviceFiles[$serial] = new TarFile($this->server, $serial.'.tar');        }        return $this->deviceFiles[$serial];    }    public function loadDeviceFile(VHubServerHTTPRequest $httpReq, string $serial, string $subfile): ?string    {        $tarfile = $this->accessDeviceFiles($httpReq, $serial);        $obj = $tarfile->searchTarFile($httpReq, $subfile);        if(is_null($obj)) {            return null;        }        return $obj->content;    }    public function isKnownDeviceFile(VHubServerHTTPRequest $httpReq, string $serial, string $subfile): bool    {        $tarfile = $this->accessDeviceFiles($httpReq, $serial);        $existing = $tarfile->knownFile($subfile);        if(is_null($existing)) {            $existing = $tarfile->knownFile($subfile.'.gz');            if(is_null($existing)) {                return false;            }        }        return true;    }    public function saveDeviceFile(VHubServerHTTPRequest $httpReq, string $serial, string $subfile, string $content): void    {        $tarfile = $this->accessDeviceFiles($httpReq, $serial);        if(str_ends_with($subfile, '.json') || str_ends_with($subfile, '.trace')) {            $existing = $tarfile->knownFile($subfile);            if(is_null($existing)) {                // Reserve extra space for future growth                $padsize = (str_contains($serial, 'HUB') ? 8192 : 1024);                $padsize += strlen($content) >> 1;            } else {                // Keep allocated size unchanged, unless growth is really needed                $padsize = $existing->storageSize - strlen($content) - 1;                if($padsize < 0) {                    $padsize = $existing->storageSize >> 1;                }            }            $content .= str_repeat(' ', $padsize);        }        if($subfile != 'api.json') {            VHubServer::Log($httpReq, LOG_FILESYNC, 4, "Archiving file {$subfile} for {$serial}");        }        $tarfile->processTarFile($httpReq, $subfile, TAROP_UPDATE_FILE, $content);    }    public function saveAllDeviceFiles(VHubServerHTTPRequest $httpReq, string $serial, string $fscontent): void    {        if(substr($fscontent, 0, 2) == 'S3') {            VHubServer::Log($httpReq, LOG_TARFILE, 5, "New _FS file format found in {$serial}");            $yfs = new YfsFile($this->server, 'data:YF' . $fscontent);        } else if(substr($fscontent, 0, 3) == 'FS3') {            VHubServer::Log($httpReq, LOG_TARFILE, 2, "Old _FS file format found in {$serial}");            $yfs = new YfsFile($this->server, 'data:Y' . $fscontent);        } else {            VHubServer::Log($httpReq, LOG_TARFILE, 2, "Bad _FS file content for {$serial}");            return;        }        $files = $yfs->loadAll($httpReq);        VHubServer::Log($httpReq, LOG_TARFILE, 5, "Number of files found: ".sizeof($files));        foreach($files as $yfsfile) {            VHubServer::Log($httpReq, LOG_TARFILE, 5, "YFS file found: {$yfsfile->path} (size={$yfsfile->contentSize})");            $savepath = 'yfs/'.$yfsfile->path;            if($yfsfile->gzipEncoded) {                $savepath .= '.gz';            }            $this->saveDeviceFile($httpReq, $serial, $savepath, $yfsfile->content);        }    }    public function filesCmd(VHubServerHTTPRequest $httpReq, string $action, string $fname): void    {        $res = [];        switch($action) {            case 'dir':                $objs = $this->ownFiles->processTarFile($httpReq, $fname, TAROP_LIST_FILES);                $res = [];                foreach($objs as $obj) {                    $crc = ($obj->crc > 0x7fffffff ? $obj->crc - 0x100000000 : $obj->crc);                    $res[] = ['name' => $obj->path, 'size' => $obj->contentSize, 'crc' => $crc];                }                break;            case 'stat':                $objs = $this->ownFiles->processTarFile($httpReq, $fname, TAROP_LIST_FILES);                if(sizeof($objs) == 0) {                    $res = ['stat' => 'absent', 'size' => 0, 'crc' => 0];                } else {                    $obj = $objs[0];                    $crc = ($obj->crc > 0x7fffffff ? $obj->crc - 0x100000000 : $obj->crc);                    $res = ['stat' => 'present', 'size' => $obj->contentSize, 'crc' => $crc];                }                break;            case 'del':                $this->ownFiles->processTarFile($httpReq, $fname, TAROP_DELETE_FILE);                $res = ['res' => 'ok'];                break;            case 'format':                $this->ownFiles->formatTarFile($httpReq);                $res = ['res' => 'ok'];                break;        }        $this->server->apiroot->api->files->updateStats($httpReq, $this->ownFiles->knownFilesCount(), $this->ownFiles->tarSize());        $this->sendContentHeader($httpReq, 'json');        $httpReq->putStr(json_encode($res));    }    public function deviceFilesCmd(VHubServerHTTPRequest $httpReq, string $serial, string $action, string $fname): void    {        $tarfile = $this->accessDeviceFiles($httpReq, $serial);        $res = [];        switch($action) {            case 'dir':                $objs = $tarfile->processTarFile($httpReq, 'files/'.$fname, TAROP_LIST_FILES);                $res = [];                foreach($objs as $obj) {                    // all results are expected to be in 'files/' subdirectory                    $devpath = $obj->path;                    if(substr($devpath, 0, 6) != 'files/') continue;                    $devpath = substr($devpath, 6);                    $crc = ($obj->crc > 0x7fffffff ? $obj->crc - 0x100000000 : $obj->crc);                    $res[] = ['name' => $devpath, 'size' => $obj->contentSize, 'crc' => $crc];                }                break;            case 'stat':                $objs = $tarfile->processTarFile($httpReq, 'files/'.$fname, TAROP_LIST_FILES);                if(sizeof($objs) == 0) {                    $res = ['stat' => 'absent', 'size' => 0, 'crc' => 0];                } else {                    $obj = $objs[0];                    $crc = ($obj->crc > 0x7fffffff ? $obj->crc - 0x100000000 : $obj->crc);                    $res = ['stat' => 'present', 'size' => $obj->contentSize, 'crc' => $crc];                }                break;            case 'del':                // schedule deletion on device                $apinode = $this->server->apiroot->bySerial->subnode($serial);                $apinode->fileList->deleteOnDevice($httpReq, $fname);                // remove from tarball                $tarfile->processTarFile($httpReq, 'files/'.$fname, TAROP_DELETE_FILE);                $res = ['res' => 'ok'];                break;            case 'format':                // schedule format on device                $apinode = $this->server->apiroot->bySerial->subnode($serial);                $apinode->fileList->formatOnDevice();                // remove all user files from tarball                $objs = $tarfile->processTarFile($httpReq, 'files/*', TAROP_LIST_FILES);                for($i = 0; $i < sizeof($objs); $i++) {                    $tarfile->processTarFile($httpReq, 'files/'.$objs[$i]->path, TAROP_DELETE_FILE);                }                $res = ['res' => 'ok'];                break;        }        $this->sendContentHeader($httpReq, 'json');        $httpReq->putStr(json_encode($res));    }    public function filesUpload(VHubServerHTTPRequest $httpReq, string $path, string $content): void    {        $this->ownFiles->processTarFile($httpReq, $path, TAROP_UPDATE_FILE, $content);        $this->server->apiroot->api->files->updateStats($httpReq, $this->ownFiles->knownFilesCount(), $this->ownFiles->tarSize());    }    public function deviceFilesUpload(VHubServerHTTPRequest $httpReq, string $serial, string $path, string $content): void    {        // For other special upload files, put in -pending req only and exit        if(preg_match($this->specialUploadFiles, $path) !== FALSE) {            VHubServer::Log($httpReq, LOG_VHUBSERVER, 2, "Upload to special file for {$serial}: {$path}");            $this->server->scheduleUploadOnDevice($httpReq, $serial, $path, $content);            return;        }        // Firmware update is handled in a special way        if($path == 'firmware' || $path == 'firmwareConf' || $path == 'Xfirmw') {            return;        }        // For regular user files, put content in tarball and update filelist for synchronization        $tarfile = $this->accessDeviceFiles($httpReq, $serial);        $tarfile->processTarFile($httpReq, 'files/'.$path, TAROP_UPDATE_FILE, $content);        $newfile = $tarfile->knownFile('files/'.$path);        $apinode = $this->server->apiroot->bySerial->subnode($serial);        $apinode->fileList->uploadToDevice($httpReq, $path, $newfile->contentSize, $newfile->crc);    }    public function sendFileContent(VHubServerHTTPRequest $httpReq, string $content, string $extension, ?int $crc = null): void    {        if(is_null($crc)) {            $crc = crc32($content);        }        $this->sendContentHeader($httpReq, $extension);        $httpReq->putHeader('Content-Length: '.strlen($content));        $httpReq->putHeader('Cache-Control: no-cache');        $httpReq->putHeader('ETag: '.dechex($crc));        $httpReq->putBin($content);    }    public function sendFile(VHubServerHTTPRequest $httpReq, string $path, string $extension): void    {        // if a local mount override is in place, search it first        if(defined('MOUNT_SERVER_FILES')) {            foreach(MOUNT_SERVER_FILES as $mountDir) {                $fullPath = $mountDir.'/'.$path;                if(file_exists($fullPath)) {                    $content = file_get_contents($fullPath);                    if(str_ends_with($fullPath, '.html') && strpos($content, ' rel="icon"') !== FALSE) {                        $favicon = false;                        foreach(MOUNT_SERVER_FILES as $mountDirAgain) {                            $faviconPath = $mountDirAgain . '/favicon.svg';                            if(file_exists($faviconPath)) {                                $favicon = base64_encode(file_get_contents($faviconPath));                                break;                            }                        }                        if($favicon) {                            $content = preg_replace('~(rel="icon" id="favicon" type="image/svg[+]xml" href="data:image/svg[+]xml;base64,)[^"]*~', '$1'.$favicon, $content);                        }                    }                    // use special e-tag to identify mounted file                    $crc = 0xFF00000000 + crc32($content);                    $this->sendFileContent($httpReq, $content, $extension, $crc);                    return;                }            }        }        // search in embedded UI files        $obj = $this->yfsFiles->search($httpReq, $path);        if(is_null($obj)) {            // search in user files            $obj = $this->ownFiles->searchTarFile($httpReq, $path);            if(is_null($obj)) {                // not found neither                $httpReq->putStatus(404);                Print("Sorry, the requested file ".htmlspecialchars($path)." does not exist on server");                return;            }        }        $content = $obj->content;        $crc = $obj->crc;        if($obj->gzipEncoded) {            $httpReq->putHeader('Content-Encoding: gzip');        }        $this->sendFileContent($httpReq, $content, $extension, $crc);    }    public function sendDeviceFile(VHubServerHTTPRequest $httpReq, string $serial, string $subfile, string $extension): void    {        if(!isset($this->deviceFiles[$serial])) {            $this->deviceFiles[$serial] = new TarFile($this->server, $serial.'.tar');        }        $tarfile = $this->deviceFiles[$serial];        if(array_search($subfile, $this->specialDownloadFiles) !== FALSE) {            // special files are in root directory            $obj = $tarfile->searchTarFile($httpReq, $subfile);        } else {            // search for regular files in yfs/, then files/, then standard EmbeddedUI            VHubServer::Log($httpReq, LOG_TARFILE, 4, "Search for ".'yfs/'.$subfile);            $obj = $tarfile->searchTarFile($httpReq, 'yfs/'.$subfile);            if(is_null($obj)) {                VHubServer::Log($httpReq, LOG_TARFILE, 4, "Search for ".'files/'.$subfile);                $obj = $tarfile->searchTarFile($httpReq, 'files/'.$subfile);            }            if(is_null($obj)) {                // fallback to standard EmbeddedUI file if available                $subpath = $subfile;                $obj = $this->yfsFiles->search($httpReq, $subpath);            }        }        if(is_null($obj)) {            // file not found            $httpReq->putStatus(404);            Print("Sorry, the requested device file ".htmlspecialchars($subfile)." does not exist on ".htmlspecialchars($serial)." [vhub4web]\r\n");            return;        }        $content = $obj->content;        $crc = $obj->crc;        if($obj->gzipEncoded) {            $httpReq->putHeader('Content-Encoding: gzip');        }        $this->sendFileContent($httpReq, $content, $extension, $crc);    }}
+class DataFrequency{    public string $freqStr;    public float $period;    public int $nb;    public bool $perSec;    public bool $perMin;    public bool $perHour;    protected int $maxSeqRowsCache;    public function __construct(mixed $timebase)  // string|int|float    {        $this->maxSeqRowsCache = 0;        $this->perSec = false;        $this->perMin = false;        $this->perHour = false;        if(is_string($timebase)) {            if(strlen($timebase) == 2) {                // binary representation (two bytes)                $freq = ord($timebase[0]);                $this->nb = max($freq, 1);                $period = 1.0 / $this->nb;                $unit = ord($timebase[1]) & 7;                if($unit == 2) {                    $period *= 60;                    $this->perMin = true;                    $this->freqStr = $this->nb.'/m';                } else if($unit == 4) {                    $period *= 3600;                    $this->perHour = true;                    $this->freqStr = $this->nb.'/h';                } else {                    $this->perSec = true;                    $this->freqStr = $this->nb.'/s';                }                $this->period = $period;            } else {                // device-like frequency, eg "30/m"                $pos = strpos($timebase, '/');                if($pos === False) {                    $freq = floatval($timebase);                    $this->nb = max($freq, 1);                    $this->freqStr = $this->nb.'/s';                    $this->perSec = true;                    $this->period = 1.0 / $freq;                } else {                    $this->freqStr = $timebase;                    $freq = intval(substr($timebase, 0, $pos));                    $this->nb = max($freq, 1);                    $period = 1.0 / $this->nb;                    $unit = substr($timebase, $pos+1);                    if($unit == 'm') {                        $period *= 60;                        $this->perMin = true;                    } else if($unit == 'h') {                        $period *= 3600;                        $this->perHour = true;                    } else {                        $this->perSec = true;                    }                    $this->period = $period;                }            }        } else if(is_numeric($timebase) && $timebase > 0) {            // period in seconds            $this->period = $timebase;            if($this->period <= 1) {                $freq = intval(round(1.0 / $this->period));                $this->nb = min($freq, 100);                $this->perSec = true;                $this->freqStr = $this->nb.'/s';            } elseif($this->period <= 60) {                $this->nb = intval(round(60.0 / $this->period));                $this->perMin = true;                $this->freqStr = $this->nb.'/m';            } else {                $freq = intval(round(3600.0 / $this->period));                $this->nb = max($freq, 1);                $this->perHour = true;                $this->freqStr = $this->nb.'/h';            }        }    }    public function alignTimestamp(float $timestamp): float    {        if($this->period < 1) {            $alignmentErr = fmod($timestamp, $this->period);        } else {            $timestamp = intval(round($timestamp));            $timeofday = $timestamp % 86400;            $alignmentErr = $timeofday % intval($this->period);        }        if($alignmentErr < $this->period / 2) {            $timestamp -= $alignmentErr;        } else {            $timestamp += $this->period - $alignmentErr;        }        return $timestamp;    }    public function encoded(): string    {        if($this->perHour) {            return chr($this->nb).chr(4);        } else if($this->perMin) {            return chr($this->nb).chr(2);        } else {            return chr($this->nb).chr(1);        }    }    public function maxSeqRows(): int    {        if($this->maxSeqRowsCache <= 0) {            $count = $this->nb;            $maxRecs = ($this->perSec ? 250 : 120);            // multiple of time units that make sense            // (number of hours, 5-min periods or 5-sec periods)            $timeMult = [ 12, 6, 3, 2, 1 ];            if(!$this->perHour) {                // current total is a second or a minute                for($i = 0; $i < sizeof($timeMult); $i++) {                    $better = $count*5*$timeMult[$i];                    if($better <= $maxRecs) {                        // use 12min sequences instead of 10min (far more efficient)                        if($better == 120 && $this->perMin && $this->nb == 12) {                            $better = 144;                        }                        $count = $better;                        break;                    }                }                if($i == 0 || $i >= sizeof($timeMult)) {                    if($count*3 < $maxRecs) $count *= 3;                    else if($count*2 < $maxRecs) $count *= 2;                }            } else {                if($count <= 5) {                    // up to 5 measures per hour => full day                    return $count*24;                }                for($i = 0; $i < sizeof($timeMult); $i++) {                    $better = $count*$timeMult[$i];                    if($better <= $maxRecs) {                        $count = $better;                        break;                    }                }            }            $this->maxSeqRowsCache = $count;        }        return $this->maxSeqRowsCache;    }}class DataFile{    public int $startstamp;    public int $stopstamp;    public string $functionid;    public string $unit;    public TarObject $tarObject;    public function __construct(TarObject $tarObject)    {        if(preg_match('~^datalogger/([0-9]+)-([a-zA-Z0-9]+)-(.*)-20[0-9]{2}-[0-9]{2}-[0-9]{2}.bin$~', $tarObject->path, $matches)) {            $this->startstamp = intval($matches[1]);            $this->functionid = $matches[2];            $this->unit = $matches[3];        } else {            $this->startstamp = -1;            $this->functionid = '???';            $this->unit = '';        }        $this->stopstamp = time(); // default value, will be overriden when better known        $this->tarObject = $tarObject;    }}const DATASEQ_HEADER_SIZE = 28;   // first functions require shared Read-only accessclass DataSeq{    protected TarFile $tarFile;    protected ?TarObject $tarObj;    protected int $seqOfs;    protected int $dataOfs;    protected int $nextSeqStampCache;    protected string $header;    protected string $data;    public int $runIdx;                  // offset 0-3: run number    public int $utcStamp;                // offset 4-7: start UTC timestamp    public DataFrequency $frequency;     // offset 8-9: measure frequency    public int $firstDur;                // offset 10-11: duration of 1st measure (s/ms)    public int $firstMs;                 // offset 12-13: ms offset of 1st measure    public int $nRows;                   // offset 14-15: number of measures (max 250)    public float $avgVal;                // offset 16-19: sequence average (when complete)    public float $minVal;                // offset 20-23: sequence min value (when complete)    public float $maxVal;                // offset 24-27: sequence max value (when complete)    public array $measures;              // one s32 (instant) or three s32 (avg/min/max) per time unit    public function __construct(TarFile $tarFile, ?TarObject $tarObj, int $seqOfs)    {        $this->tarFile = $tarFile;        $this->tarObj = $tarObj;        $this->seqOfs = $seqOfs;        $this->dataOfs = $seqOfs + DATASEQ_HEADER_SIZE;        $this->nextSeqStampCache = 0;        $this->header = '';        $this->data = '';        $this->nRows = 0;        $this->avgVal = NAN;        $this->minVal = NAN;        $this->maxVal = NAN;        $this->measures = [];    }    public function loadSeq(VHubServerHTTPRequest $httpReq, bool $withData): void    {        $header = $this->tarFile->tarWorkRead($this->tarObj, $this->seqOfs, 28);        $this->header = $header;        $this->runIdx = ord($header[0]) + 0x100*ord($header[1]) + 0x10000*ord($header[2]) + 0x1000000*ord($header[3]);        $this->utcStamp = ord($header[4]) + 0x100*ord($header[5]) + 0x10000*ord($header[6]) + 0x1000000*ord($header[7]);        $this->frequency = new DataFrequency(substr($header, 8, 2));        $this->firstDur = ord($header[10]) + 0x100*ord($header[11]);        $this->firstMs = ord($header[12]) + 0x100*ord($header[13]);        $this->nRows = ord($header[14]) + 0x100*ord($header[15]);        $this->avgVal = decodeFloat($header, 16, true);        $this->minVal = decodeFloat($header, 20, false);        $this->maxVal = decodeFloat($header, 24, false);        if($withData) {            $rsize = 4 * $this->nRows;            if($this->frequency->perSec) {                $data = $this->tarFile->tarWorkRead($this->tarObj, $this->dataOfs, $rsize);                for($pos = 0; $pos < $rsize; $pos += 4) {                    $this->measures[] = decodeFloat($data, $pos, true);                }            } else {                $rsize *= 3;                $data = $this->tarFile->tarWorkRead($this->tarObj, $this->dataOfs, $rsize);                for($pos = 0; $pos < $rsize; $pos += 12) {                    $avgVal = decodeFloat($data, $pos, true);                    $this->measures[] = $avgVal;                    if(!is_nan($avgVal)) {                        $this->measures[] = decodeFloat($data, $pos+4, false);                        $this->measures[] = decodeFloat($data, $pos+8, false);                    } else {                        $this->measures[] = NAN;                        $this->measures[] = NAN;                    }                }            }            $this->data = $data;        }    }    public function storageSize(): int    {        if($this->frequency->perSec) {            return DATASEQ_HEADER_SIZE + 4 * $this->nRows;        } else {            return DATASEQ_HEADER_SIZE + 12 * $this->nRows;        }    }    public function isClosed(): bool    {        return !is_nan($this->avgVal);    }    public function getAvgMinMax(): array    {        if($this->isClosed()) {            return [ $this->avgVal, $this->minVal, $this->maxVal ];        }        $nval = 1;        if($this->frequency->perSec) {            if(sizeof($this->measures) == 0) {                // sequence not yet loaded                $rsize = 4 * $this->nRows;                $data = $this->tarFile->tarWorkRead($this->tarObj, $this->dataOfs, $rsize);                for($pos = 0; $pos < $rsize; $pos += 4) {                    $this->measures[] = decodeFloat($data, $pos, true);                }                $this->data = $data;            }            $value = $this->measures[0];            $sum = $value;            $minVal = $value;            $maxVal = $value;            for($i = 1; $i < $this->nRows; $i++) {                $value = $this->measures[$i];                if(!is_nan($value)) {                    $nval++;                    $sum += $value;                    if($value < $minVal) {                        $minVal = $value;                    }                    if($value > $maxVal) {                        $maxVal = $value;                    }                }            }        } else {            if(sizeof($this->measures) == 0) {                // sequence not yet loaded                $rsize = 12 * $this->nRows;                $data = $this->tarFile->tarWorkRead($this->tarObj, $this->dataOfs, $rsize);                for($pos = 0; $pos < $rsize; $pos += 12) {                    $avgVal = decodeFloat($data, $pos, true);                    $this->measures[] = $avgVal;                    if(!is_nan($avgVal)) {                        $this->measures[] = decodeFloat($data, $pos+4, false);                        $this->measures[] = decodeFloat($data, $pos+8, false);                    } else {                        $this->measures[] = NAN;                        $this->measures[] = NAN;                    }                }                $this->data = $data;            }            $sum = $this->measures[0];            $minVal = $this->measures[1];            $maxVal = $this->measures[2];            for($i = 1; $i < $this->nRows; $i++) {                $avgVal = $this->measures[3*$i];                if(!is_nan($avgVal)) {                    $nval++;                    $sum += $avgVal;                    if($this->measures[3*$i+1] < $minVal) {                        $minVal = $this->measures[3*$i+1];                    }                    if($this->measures[3*$i+2] > $maxVal) {                        $maxVal = $this->measures[3*$i+2];                    }                }            }        }        $avgVal = round(1000 * $sum / $nval) / 1000.0;        return [ $avgVal, $minVal, $maxVal ];    }    public function closeSeq(VHubServerHTTPRequest $httpReq): void    {        $avgMinMax = $this->getAvgMinMax();        VHubServer::Log($httpReq, LOG_DATALOGGER, 4, 'Closing sequence, summary: avg='.$avgMinMax[0].' min='.$avgMinMax[1].' max='.$avgMinMax[2]);        $this->avgVal = $avgMinMax[0];        $this->minVal = $avgMinMax[1];        $this->maxVal = $avgMinMax[2];        $buff = encodeFloat($this->avgVal, true).            encodeFloat($this->minVal, false).            encodeFloat($this->maxVal, false);        $this->tarFile->tarWorkWrite($this->tarObj, $this->seqOfs+16, $buff);    }    // Return the timestamp of the last measure inserted in the sequence    public function lastStamp(): float    {        if($this->frequency->perSec) {            $endFirstRow = $this->utcStamp + ($this->firstMs + $this->firstDur) / 1000;        } else {            $endFirstRow = $this->utcStamp + $this->firstDur;        }        return $endFirstRow + ($this->nRows-1) * $this->frequency->period;    }    // Compute the timestamp of the next sequence to start    public function nextSeqStartStamp(): int    {        if($this->nextSeqStampCache <= 0) {            $count = $this->frequency->maxSeqRows();            $seqPeriod = intval(round($this->frequency->period * $count));            $this->nextSeqStampCache = $this->utcStamp - ($this->utcStamp % $seqPeriod) + $seqPeriod;        }        return $this->nextSeqStampCache;    }    // Setup the sequence given the first measure, initializing the header as required    // (use for creating a new sequence when no header data is available yet)    public function initialize(DataFrequency $freq, YMeasure $measure): void    {        $startTime = $measure->get_startTimeUTC();        $endTime = $measure->get_endTimeUTC();        $avgVal = $measure->get_averageValue();        $minVal = $measure->get_minValue();        $maxVal = $measure->get_maxValue();        $this->runIdx = 0;        $this->frequency = $freq;        if($freq->perSec) {            $this->utcStamp = intval(floor($startTime));            $this->firstMs = intval(round(1000 * ($startTime - $this->utcStamp)));            $this->firstDur = intval(round(1000 * $freq->period));        } else {            $this->utcStamp = intval(round($startTime));            $this->firstMs = 0;            $this->firstDur = intval(round($endTime)) - $this->utcStamp;            if(is_nan($minVal)) $minVal = $avgVal;            if(is_nan($maxVal)) $maxVal = $avgVal;        }        $this->nRows = 1;        $this->header =            encodeUint($this->runIdx, 4).encodeUint($this->utcStamp, 4).$freq->encoded().            encodeUint($this->firstDur, 2).encodeUint($this->firstMs, 2).encodeUint($this->nRows, 2).            encodeFloat($this->avgVal, true).encodeFloat($this->minVal, false).encodeFloat($this->maxVal, false);        if($freq->perSec) {            $this->measures[] = $avgVal;            $this->data .= encodeFloat($avgVal, true);        } else {            $this->measures[] = $avgVal;            $this->measures[] = $minVal;            $this->measures[] = $maxVal;            $this->data .= encodeFloat($avgVal, true).encodeFloat($minVal, false).encodeFloat($maxVal, false);        }    }    // Return the raw buffer representing header for current sequence,    // as returned to the API for processing (sequence summary)    //    // For compatibility with devices, return a patched version    // with the current running avg/min/max    //    public function getRawHeader(): string    {        $res = $this->header;        if(!$this->isClosed()) {            $avgMinMax = $this->getAvgMinMax();            $buff = encodeFloat($avgMinMax[0], true).                encodeFloat($avgMinMax[1], false).                encodeFloat($avgMinMax[2], false);            for($i = 0; $i < strlen($buff); $i++) {                $res[16+$i] = $buff[$i];            }        }        return $res;    }    // Return the raw buffer representing data for current sequence    //    public function getRawData(): string    {        return $this->data;    }    // Return the raw buffer representing header and data for current sequence    //    public function getRawBytes(): string    {        return $this->header.$this->data;    }    // Flush current sequence to Tar file worker (including header)    //    public function flush(): void    {        $this->tarFile->tarWorkWrite($this->tarObj, $this->seqOfs, $this->getRawBytes());    }    // Attempt to add a single measure to an existing sequence    // - The sequence is expected to be open    // - The timestamp is expected to be after current sequence start    // - Intermediate "holes" are automatically added if needed    // - If the new measure cannot fit in current sequence close it and return false    // - Once the sequence is complete, it will automatically be closed    public function appendMeasure(VHubServerHTTPRequest $httpReq, DataFrequency $freq, YMeasure $measure): bool    {        if($this->frequency->freqStr != $freq->freqStr) {            VHubServer::Log($httpReq, LOG_DATALOGGER, 5, "Recording frequency changed from {$this->frequency->freqStr} to {$freq->freqStr}");            $this->closeSeq($httpReq);            return false;        }        $startTime = $measure->get_startTimeUTC();        $endTime = $measure->get_endTimeUTC();        $nextSeqStamp = $this->nextSeqStartStamp();        if($startTime >= $nextSeqStamp) {            VHubServer::Log($httpReq, LOG_DATALOGGER, 5, "Timestamp beyond sequence end ({$startTime} >= {$nextSeqStamp})");            $this->closeSeq($httpReq);            return false;        }        $prevEndTime = $this->lastStamp();        if($startTime < $prevEndTime) {            // duplicate data for same timestamp, probably a rounding issue: silently drop            VHubServer::Log($httpReq, LOG_DATALOGGER, 5, "Timestamp {$startTime} < {$prevEndTime}, dropping measure");            return true;        }        $skipRows = intval(($startTime - $prevEndTime) / $this->frequency->period + 0.001); // safe round down        $avgVal = $measure->get_averageValue();        $minVal = $measure->get_minValue();        $maxVal = $measure->get_maxValue();        if($this->frequency->perSec) {            $data = str_repeat(chr(0xff), 4*$skipRows);            $data .= encodeFloat($avgVal, true);            $this->tarFile->tarWorkWrite($this->tarObj, $this->dataOfs + 4*$this->nRows, $data);            if(sizeof($this->measures) > 0) {                $this->data .= $data;                for ($i = 0; $i < $skipRows; $i++) {                    $this->measures[] = NAN;                }                $this->measures[] = $avgVal;            }        } else {            if(is_nan($minVal)) $minVal = $avgVal;            if(is_nan($maxVal)) $maxVal = $avgVal;            $data = str_repeat(chr(0xff), 12*$skipRows);            $data .= encodeFloat($avgVal, true).encodeFloat($minVal, false).encodeFloat($maxVal, false);            $this->tarFile->tarWorkWrite($this->tarObj, $this->dataOfs + 12*$this->nRows, $data);            if(sizeof($this->measures) > 0) {                $this->data .= $data;                for($i = 0; $i < 3*$skipRows; $i++) {                    $this->measures[] = NAN;                }                $this->measures[] = $avgVal;                $this->measures[] = $minVal;                $this->measures[] = $maxVal;            }        }        $this->nRows += $skipRows + 1;        $this->tarFile->tarWorkWriteUint($this->tarObj, $this->seqOfs + 14, $this->nRows, 2);        if($endTime >= $nextSeqStamp) {            VHubServer::Log($httpReq, LOG_DATALOGGER, 4, "This is the last measure of the sequence ({$endTime} >= {$nextSeqStamp})");            $this->closeSeq($httpReq);        }        return true;    }}class DataLogger{    protected VHubServer $server;    protected FileServer $filesrv;    protected string $serial;    protected ?TarFile $tarfile;    public function __construct(VHubServer $parent, string $serial)    {        $this->server = $parent;        $this->filesrv = $parent->files;        $this->serial = $serial;        $this->tarfile = null;    }    public function recorderEncode(string $data): string    {        $nwords = strlen($data) >> 1;        $wbuff = [];        for ($pos = 0; $pos < $nwords; $pos++) {            $wbuff[$pos] = ord($data[2 * $pos]) + 256 * ord($data[2 * $pos + 1]);        }        $res = '';        for ($pos = 0; $pos < $nwords; $pos++) {            $val = $wbuff[$pos];            if ($val == 0) {                $res .= '*';                continue;            } else if ($val == 0x7fff) {                $res .= 'Y';                continue;            } else if ($val == 0xffff) {                $res .= 'X';                continue;            }            for ($dist = 1; $dist <= $pos && $dist <= 30; $dist++) {                if ($wbuff[$pos - $dist] == $val) break;            }            if ($dist <= $pos && $dist <= 30) {                $res .= chr(96 + $dist);            } else {                $res .= chr(48 + ($val & 0x1f)); // 5 lowest bits                $val >>= 5;                $res .= chr(48 + ($val & 0x1f)); // 5 medium bits                $val >>= 5;                $val += 48;                if ($val == 92) {                    $res .= 'z';                } else {                    $res .= chr($val);                }            }        }        return $res;    }    protected function cleanUnit(string $unit): string    {        return preg_replace('~[ /°_".\'\-]~', '', $unit);    }    protected function accessData(VHubServerHTTPRequest $httpReq, string $fnpattern = '*'): array    {        $this->tarfile = $this->filesrv->accessDeviceFiles($httpReq, $this->serial);        $tarObjects = $this->tarfile->processTarFile($httpReq, 'datalogger/'.$fnpattern, TAROP_WORKON_FILES);        usort($tarObjects, function(TarObject $a, TarObject $b) { return strcmp($a->path, $b->path); });        $res = [];        $serverStamp = time();        foreach($tarObjects as $tarObj) {            $df = new DataFile($tarObj);            if($df->startstamp > $serverStamp + 2*86400) {                // data file more than a 48h in the future, ignore it                continue;            }            if(!isset($res[$df->functionid])) {                $res[$df->functionid] = [ $df ];            } else {                $res[$df->functionid][] = $df;            }        }        // determine the last usage date of each datafile based on startstamp of next file        foreach($res as $functionid => $functionFiles) {            for($i = 1; $i < sizeof($functionFiles); $i++) {                $functionFiles[$i-1]->stopstamp = $functionFiles[$i]->startstamp;            }        }        return $res;    }    protected function canAddDataFile(VHubServerHTTPRequest $httpReq, array $dataFiles, ?DataFile &$oldestDataFile): bool    {        $nFiles = 0;        $oldestDataFile = null;        $oldestStamp = time();        foreach($dataFiles as $functionid => $functionFiles) {            $nFiles += sizeof($functionFiles);            $df = $functionFiles[0];            if($oldestStamp > $df->stopstamp) {                $oldestStamp = $df->stopstamp;                $oldestDataFile = $df;            }        }        return $nFiles < DATAFILE_MAX_COUNT;    }    protected function loadSeq(VHubServerHTTPRequest $httpReq, DataFile $dataFile, int $seqOfs, bool $withData = true): DataSeq    {        $dataSeq = new DataSeq($this->tarfile, $dataFile->tarObject, $seqOfs);        $dataSeq->loadSeq($httpReq, $withData);        return $dataSeq;    }    public function appendMeasures(VHubServerHTTPRequest $httpReq, array $reports): void    {        $serverStamp = time();        $dataFiles = $this->accessData($httpReq);        $lastSeqOfs = [];        $mustCreate = [];        $mustAdd = [];        foreach($reports as $functionid => $report) {            $hardwareid = "{$this->serial}.{$functionid}";            $freq = $report['freq'];            $measure = $report['measure'];            $cleanUnit = $this->cleanUnit($report['unit']);            $startTime = $measure->get_startTimeUTC();            $endTime = $measure->get_endTimeUTC();            $value = $measure->get_averageValue();            VHubServer::Log($httpReq, LOG_DATALOGGER, 5, "@{$startTime}-{$endTime}: {$hardwareid}: {$value} {$report['unit']}");            if($endTime < $serverStamp-2*86400) {                VHubServer::Log($httpReq, LOG_DATALOGGER, 3, "Timestamp {$endTime} for {$hardwareid} is more than a 48h in the past, dropping data");                continue;            }            if($endTime > $serverStamp+2*86400) {                VHubServer::Log($httpReq, LOG_DATALOGGER, 3, "Timestamp {$endTime} for {$hardwareid} is more than a 48h in the future, dropping data");                continue;            }            if(!isset($dataFiles[$functionid])) {                VHubServer::Log($httpReq, LOG_DATALOGGER, 5, "No datafile for {$hardwareid} yet, must create one");                $mustCreate[$functionid] = $report;                continue;            }            $lastFile = $dataFiles[$functionid][sizeof($dataFiles[$functionid])-1];            if($endTime < $lastFile->startstamp) {                VHubServer::Log($httpReq, LOG_DATALOGGER, 3, "Timestamp {$endTime} for {$hardwareid} is going back, dropping data");                continue;            }            if($this->cleanUnit($lastFile->unit) != $cleanUnit) {                VHubServer::Log($httpReq, LOG_DATALOGGER, 3, "Measurement unit for {$hardwareid} has changed, must create a new datafile");                $mustCreate[$functionid] = $report;                continue;            }            $lastSeqOfs[$functionid] = $this->tarfile->tarWorkReadUint($lastFile->tarObject, 0, 4);            $dataSeq = $this->loadSeq($httpReq, $lastFile, $lastSeqOfs[$functionid], false);            if($dataSeq->isClosed()) {                VHubServer::Log($httpReq, LOG_DATALOGGER, 5, "Current sequence for {$hardwareid} is closed, opening a new sequence");                $mustAdd[$functionid] = $report;                continue;            }            if($startTime < $dataSeq->lastStamp()) {                if($dataSeq->lastStamp() > $serverStamp+2*86400) {                    VHubServer::Log($httpReq, LOG_DATALOGGER, 2, "Found unreasonable timestamp in the datalogger for {$hardwareid}, must create a new datafile");                    $mustCreate[$functionid] = $report;                } else {                    VHubServer::Log($httpReq, LOG_DATALOGGER, 3, "Timestamp {$startTime} for {$hardwareid} is going back, dropping data");                }                continue;            }            if(!$dataSeq->appendMeasure($httpReq, $freq, $measure)) {                VHubServer::Log($httpReq, LOG_DATALOGGER, 5, "Could not add measure to current sequence {$hardwareid}, opening a new sequence");                $mustAdd[$functionid] = $report;                continue;            }        }        foreach($mustAdd as $functionid => $report) {            $hardwareid = "{$this->serial}.{$functionid}";            $lastFile = $dataFiles[$functionid][sizeof($dataFiles[$functionid])-1];            $seqOfs = $lastSeqOfs[$functionid];            $dataSeq = $this->loadSeq($httpReq, $lastFile, $seqOfs, false);            $seqOfs += $dataSeq->storageSize();            // ensure we have space for one more sequence            $seqMaxSize = $freq->maxSeqRows() * 4;            if(!$freq->perSec) $seqMaxSize *= 3;            $seqMaxSize += DATASEQ_HEADER_SIZE;            if($seqOfs + $seqMaxSize > DATAFILE_MAX_SIZE) {                VHubServer::Log($httpReq, LOG_DATALOGGER, 5, "Datafile for {$hardwareid} is full, must create new file");                $mustCreate[$functionid] = $report;                continue;            }            // create new data sequence in file            VHubServer::Log($httpReq, LOG_DATALOGGER, 5, "New datastream for {$hardwareid}");            $dataSeq = new DataSeq($this->tarfile, $lastFile->tarObject, $seqOfs);            $dataSeq->initialize($freq, $report['measure']);            $dataSeq->flush();            // update position of last sequence position at start of file            $this->tarfile->tarWorkWriteUint($lastFile->tarObject, 0, $seqOfs, 4);        }        // Release tar file anyway to allow exclusive read/write mode for adding a file        $this->tarfile->tarWorkDone($httpReq);        if(sizeof($mustCreate) == 0) {            return;        }        // Add missing data files in tar archive        $datapad = str_repeat(chr(255), DATAFILE_MAX_SIZE);        foreach($mustCreate as $functionid => $report) {            $measure = $report['measure'];            $utcstamp = intval(round($measure->get_startTimeUTC()));            $prefix = 'datalogger/'.$utcstamp.'-';            $cleanUnit = $this->cleanUnit($report['unit']);            $suffix = '-'.date('Y-m-d', $utcstamp).'.bin';            $subfile = $prefix.$functionid.'-'.$cleanUnit.$suffix;            $seqOfs = 4;            $dataSeq = new DataSeq($this->tarfile, null, $seqOfs);            $dataSeq->initialize($freq, $measure);            $content = encodeUint($seqOfs, 4).$dataSeq->getRawBytes();            $content .= substr($datapad, strlen($content));            if($this->canAddDataFile($httpReq, $dataFiles, $oldestDataFile)) {                VHubServer::Log($httpReq, LOG_DATALOGGER, 3, "Creating {$subfile} for {$this->serial}");                $this->tarfile->processTarFile($httpReq, $subfile, TAROP_UPDATE_FILE, $content);            } else {                $oldsubfile = $oldestDataFile->tarObject->path;                VHubServer::Log($httpReq, LOG_DATALOGGER, 3, "Creating {$subfile} for {$this->serial}, replacing oldest file {$oldsubfile}");                $this->tarfile->processTarFile($httpReq, $oldsubfile.'|'.$subfile, TAROP_REPLACE_FILE, $content);            }            // refresh file list            $dataFiles = $this->accessData($httpReq);        }    }    public function printIndex(VHubServerHTTPRequest $httpReq, APISensorNode $sensorNode, string $functionid, string $runmatch, int $fromStamp, int $toStamp, bool $verbose): void    {        $unit = $sensorNode->getattr('unit');        $calib = $sensorNode->getattr('calibrationParam');        $httpReq->putStr('{"id":"'.$functionid.'","unit":"'.$unit.'","calib":"'.$calib.'","cal":"*","bulk":"128","streams":'."[\n");        $cleanUnit = $this->cleanUnit($unit);        $sep = '';        $dataFiles = $this->accessData($httpReq, '*-'.$functionid.'-*');        if(isset($dataFiles[$functionid])) {            $functionFiles = $dataFiles[$functionid];        } else {            $functionFiles = [];        }        VHubServer::Log($httpReq, LOG_DATALOGGER, 5, "Found ".sizeof($functionFiles). " file matching functionId $functionid");        for($i = 0; $i < sizeof($functionFiles); $i++) {            // filter out files not relevant for the requested period and unit            $dataFile = $functionFiles[$i];            VHubServer::Log($httpReq, LOG_DATALOGGER, 5, "Check unit");            if($this->cleanUnit($dataFile->unit) != $cleanUnit) continue;            if($i+1 < sizeof($functionFiles)) {                VHubServer::Log($httpReq, LOG_DATALOGGER, 5, "Check start timestamp");                if($functionFiles[$i+1]->startstamp <= $fromStamp) continue;            }            VHubServer::Log($httpReq, LOG_DATALOGGER, 5, "Check end timestamp");            if($dataFile->startstamp > $toStamp) break;            if($i+1 < sizeof($functionFiles)) {                VHubServer::Log($httpReq, LOG_DATALOGGER, 5, "Check next timestamp");                $nextFile = $functionFiles[$i+1];                if($nextFile->startstamp <= $fromStamp) {                    continue;                }            }            // data file might contain data for the requested period            $lastSeqOfs = $this->tarfile->tarWorkReadUint($dataFile->tarObject, 0, 4);            VHubServer::Log($httpReq, LOG_DATALOGGER, 5, "Last sequence at offset $lastSeqOfs");            for($seqOfs = 4; $seqOfs <= $lastSeqOfs; ) {                $dataSeq = $this->loadSeq($httpReq, $dataFile, $seqOfs, false);                $duration = intVal(round($dataSeq->nRows * $dataSeq->frequency->period));                VHubServer::Log($httpReq, LOG_DATALOGGER, 5, "Sequence at $seqOfs start stamp: ".$dataSeq->utcStamp);                if($dataSeq->utcStamp >= $toStamp) break;                VHubServer::Log($httpReq, LOG_DATALOGGER, 5, "Sequence at $seqOfs end stamp: ".($dataSeq->utcStamp+$duration));                if($dataSeq->utcStamp+$duration > $fromStamp &&                    ($runmatch == '' || intval($runmatch) == $dataSeq->runIdx)) {                    if ($verbose) {                        $avgMinMax = $dataSeq->getAvgMinMax();                        $avgVal = $avgMinMax[0];                        $minVal = $avgMinMax[1];                        $maxVal = $avgMinMax[2];                        $httpReq->putStr($sep . '{"run":' . $dataSeq->runIdx . ',"utc":' . $dataSeq->utcStamp . ',"dur":' . $duration .                            ',"freq":"' . $dataSeq->frequency->freqStr . '","val":[' . $minVal . ',' . $avgVal . ',' . $maxVal . ']}' . "\n");                    } else {                        $httpReq->putStr($sep . '"' . $this->recorderEncode($dataSeq->getRawHeader()) . '"' . "\n");                    }                    $sep = ',';                }                $seqOfs += $dataSeq->storageSize();            }        }        $this->tarfile->tarWorkDone($httpReq);        $httpReq->putStr("]}");    }    public function printRun(VHubServerHTTPRequest $httpReq, string $functionid, string $runmatch, array $utcStamps, bool $verbose): void    {        $dataFiles = $this->accessData($httpReq, '*-'.$functionid.'-*');        if(isset($dataFiles[$functionid])) {            $functionFiles = $dataFiles[$functionid];        } else {            $functionFiles = [];        }        $isFirst = true;        $minStamp = min($utcStamps);        $stampIdx = 0;        for($fi = 0; $fi < sizeof($functionFiles); $fi++) {            // filter out files not relevant for the requested period and unit            $dataFile = $functionFiles[$fi];            if($fi+1 < sizeof($functionFiles)) {                $nextFile = $functionFiles[$fi+1];                if($nextFile->startstamp <= $minStamp) {                    continue;                }            }            // data file might contain data for the requested period            $lastSeqOfs = $this->tarfile->tarWorkReadUint($dataFile->tarObject, 0, 4);            for($seqOfs = 4; $seqOfs <= $lastSeqOfs; ) {                $dataSeq = $this->loadSeq($httpReq, $dataFile, $seqOfs, false);                $duration = intVal(round($dataSeq->nRows * $dataSeq->frequency->period));                if($dataSeq->utcStamp == $utcStamps[$stampIdx] &&                    ($runmatch == '' || intval($runmatch) == $dataSeq->runIdx)) {                    VHubServer::Log($httpReq, LOG_DATALOGGER, 5, "Using sequence starting at {$dataSeq->utcStamp}, {$dataSeq->nRows} rows, {$duration}s");                    $dataSeq->loadSeq($httpReq, true);                    if ($verbose) {                        $httpReq->putStr($isFirst ? '[' : ",\n[");                        $sep = '';                        $measures = $dataSeq->measures;                        if($dataSeq->frequency->perSec) {                            for($i = 0; $i < sizeof($measures); $i++) {                                $httpReq->putStr($sep.$measures[$i]."\n");                                $sep = ',';                            }                        } else {                            for($i = 0; $i+2 < sizeof($measures); $i += 3) {                                $httpReq->putStr($sep."[".$measures[$i+1].','.$measures[$i].','.$measures[$i+2]."]\n");                                $sep = ',';                            }                        }                        $httpReq->putStr(']');                    } else {                        $httpReq->putStr(($isFirst ? '"' : "\n,\"") . $this->recorderEncode($dataSeq->getRawData()) . '"');                    }                    $isFirst = false;                    $stampIdx++;                    if($stampIdx >= sizeof($utcStamps)) {                        // exit outside loop                        $fi = sizeof($functionFiles);                        break;                    }                }                $seqOfs += $dataSeq->storageSize();            }        }        $this->tarfile->tarWorkDone($httpReq);    }    public function clearHistory(VHubServerHTTPRequest $httpReq): void    {        // Create a list of files to delete, ordered by reverse position in tar file (to reduce rewrite)        $this->tarfile = $this->filesrv->accessDeviceFiles($httpReq, $this->serial);        $tarObjects = $this->tarfile->processTarFile($httpReq, 'datalogger/*', TAROP_WORKON_FILES);        usort($tarObjects, function(TarObject $a, TarObject $b) { return $b->tarOffset - $a->tarOffset; });        $removeList = [];        foreach($tarObjects as $tarObject) {            $removeList[] = $tarObject->path;        }        $this->tarfile->tarWorkDone($httpReq);        // Now delete data files        foreach($removeList as $path) {            $this->tarfile->processTarFile($httpReq, $path, TAROP_DELETE_FILE);        }    }}
 function parseEnum(string $ystr, $enumDef): int{    if(is_numeric($ystr)) {        return intVal($ystr);    }    $res = array_search($ystr, $enumDef);    if($res !== FALSE) {        return $res;    }    return 0;}function parseUInt(string $ystr): int{    $xpos = strpos($ystr, 'x');    if($xpos !== FALSE) {        return hexdec(substr($ystr, $xpos+1));    }    return intVal($ystr);}function parseMeasure(string $ystr): float{    return floatVal($ystr);}function parseStepPos(string $ystr): float{    return floatVal($ystr);}function parseMove(string $ystr): object{    if(preg_match('/^(?<target>-?\d+):(?<msval>\d+)$/', $ystr, $matches)) {        return (object)[            'moving' => 1,            'target' => $matches['target'],            'ms' => $matches['ms']        ];    }    return (object)[        'moving' => 0,        'target' => 0,        'ms' => 0    ];}function APIBitString(string $bitstring, int $value): string{    $nbits = strlen($bitstring);    for($i = 0; $i < $nbits; $i++) {        if(($value & 1) == 0) {            $bitstring[$i] = '.';        }        $value >>= 1;    }    return '['.$bitstring.']';}function APIPassword(VHubServerHTTPRequest $httpReq, string $pwd): string{    if($httpReq->getAuthUser() == 'admin') {        return $pwd;    } else {        return '*****';    }}
-class CloudConf{    public function __construct()    {    }    function loadState(VHubServerHTTPRequest $httpReq, object $data): void    {    }    function saveState(): array    {        return [];    }}class DeviceCloudConf extends CloudConf{    public string $parentHub;    public string $parentIP;    public int $lastSeen;    public int $reconnect;    public int $logPos;    public int $tRepPos;    public string $yfsVer;    public function __construct()    {        parent::__construct();        $this->parentHub = '';        $this->parentIP = '';        $this->lastSeen = 0;        $this->reconnect = 0;        $this->logPos = 0;        $this->tRepPos = 0;        $this->yfsVer = '';    }    function loadState($httpReq, object $data): void    {        parent::loadState($httpReq, $data);        if(isset($data->parentHub)) {            $this->parentHub = $data->parentHub;            $this->parentIP = $data->parentIP;            $this->lastSeen = $data->lastSeen;        }        if(isset($data->reconnect)) {            $this->reconnect = $data->reconnect;        }        $this->logPos = $data->logPos;        if(isset($data->tRepPos)) {            $this->tRepPos = $data->tRepPos;        }        if(isset($data->yfsVer)) {            $this->yfsVer = $data->yfsVer;        }    }    function deviceResetDetected()    {        $this->logPos = 0;        $this->tRepPos = 0;    }    function saveState(): array    {        $res = parent::saveState();        $res['parentHub'] = $this->parentHub;        $res['parentIP'] = $this->parentIP;        $res['lastSeen'] = $this->lastSeen;        $res['reconnect'] = $this->reconnect;        $res['logPos'] = $this->logPos;        if($this->tRepPos != 0) {            $res['tRepPos'] = $this->tRepPos;        }        $res['yfsVer'] = $this->yfsVer;        return $res;    }}class GlobalCloudConf extends CloudConf{    // The serial number is initialized randomly only, then preserved    public string $serialNumber;    // The authentication realm is initialized to the serial number, then preserved.    // Passwords must be reset if the realm is changed manually.    public string $authRealm;    // Incoming HTTP callback MD5 signature password.    public string $md5signPwd;    // Settings saved explicitely    public array $savedSettings;    // Current attribute values    public array $valuesCache;    // Additional state variables to be saved, to be used through accessor functions    protected array $devYdxBySerial;    const PARENT_DEVYDX = 10000;    public function __construct()    {        parent::__construct();        $this->serialNumber = 'VHUB4WEB-'.dechex(mt_rand(0x1000000,0xfffffff));        $this->authRealm = $this->serialNumber;        $this->md5signPwd = '';        $this->savedSettings = [            'logicalName' => '',            'networkName' => '',            'filesName' => '',            'luminosity' => 0,            'defaultPage' => '',            'userPassword' => '',            'adminPassword' => ''        ];        $this->valuesCache = array_merge($this->savedSettings);        $this->devYdxBySerial = [];    }    public function loadState(VHubServerHTTPRequest $httpReq, object $data): void    {        parent::loadState($httpReq, $data);        $this->serialNumber = $data->serialNumber;        $this->authRealm = $data->authRealm;        if(isset($data->md5signPwd)) {            $this->md5signPwd = $data->md5signPwd;        }        foreach($data->savedSettings as $name => $value) {            $this->savedSettings[$name] = $value;            // default current value to saved setting            $this->valuesCache[$name] = $value;        }        foreach($data->valuesCache as $name => $value) {            $this->valuesCache[$name] = $value;        }        foreach($data->devYdxBySerial as $serial => $devydx) {            $this->devYdxBySerial[$serial] = $devydx;        }    }    // Allocate a new the devYdx for a given serial number, and bind it to the parent devYdx    // Return the newly allocated devYdx    // If no more devYdx is available (> 255 devices), return -1;    //    public function allocDevYdx(string $serial, int $parentDevYdx): int    {        $usedDevYdx = [];        foreach($this->devYdxBySerial as $devYdx) {            $usedDevYdx[$devYdx % GlobalCloudConf::PARENT_DEVYDX] = true;        }        for($devYdx = 1; $devYdx < 256; $devYdx++) {            if(!isset($usedDevYdx[$devYdx])) {                $this->devYdxBySerial[$serial] = $devYdx + GlobalCloudConf::PARENT_DEVYDX * $parentDevYdx;                return $devYdx;            }        }        return -1;    }    // Return the devYdx for a given serial number, or -1 if device is unknown    //    public function getDevYdx(string $serial): int    {        if(!isset($this->devYdxBySerial[$serial])) {            return -1;        }        return $this->devYdxBySerial[$serial] % GlobalCloudConf::PARENT_DEVYDX;    }    // Return the parent device devYdx for a device given by its serialNumber    //    public function getParentDevYdx(string $serial): int    {        if(!isset($this->devYdxBySerial[$serial])) {            return 0;   // VirtualHub-4web own devYdx        }        return intdiv($this->devYdxBySerial[$serial], GlobalCloudConf::PARENT_DEVYDX);    }    // Sets the parent devYdx only for a device given by serialNumber    //    public function setParentDevYdx(string $serial, int $parentDevYdx): void    {        if(!isset($this->devYdxBySerial[$serial])) {            return; // should never happen, but not that bad anyway        }        $devYdx = $this->getDevYdx($serial);        $this->devYdxBySerial[$serial] = $devYdx + GlobalCloudConf::PARENT_DEVYDX * $parentDevYdx;    }    // Free a given devYdx when forgetting a device    //    public function freeDevYdx(string $serial): void    {        unset($this->devYdxBySerial[$serial]);    }    public function saveState(): array    {        $res = parent::saveState();        $res['serialNumber'] = $this->serialNumber;        $res['authRealm'] = $this->authRealm;        $res['md5signPwd'] = $this->md5signPwd;        $res['savedSettings'] = $this->savedSettings;        $res['valuesCache'] = $this->valuesCache;        $res['devYdxBySerial'] = $this->devYdxBySerial;        return $res;    }    // Save current API settings to persistent zone    public function saveSettings()    {        foreach($this->savedSettings as $name => $value) {            $this->savedSettings[$name] = $this->valuesCache[$name];        }    }    // Revert current API settings to saved values    public function revertSettings()    {        foreach($this->savedSettings as $name => $value) {            $this->valuesCache[$name] = $value;        }    }}class DailyStats{    protected int $divisor;    protected int $color;    protected array $byCallback;    protected array $byDayMin;    protected array $byDayVal;    protected array $byDayMax;    protected int $prevDayStamp;    protected int $prevDayCount;    protected int $prevDaySum;    protected int $prevDayMin;    protected int $prevDayMax;    public function __construct(int $divisor, int $color)    {        $this->divisor = $divisor;        $this->color = $color;        $this->byCallback = [];        $this->byDayMin = [];        $this->byDayVal = [];        $this->byDayMax = [];        $this->prevDayStamp = 0;        $this->prevDayCount = 0;        $this->prevDaySum = 0;        $this->prevDayMin = 0;        $this->prevDayMax = 0;    }    function loadState(VHubServerHTTPRequest $httpReq, object $data): void    {        $this->byCallback = $data->byCallback;        $this->byDayVal = $data->byDayVal;        $this->byDayMin = $data->byDayMin;        $this->byDayMax = $data->byDayMax;        $this->prevDayStamp = $data->prevDayStamp;        $this->prevDayCount = $data->prevDayCount;        $this->prevDaySum = $data->prevDaySum;        $this->prevDayMin = $data->prevDayMin;        $this->prevDayMax = $data->prevDayMax;    }    function appendVal(VHubServerHTTPRequest $httpReq, int $timeStamp, int $val): void    {        // Save per-callback information        $this->byCallback[] = $val;        if(sizeof($this->byCallback) > DEVICESTATS_MAX_CONN) {            array_splice($this->byCallback, 0, sizeof($this->byCallback) - DEVICESTATS_MAX_CONN);        }        // Save per-day information        $dayStamp = $timeStamp - ($timeStamp % 86400) + 43200;        if($this->prevDayStamp != $dayStamp) {            if($this->prevDayStamp != 0) {                if ($this->prevDayCount > 0) {                    $divisor = ($this->divisor > 0 ? $this->divisor : $this->prevDayCount);                    $this->byDayVal[] = intval(round($this->prevDaySum / $divisor));                    $this->byDayMin[] = $this->prevDayMin;                    $this->byDayMax[] = $this->prevDayMax;                }                $dayInterval = intdiv($dayStamp - $this->prevDayStamp, 86400);                while ($dayInterval > 1) {                    $this->byDayVal[] = 0;                    $this->byDayMin[] = 0;                    $this->byDayMax[] = 0;                    $dayInterval--;                }                if(sizeof($this->byDayVal) > DEVICESTATS_MAX_DAYS) {                    array_splice($this->byDayVal, 0, sizeof($this->byDayVal) - DEVICESTATS_MAX_DAYS);                    array_splice($this->byDayMin, 0, sizeof($this->byDayMin) - DEVICESTATS_MAX_DAYS);                    array_splice($this->byDayMax, 0, sizeof($this->byDayMax) - DEVICESTATS_MAX_DAYS);                }            }            $this->prevDayStamp = $dayStamp;            $this->prevDayCount = 1;            $this->prevDaySum = $val;            $this->prevDayMin = $val;            $this->prevDayMax = $val;        } else {            $this->prevDayCount++;            $this->prevDaySum += $val;            $this->prevDayMin = min($this->prevDayMin, $val);            $this->prevDayMax = max($this->prevDayMax, $val);        }    }    function saveState(): array    {        $res = [];        $res['byCallback'] = $this->byCallback;        $res['byDayMin'] = $this->byDayMin;        $res['byDayVal'] = $this->byDayVal;        $res['byDayMax'] = $this->byDayMax;        $res['dayValDivisor'] = $this->divisor;        $res['prevDayStamp'] = $this->prevDayStamp;        $res['prevDayCount'] = $this->prevDayCount;        $res['prevDaySum'] = $this->prevDaySum;        $res['prevDayMin'] = $this->prevDayMin;        $res['prevDayMax'] = $this->prevDayMax;        $res['defaultColor'] = $this->color;        return $res;    }}class DeviceStats{    protected int $prevTimestamp;    protected bool $modified;    protected array $stats; // actually a YearlyStats[]    public function __construct()    {        $this->prevTimestamp = 0;        $this->modified = false;        $this->stats = [            'callbackInterval_s' => new DailyStats(0, 0x8b4513),            'sensorBufferUsage_percent' => new DailyStats(0, 0x7f007f),            'errors_count' => new DailyStats(1, 0xdf0000),            'warnings_count' => new DailyStats(1, 0xdf5f00),            'devices_count' => new DailyStats(1, 0x5f5f5f),            'resets_count' => new DailyStats(1, 0xe5b718),            'callbackIOReadTime_ms' => new DailyStats(0, 0x00006f),            'callbackProcessingTime_ms' => new DailyStats(0, 0x0000cf),            'dataReceived_bytes_kb' => new DailyStats(1024, 0x005f00),            'dataSent_bytes_kb' => new DailyStats(1024, 0x008f00)        ];    }    function loadState(VHubServerHTTPRequest $httpReq, object $data): void    {        $this->prevTimestamp = $data->prevTimestamp;        foreach($data as $key => $stats) {            if(isset($this->stats[$key]) && isset($stats->prevDayStamp)) {                $this->stats[$key]->loadState($httpReq, $stats);            }        }        $this->modified = false;    }    function appendStats(VHubServerHTTPRequest $httpReq, int $sensorBufferUsage, int $nDevice, int $nReset): void    {        $now = $httpReq->getRequestTimestamp();        $interval = ($this->prevTimestamp == 0 ? 0 : $now - $this->prevTimestamp);        $this->stats['callbackInterval_s']->appendVal($httpReq, $now, $interval);        $this->stats['sensorBufferUsage_percent']->appendVal($httpReq, $now, $sensorBufferUsage);        $this->stats['errors_count']->appendVal($httpReq, $now, $httpReq->getErrorCount());        $this->stats['warnings_count']->appendVal($httpReq, $now, $httpReq->getWarningCount());        $this->stats['devices_count']->appendVal($httpReq, $now, $nDevice);        $this->stats['resets_count']->appendVal($httpReq, $now, $nReset);        $this->stats['callbackIOReadTime_ms']->appendVal($httpReq, $now, $httpReq->getIOReadTime());        $this->stats['callbackProcessingTime_ms']->appendVal($httpReq, $now, $httpReq->getProcessingTime());        $this->stats['dataReceived_bytes_kb']->appendVal($httpReq, $now, $httpReq->getDataReceived());        $this->stats['dataSent_bytes_kb']->appendVal($httpReq, $now, $httpReq->getDataSent());        $this->prevTimestamp = $now;        $this->changed = true;    }    public function hasChanged(): bool    {        return $this->modified;    }    function saveState(): array    {        $res = [ 'prevTimestamp' => $this->prevTimestamp ];        foreach($this->stats as $key => $stats) {            $res[$key] = $stats->saveState();        }        return $res;    }}
-$ApiAttrEdit = "function editHtml(n,v,t){e=editFreeText;switch(t){case 1:case 9:case 19:case 24:case 27:case 62:case 63:return e(n,v,20);case 3:return editSelect(n,v,['Revert','Save to flash']);case 4:return e(n,v.slice(0,-1),3);case 5:case 36:return editRadio(n,v,['OFF','ON']);case 8:case 11:case 14:case 28:return e(n,v,7);case 10:case 86:return (typeof eF=='undefined'?e:eF)(n,v,9);case 12:return editSelect(n,v,['IMMEDIATE','PERIOD_AVG','PERIOD_MIN','PERIOD_MAX']);case 16:case 25:case 32:case 18:case 49:case 51:case 60:case 67:case 6:case 74:case 81:case 83:case 88:case 89:return e(n,v,15);case 17:return editSelect(n,v,['ANALOG_FAST','DIGITAL4','ANALOG_SMOOTH']);case 15:return editRadio(n,v,['FALSE','TRUE']);case 26:return editSelect(n,v,['HOMENETWORK','ROAMING','NEVER','NEUTRALITY']);case 30:return editSelect(n,v,['RGB','RGBW','WS2811']);case 35:return editUTC(n,v);case 37:return e(n,v,10);case 39:return editSelect(n,v,['USB_5V','USB_3V','EXT_V']);case 40:return editSelect(n,v,['LEFT','UP','RIGHT','DOWN']);case 43:return editSelect(n,v,['AUTO','FROM_USB','FROM_EXT','OFF']);case 44:return editSelect(n,v,['HIGH_RATE','HIGH_RATE_FILTERED','LOW_NOISE','LOW_NOISE_FILTERED','HIGHEST_RATE','AC']);case 45:return editSelect(n,v,['GPS_DMS','GPS_DM','GPS_D']);case 46:return editSelect(n,v,['GNSS','GPS','GLONASS','GALILEO','GPS_GLONASS','GPS_GALILEO','GLONASS_GALILEO']);case 50:return editSelect(n,v,['OFF','3V3','1V8']);case 53:return editSelect(n,v,['STILL','RELAX','AWARE','RUN','CALL','PANIC']);case 54:return editSelect(n,v,['HUMAN_EYE','WIDE_SPECTRUM','INFRARED','HIGH_RATE','HIGH_ENERGY','HIGH_RESOLUTION']);case 57:return editSelect(n,v,['OFF','DC','AC']);case 58:return editSelect(n,v,['IDLE','BRAKE','FORWD','BACKWD','LOVOLT','HICURR','HIHEAT','FAILSF']);case 61:case 96:return e(n,v,33);case 64:return editSelect(n,v,['POST','GET','PUT']);case 65:return editSelect(n,v,['FORM','JSON','JSON_ARRAY','CSV','YOCTO_API','JSON_NUM','EMONCMS','AZURE','INFLUXDB','MQTT','YOCTO_API_JZON','PRTG','INFLUXDB_V2']);case 66:case 99:return e(n,v,50);case 68:return editSelect(n,v,['OFF','OUT3V3','OUT5V','OUT4V7','OUT1V8']);case 69:return editSelect(n,v,['INT','EXT']);case 70:return editSelect(n,v,['NUMERIC','PRESENCE','PULSECOUNT']);case 71:return editSelect(n,v,['PWM_DUTYCYCLE','PWM_FREQUENCY','PWM_PULSEDURATION','PWM_EDGECOUNT','PWM_PULSECOUNT','PWM_CPS','PWM_CPM','PWM_STATE','PWM_FREQ_CPS','PWM_FREQ_CPM','PWM_PERIODCOUNT']);case 72:return editSelect(n,v,['USB5V','USB3V','EXTV','OPNDRN']);case 73:return editSelect(n,v,['DEFAULT','LONG_RANGE','HIGH_ACCURACY','HIGH_SPEED']);case 75:return editSelect(n,v,['NDOF','NDOF_FMC_OFF','M4G','COMPASS','IMU','INCLIN_90DEG_1G8','INCLIN_90DEG_3G6','INCLIN_10DEG']);case 76:return editRadio(n,v,['A','B']);case 77:return editSelect(n,v,['UNCHANGED','A','B']);case 79:return editSelect(n,v,['DISCONNECTED','MANUAL','AUTO1','AUTO60']);case 80:return editSelect(n,v,['OFF','TTL3V','TTL3VR','TTL5V','TTL5VR','RS232','RS485','TTL1V8','SDI12']);case 82:return e(n,v.slice(0,-2),3);case 84:return editRadio(n,v,['ACTIVE_LOW','ACTIVE_HIGH']);case 87:return editRadio(n,v,['MICROSTEP16','MICROSTEP8','MICROSTEP4','HALFSTEP','FULLSTEP']);case 90:return editSelect(n,v,['DIGITAL','TYPE_K','TYPE_E','TYPE_J','TYPE_N','TYPE_R','TYPE_S','TYPE_T','PT100_4WIRES','PT100_3WIRES','PT100_2WIRES','RES_OHM','RES_NTC','RES_LINEAR','RES_INTERNAL','IR','RES_PT1000','CHANNEL_OFF']);case 92:return editSelect(n,v,['SLEEPING','AWAKE']);case 94:return e(n,v,26);case 95:return e(n,v,9);case 97:return e(n,v,14);}return e(n,v,32)}";
+class CloudConf{    public function __construct()    {    }    function loadState(VHubServerHTTPRequest $httpReq, object $data): void    {    }    function saveState(): array    {        return [];    }}class DeviceCloudConf extends CloudConf{    public string $parentHub;    public string $parentIP;    public int $lastSeen;    public int $reconnect;    public int $logPos;    public int $tRepPos;    public string $yfsVer;    public int $sleepAfterCallback;    public function __construct()    {        parent::__construct();        $this->parentHub = '';        $this->parentIP = '';        $this->lastSeen = 0;        $this->reconnect = 0;        $this->logPos = 0;        $this->tRepPos = 0;        $this->yfsVer = '';        $this->sleepAfterCallback = 0;    }    function loadState($httpReq, object $data): void    {        parent::loadState($httpReq, $data);        if(isset($data->parentHub)) {            $this->parentHub = $data->parentHub;            $this->parentIP = $data->parentIP;            $this->lastSeen = $data->lastSeen;        }        if(isset($data->reconnect)) {            $this->reconnect = $data->reconnect;        }        $this->logPos = $data->logPos;        if(isset($data->tRepPos)) {            $this->tRepPos = $data->tRepPos;        }        if(isset($data->yfsVer)) {            $this->yfsVer = $data->yfsVer;        }        if(isset($data->sleepAfterCallback)) {            $this->sleepAfterCallback = $data->sleepAfterCallback;        }    }    function deviceResetDetected()    {        $this->logPos = 0;        $this->tRepPos = 0;    }    function saveState(): array    {        $res = parent::saveState();        $res['parentHub'] = $this->parentHub;        $res['parentIP'] = $this->parentIP;        $res['lastSeen'] = $this->lastSeen;        $res['reconnect'] = $this->reconnect;        $res['logPos'] = $this->logPos;        if($this->tRepPos != 0) {            $res['tRepPos'] = $this->tRepPos;        }        $res['yfsVer'] = $this->yfsVer;        $res['sleepAfterCallback'] = $this->sleepAfterCallback;        return $res;    }}class GlobalCloudConf extends CloudConf{    // The serial number is initialized randomly only, then preserved    public string $serialNumber;    // The authentication realm is initialized to the serial number, then preserved.    // Passwords must be reset if the realm is changed manually.    public string $authRealm;    // Incoming HTTP callback MD5 signature password.    public string $md5signPwd;    // Settings saved explicitely    public array $savedSettings;    // Current attribute values    public array $valuesCache;    // Additional state variables to be saved, to be used through accessor functions    protected array $devYdxBySerial;    const PARENT_DEVYDX = 10000;    public function __construct()    {        parent::__construct();        $this->serialNumber = 'VHUB4WEB-'.dechex(mt_rand(0x1000000,0xfffffff));        $this->authRealm = $this->serialNumber;        $this->md5signPwd = '';        $this->savedSettings = [            'logicalName' => '',            'networkName' => '',            'filesName' => '',            'luminosity' => 0,            'defaultPage' => '',            'userPassword' => '',            'adminPassword' => ''        ];        $this->valuesCache = array_merge($this->savedSettings);        $this->devYdxBySerial = [];    }    public function loadState(VHubServerHTTPRequest $httpReq, object $data): void    {        parent::loadState($httpReq, $data);        $this->serialNumber = $data->serialNumber;        $this->authRealm = $data->authRealm;        if(isset($data->md5signPwd)) {            $this->md5signPwd = $data->md5signPwd;        }        foreach($data->savedSettings as $name => $value) {            $this->savedSettings[$name] = $value;            // default current value to saved setting            $this->valuesCache[$name] = $value;        }        foreach($data->valuesCache as $name => $value) {            $this->valuesCache[$name] = $value;        }        foreach($data->devYdxBySerial as $serial => $devydx) {            $this->devYdxBySerial[$serial] = $devydx;        }    }    // Allocate a new the devYdx for a given serial number, and bind it to the parent devYdx    // Return the newly allocated devYdx    // If no more devYdx is available (> 255 devices), return -1;    //    public function allocDevYdx(string $serial, int $parentDevYdx): int    {        $usedDevYdx = [];        foreach($this->devYdxBySerial as $devYdx) {            $usedDevYdx[$devYdx % GlobalCloudConf::PARENT_DEVYDX] = true;        }        for($devYdx = 1; $devYdx < 256; $devYdx++) {            if(!isset($usedDevYdx[$devYdx])) {                $this->devYdxBySerial[$serial] = $devYdx + GlobalCloudConf::PARENT_DEVYDX * $parentDevYdx;                return $devYdx;            }        }        return -1;    }    // Return the devYdx for a given serial number, or -1 if device is unknown    //    public function getDevYdx(string $serial): int    {        if(!isset($this->devYdxBySerial[$serial])) {            return -1;        }        return $this->devYdxBySerial[$serial] % GlobalCloudConf::PARENT_DEVYDX;    }    // Return the parent device devYdx for a device given by its serialNumber    //    public function getParentDevYdx(string $serial): int    {        if(!isset($this->devYdxBySerial[$serial])) {            return 0;   // VirtualHub-4web own devYdx        }        return intdiv($this->devYdxBySerial[$serial], GlobalCloudConf::PARENT_DEVYDX);    }    // Sets the parent devYdx only for a device given by serialNumber    //    public function setParentDevYdx(string $serial, int $parentDevYdx): void    {        if(!isset($this->devYdxBySerial[$serial])) {            return; // should never happen, but not that bad anyway        }        $devYdx = $this->getDevYdx($serial);        $this->devYdxBySerial[$serial] = $devYdx + GlobalCloudConf::PARENT_DEVYDX * $parentDevYdx;    }    // Free a given devYdx when forgetting a device    //    public function freeDevYdx(string $serial): void    {        unset($this->devYdxBySerial[$serial]);    }    public function saveState(): array    {        $res = parent::saveState();        $res['serialNumber'] = $this->serialNumber;        $res['authRealm'] = $this->authRealm;        $res['md5signPwd'] = $this->md5signPwd;        $res['savedSettings'] = $this->savedSettings;        $res['valuesCache'] = $this->valuesCache;        $res['devYdxBySerial'] = $this->devYdxBySerial;        return $res;    }    // Save current API settings to persistent zone    public function saveSettings()    {        foreach($this->savedSettings as $name => $value) {            $this->savedSettings[$name] = $this->valuesCache[$name];        }    }    // Revert current API settings to saved values    public function revertSettings()    {        foreach($this->savedSettings as $name => $value) {            $this->valuesCache[$name] = $value;        }    }}class DailyStats{    protected int $divisor;    protected int $color;    protected array $byCallback;    protected array $byDayMin;    protected array $byDayVal;    protected array $byDayMax;    protected int $prevDayStamp;    protected int $prevDayCount;    protected int $prevDaySum;    protected int $prevDayMin;    protected int $prevDayMax;    public function __construct(int $divisor, int $color)    {        $this->divisor = $divisor;        $this->color = $color;        $this->byCallback = [];        $this->byDayMin = [];        $this->byDayVal = [];        $this->byDayMax = [];        $this->prevDayStamp = 0;        $this->prevDayCount = 0;        $this->prevDaySum = 0;        $this->prevDayMin = 0;        $this->prevDayMax = 0;    }    function loadState(VHubServerHTTPRequest $httpReq, object $data): void    {        $this->byCallback = $data->byCallback;        $this->byDayVal = $data->byDayVal;        $this->byDayMin = $data->byDayMin;        $this->byDayMax = $data->byDayMax;        $this->prevDayStamp = $data->prevDayStamp;        $this->prevDayCount = $data->prevDayCount;        $this->prevDaySum = $data->prevDaySum;        $this->prevDayMin = $data->prevDayMin;        $this->prevDayMax = $data->prevDayMax;    }    function appendVal(VHubServerHTTPRequest $httpReq, int $timeStamp, int $val): void    {        // Save per-callback information        $this->byCallback[] = $val;        if(sizeof($this->byCallback) > DEVICESTATS_MAX_CONN) {            array_splice($this->byCallback, 0, sizeof($this->byCallback) - DEVICESTATS_MAX_CONN);        }        // Save per-day information        $dayStamp = $timeStamp - ($timeStamp % 86400) + 43200;        if($this->prevDayStamp != $dayStamp) {            if($this->prevDayStamp != 0) {                if ($this->prevDayCount > 0) {                    $divisor = ($this->divisor > 0 ? $this->divisor : $this->prevDayCount);                    $this->byDayVal[] = intval(round($this->prevDaySum / $divisor));                    $this->byDayMin[] = $this->prevDayMin;                    $this->byDayMax[] = $this->prevDayMax;                }                $dayInterval = intdiv($dayStamp - $this->prevDayStamp, 86400);                while ($dayInterval > 1) {                    $this->byDayVal[] = 0;                    $this->byDayMin[] = 0;                    $this->byDayMax[] = 0;                    $dayInterval--;                }                if(sizeof($this->byDayVal) > DEVICESTATS_MAX_DAYS) {                    array_splice($this->byDayVal, 0, sizeof($this->byDayVal) - DEVICESTATS_MAX_DAYS);                    array_splice($this->byDayMin, 0, sizeof($this->byDayMin) - DEVICESTATS_MAX_DAYS);                    array_splice($this->byDayMax, 0, sizeof($this->byDayMax) - DEVICESTATS_MAX_DAYS);                }            }            $this->prevDayStamp = $dayStamp;            $this->prevDayCount = 1;            $this->prevDaySum = $val;            $this->prevDayMin = $val;            $this->prevDayMax = $val;        } else {            $this->prevDayCount++;            $this->prevDaySum += $val;            $this->prevDayMin = min($this->prevDayMin, $val);            $this->prevDayMax = max($this->prevDayMax, $val);        }    }    function saveState(): array    {        $res = [];        $res['byCallback'] = $this->byCallback;        $res['byDayMin'] = $this->byDayMin;        $res['byDayVal'] = $this->byDayVal;        $res['byDayMax'] = $this->byDayMax;        $res['dayValDivisor'] = $this->divisor;        $res['prevDayStamp'] = $this->prevDayStamp;        $res['prevDayCount'] = $this->prevDayCount;        $res['prevDaySum'] = $this->prevDaySum;        $res['prevDayMin'] = $this->prevDayMin;        $res['prevDayMax'] = $this->prevDayMax;        $res['defaultColor'] = $this->color;        return $res;    }}class DeviceStats{    protected int $prevTimestamp;    protected bool $modified;    protected array $stats; // actually a YearlyStats[]    public function __construct()    {        $this->prevTimestamp = 0;        $this->modified = false;        $this->stats = [            'callbackInterval_s' => new DailyStats(0, 0x8b4513),            'sensorBufferUsage_percent' => new DailyStats(0, 0x7f007f),            'errors_count' => new DailyStats(1, 0xdf0000),            'warnings_count' => new DailyStats(1, 0xdf5f00),            'devices_count' => new DailyStats(0, 0x2f2f2f),            'resets_count' => new DailyStats(1, 0xe5b718),            'callbackIOReadTime_ms' => new DailyStats(0, 0x0000cf),            'callbackProcessingTime_ms' => new DailyStats(0, 0x005f00),            'dataReceived_bytes_kb' => new DailyStats(1024, 0x005f00),            'dataSent_bytes_kb' => new DailyStats(1024, 0x0000cf)        ];    }    function loadState(VHubServerHTTPRequest $httpReq, object $data): void    {        $this->prevTimestamp = $data->prevTimestamp;        foreach($data as $key => $stats) {            if(isset($this->stats[$key]) && isset($stats->prevDayStamp)) {                $this->stats[$key]->loadState($httpReq, $stats);            }        }        $this->modified = false;    }    function appendStats(VHubServerHTTPRequest $httpReq, int $sensorBufferUsage, int $nDevice, int $nReset): void    {        $now = $httpReq->getRequestTimestamp();        $interval = ($this->prevTimestamp == 0 ? 0 : $now - $this->prevTimestamp);        $this->stats['callbackInterval_s']->appendVal($httpReq, $now, $interval);        $this->stats['sensorBufferUsage_percent']->appendVal($httpReq, $now, $sensorBufferUsage);        $this->stats['errors_count']->appendVal($httpReq, $now, $httpReq->getErrorCount());        $this->stats['warnings_count']->appendVal($httpReq, $now, $httpReq->getWarningCount());        $this->stats['devices_count']->appendVal($httpReq, $now, $nDevice);        $this->stats['resets_count']->appendVal($httpReq, $now, $nReset);        $this->stats['callbackIOReadTime_ms']->appendVal($httpReq, $now, $httpReq->getIOReadTime());        $this->stats['callbackProcessingTime_ms']->appendVal($httpReq, $now, $httpReq->getProcessingTime());        $this->stats['dataReceived_bytes_kb']->appendVal($httpReq, $now, $httpReq->getDataReceived());        $this->stats['dataSent_bytes_kb']->appendVal($httpReq, $now, $httpReq->getDataSent());        $this->prevTimestamp = $now;        $this->changed = true;    }    public function hasChanged(): bool    {        return $this->modified;    }    function saveState(): array    {        $res = [ 'prevTimestamp' => $this->prevTimestamp ];        foreach($this->stats as $key => $stats) {            $res[$key] = $stats->saveState();        }        return $res;    }}
+$ApiAttrEdit = "function editHtml(n,v,t){e=editFreeText;switch(t){case 1:case 9:case 19:case 24:case 27:case 63:case 64:return e(n,v,20);case 3:return editSelect(n,v,['Revert','Save to flash']);case 4:return e(n,v.slice(0,-1),3);case 5:case 36:return editRadio(n,v,['OFF','ON']);case 8:case 11:case 14:case 28:return e(n,v,7);case 10:case 86:return (typeof eF=='undefined'?e:eF)(n,v,9);case 12:return editSelect(n,v,['IMMEDIATE','PERIOD_AVG','PERIOD_MIN','PERIOD_MAX']);case 16:case 25:case 32:case 18:case 49:case 51:case 61:case 68:case 6:case 74:case 81:case 83:case 88:case 89:return e(n,v,15);case 17:return editSelect(n,v,['ANALOG_FAST','DIGITAL4','ANALOG_SMOOTH']);case 15:return editRadio(n,v,['FALSE','TRUE']);case 26:return editSelect(n,v,['HOMENETWORK','ROAMING','NEVER','NEUTRALITY']);case 30:return editSelect(n,v,['RGB','RGBW','WS2811']);case 35:return editUTC(n,v);case 37:return e(n,v,10);case 39:return editSelect(n,v,['USB_5V','USB_3V','EXT_V']);case 40:return editSelect(n,v,['LEFT','UP','RIGHT','DOWN']);case 43:return editSelect(n,v,['AUTO','FROM_USB','FROM_EXT','OFF']);case 44:return editSelect(n,v,['HIGH_RATE','HIGH_RATE_FILTERED','LOW_NOISE','LOW_NOISE_FILTERED','HIGHEST_RATE','AC']);case 45:return editSelect(n,v,['GPS_DMS','GPS_DM','GPS_D']);case 46:return editSelect(n,v,['GNSS','GPS','GLONASS','GALILEO','GPS_GLONASS','GPS_GALILEO','GLONASS_GALILEO']);case 50:return editSelect(n,v,['OFF','3V3','1V8']);case 52:return editSelect(n,v,['NONE','TIMED','V_MAX','V_MIN','I_MAX','I_MIN','P_MAX','P_MIN','V_AVG_MAX','V_AVG_MIN','V_RMS_MAX','V_RMS_MIN','I_AVG_MAX','I_AVG_MIN','I_RMS_MAX','I_RMS_MIN','P_AVG_MAX','P_AVG_MIN','PF_MIN','DPF_MIN']);case 54:return editSelect(n,v,['STILL','RELAX','AWARE','RUN','CALL','PANIC']);case 55:return editSelect(n,v,['HUMAN_EYE','WIDE_SPECTRUM','INFRARED','HIGH_RATE','HIGH_ENERGY','HIGH_RESOLUTION']);case 58:return editSelect(n,v,['OFF','DC','AC']);case 59:return editSelect(n,v,['IDLE','BRAKE','FORWD','BACKWD','LOVOLT','HICURR','HIHEAT','FAILSF']);case 62:case 96:return e(n,v,33);case 65:return editSelect(n,v,['POST','GET','PUT']);case 66:return editSelect(n,v,['FORM','JSON','JSON_ARRAY','CSV','YOCTO_API','JSON_NUM','EMONCMS','AZURE','INFLUXDB','MQTT','YOCTO_API_JZON','PRTG','INFLUXDB_V2']);case 67:case 99:return e(n,v,50);case 69:return editSelect(n,v,['OFF','OUT3V3','OUT5V','OUT4V7','OUT1V8']);case 70:return editSelect(n,v,['NUMERIC','PRESENCE','PULSECOUNT']);case 71:return editSelect(n,v,['PWM_DUTYCYCLE','PWM_FREQUENCY','PWM_PULSEDURATION','PWM_EDGECOUNT','PWM_PULSECOUNT','PWM_CPS','PWM_CPM','PWM_STATE','PWM_FREQ_CPS','PWM_FREQ_CPM','PWM_PERIODCOUNT']);case 72:return editSelect(n,v,['USB5V','USB3V','EXTV','OPNDRN']);case 73:return editSelect(n,v,['DEFAULT','LONG_RANGE','HIGH_ACCURACY','HIGH_SPEED']);case 75:return editSelect(n,v,['NDOF','NDOF_FMC_OFF','M4G','COMPASS','IMU','INCLIN_90DEG_1G8','INCLIN_90DEG_3G6','INCLIN_10DEG']);case 76:return editRadio(n,v,['A','B']);case 77:return editSelect(n,v,['UNCHANGED','A','B']);case 79:return editSelect(n,v,['DISCONNECTED','MANUAL','AUTO1','AUTO60']);case 80:return editSelect(n,v,['OFF','TTL3V','TTL3VR','TTL5V','TTL5VR','RS232','RS485','TTL1V8','SDI12']);case 82:return e(n,v.slice(0,-2),3);case 84:return editRadio(n,v,['ACTIVE_LOW','ACTIVE_HIGH']);case 87:return editRadio(n,v,['MICROSTEP16','MICROSTEP8','MICROSTEP4','HALFSTEP','FULLSTEP']);case 90:return editSelect(n,v,['DIGITAL','TYPE_K','TYPE_E','TYPE_J','TYPE_N','TYPE_R','TYPE_S','TYPE_T','PT100_4WIRES','PT100_3WIRES','PT100_2WIRES','RES_OHM','RES_NTC','RES_LINEAR','RES_INTERNAL','IR','RES_PT1000','CHANNEL_OFF']);case 92:return editSelect(n,v,['SLEEPING','AWAKE']);case 94:return e(n,v,26);case 95:return e(n,v,9);case 97:return e(n,v,14);}return e(n,v,32)}";
 $ApiDef = [
     "DataLogger" => [
         "logicalName"        => -1,
@@ -8805,6 +9978,18 @@ $ApiDef = [
         "i2cVoltageLevel"    => -50,
         "i2cMode"            => -51
     ],
+    "InputCapture" => [
+        "logicalName"        => -1,
+        "advertisedValue"    => -9,
+        "lastCaptureTime"    => 6,
+        "nSamples"           => -14,
+        "samplingRate"       => 14,
+        "captureType"        => -52,
+        "condValue"          => -10,
+        "condAlign"          => -4,
+        "captureTypeAtStartup" => -52,
+        "condValueAtStartup" => -10
+    ],
     "InputChain" => [
         "logicalName"        => -1,
         "advertisedValue"    => -9,
@@ -8820,7 +10005,7 @@ $ApiDef = [
         "bitChain6"          => 1,
         "bitChain7"          => 1,
         "watchdogPeriod"     => -14,
-        "chainDiags"         => 52
+        "chainDiags"         => 53
     ],
     "Latitude" => [
         "logicalName"        => -1,
@@ -8857,7 +10042,7 @@ $ApiDef = [
         "advertisedValue"    => -9,
         "power"              => -5,
         "luminosity"         => -4,
-        "blinking"           => -53
+        "blinking"           => -54
     ],
     "LightSensor" => [
         "logicalName"        => -1,
@@ -8873,7 +10058,7 @@ $ApiDef = [
         "calibrationParam"   => -13,
         "resolution"         => -10,
         "sensorState"        => 8,
-        "measureType"        => -54
+        "measureType"        => -55
     ],
     "Magnetometer" => [
         "logicalName"        => -1,
@@ -8899,16 +10084,17 @@ $ApiDef = [
         "advertisedValue"    => -9,
         "slotsInUse"         => 14,
         "slotsCount"         => 14,
-        "slotsBitmap"        => 55,
+        "slotsBitmap"        => 56,
         "pduSent"            => -14,
         "pduReceived"        => -14,
+        "obey"               => -1,
         "command"            => -1
     ],
     "MultiAxisController" => [
         "logicalName"        => -1,
         "advertisedValue"    => -9,
         "nAxis"              => -14,
-        "globalState"        => 56,
+        "globalState"        => 57,
         "command"            => -1
     ],
     "MultiCellWeighScale" => [
@@ -8927,7 +10113,7 @@ $ApiDef = [
         "sensorState"        => 8,
         "cellCount"          => -14,
         "externalSense"      => -15,
-        "excitation"         => -57,
+        "excitation"         => -58,
         "tempAvgAdaptRatio"  => -10,
         "tempChgAdaptRatio"  => -10,
         "compTempAvg"        => 10,
@@ -8948,7 +10134,7 @@ $ApiDef = [
     "Motor" => [
         "logicalName"        => -1,
         "advertisedValue"    => -9,
-        "motorStatus"        => -58,
+        "motorStatus"        => -59,
         "drivingForce"       => -10,
         "brakingForce"       => -10,
         "cutOffVoltage"      => -10,
@@ -8961,28 +10147,29 @@ $ApiDef = [
     "Network" => [
         "logicalName"        => -1,
         "advertisedValue"    => -9,
-        "readiness"          => 59,
+        "readiness"          => 60,
         "macAddress"         => 19,
-        "ipAddress"          => 60,
-        "subnetMask"         => 60,
-        "router"             => 60,
-        "currentDNS"         => 60,
-        "ipConfig"           => -61,
-        "primaryDNS"         => -60,
-        "secondaryDNS"       => -60,
-        "ntpServer"          => -60,
-        "userPassword"       => -62,
-        "adminPassword"      => -63,
+        "ipAddress"          => 61,
+        "subnetMask"         => 61,
+        "router"             => 61,
+        "currentDNS"         => 61,
+        "ipConfig"           => -62,
+        "primaryDNS"         => -61,
+        "secondaryDNS"       => -61,
+        "ntpServer"          => -61,
+        "userPassword"       => -63,
+        "adminPassword"      => -64,
         "httpPort"           => -14,
         "defaultPage"        => -1,
         "discoverable"       => -15,
         "wwwWatchdogDelay"   => -14,
         "callbackUrl"        => -1,
-        "callbackMethod"     => -64,
-        "callbackEncoding"   => -65,
-        "callbackCredentials" => -66,
+        "callbackMethod"     => -65,
+        "callbackEncoding"   => -66,
+        "callbackTemplate"   => -5,
+        "callbackCredentials" => -67,
         "callbackInitialDelay" => -14,
-        "callbackSchedule"   => -67,
+        "callbackSchedule"   => -68,
         "callbackMinDelay"   => -14,
         "callbackMaxDelay"   => -14,
         "poeCurrent"         => 7
@@ -9006,6 +10193,7 @@ $ApiDef = [
         "calibrationParam"   => -13,
         "resolution"         => -10,
         "sensorState"        => 8,
+        "powerFactor"        => 10,
         "cosPhi"             => 10,
         "meter"              => -10,
         "deliveredEnergyMeter" => 10,
@@ -9030,23 +10218,21 @@ $ApiDef = [
     "PowerOutput" => [
         "logicalName"        => -1,
         "advertisedValue"    => -9,
-        "voltage"            => -68
+        "voltage"            => -69
     ],
     "PowerSupply" => [
         "logicalName"        => -1,
         "advertisedValue"    => -9,
-        "voltageSetPoint"    => -10,
+        "voltageLimit"       => -10,
         "currentLimit"       => -10,
         "powerOutput"        => -5,
-        "voltageSense"       => -69,
         "measuredVoltage"    => 10,
         "measuredCurrent"    => 10,
         "inputVoltage"       => 10,
-        "vInt"               => 10,
-        "ldoTemperature"     => 10,
         "voltageTransition"  => -32,
-        "voltageAtStartUp"   => -10,
-        "currentAtStartUp"   => -10,
+        "voltageLimitAtStartUp" => -10,
+        "currentLimitAtStartUp" => -10,
+        "powerOutputAtStartUp" => -5,
         "command"            => -1
     ],
     "Proximity" => [
@@ -9243,7 +10429,7 @@ $ApiDef = [
     "StepperMotor" => [
         "logicalName"        => -1,
         "advertisedValue"    => -9,
-        "motorState"         => 56,
+        "motorState"         => 57,
         "diags"              => 85,
         "stepPos"            => -86,
         "speed"              => 10,
@@ -9400,7 +10586,7 @@ $ApiDef = [
         "calibrationParam"   => -13,
         "resolution"         => -10,
         "sensorState"        => 8,
-        "excitation"         => -57,
+        "excitation"         => -58,
         "tempAvgAdaptRatio"  => -10,
         "tempChgAdaptRatio"  => -10,
         "compTempAvg"        => 10,
@@ -9441,7 +10627,7 @@ $ApiDef = [
         "index"              => 8
     ]
 ];
-$ApiTypes = ["","Text","XWord","enumFlashSettings","Percent","enumOnOff","Time","UsedCurrent","Int","PubText","MeasureVal","YFrequency","enumAdvertisingMode","CalibParams","UInt31","enumBool","UInt","enumInputType","ValueRange","MACAddress","enumBtState","enumCellType","IMSI","YFSText","PinPassword","RadioConfig","enumServiceScope","APNPassword","U24Color","Move","enumLedType","enumAxis","AnyFloatTransition","enumLoopPwrState","enumDaisyState","UTCTime","enumOffOnPending","BitByte","DigitalIODiags","enumIOVoltage","enumOrientation","enumDisplayType","enumDualPwrState","enumDualPwrControl","enumSignalSampling","enumGPSCoordinateSystem","enumGPSConstellation","enumPortState","BaudRate","Protocol","enumI2cVoltageLevel","I2cMode","InputChainDiags","enumBlink","enumLightSensorTypeAll","BinaryBuffer","enumStepperState","enumExcitationMode","enumMotorState","enumReadiness","IPAddress","IPConfig","UserPassword","AdminPassword","enumHTTPMethod","enumCallbackEncoding","Credentials","CallbackSchedule","enumPowerOuputVoltage","enumVoltageSense","enumProximityReportModeType","enumPwmReportModeType","enumPwmPwrState","enumRangeFinderMode","RangeFinderCalib","enumFusionModeTypeAll","enumToggle","enumToggleAtPowerOn","DelayedPulse","enumDisplayMode","enumSerialVoltageLevel","SerialMode","MicroSeconds","SpiMode","enumPolarity","StepperDiags","StepPos","enumSteppingMode","AlertMode","AuxMode","enumTempSensorTypeAll","enumWakeUpReason","enumWakeUpState","MinOfHalfHourBits","HoursOfDayBits","DaysOfWeekBits","DaysOfMonthBits","MonthsOfYearBits","enumWLANSec","WLANConfig","enumWLANState","HText","ApiURL","enumBaseType","HwId","PubStrText"];
+$ApiTypes = ["","Text","XWord","enumFlashSettings","Percent","enumOnOff","Time","UsedCurrent","Int","PubText","MeasureVal","YFrequency","enumAdvertisingMode","CalibParams","UInt31","enumBool","UInt","enumInputType","ValueRange","MACAddress","enumBtState","enumCellType","IMSI","YFSText","PinPassword","RadioConfig","enumServiceScope","APNPassword","U24Color","Move","enumLedType","enumAxis","AnyFloatTransition","enumLoopPwrState","enumDaisyState","UTCTime","enumOffOnPending","BitByte","DigitalIODiags","enumIOVoltage","enumOrientation","enumDisplayType","enumDualPwrState","enumDualPwrControl","enumSignalSampling","enumGPSCoordinateSystem","enumGPSConstellation","enumPortState","BaudRate","Protocol","enumI2cVoltageLevel","I2cMode","enumCaptureTypeAll","InputChainDiags","enumBlink","enumLightSensorTypeAll","BinaryBuffer","enumStepperState","enumExcitationMode","enumMotorState","enumReadiness","IPAddress","IPConfig","UserPassword","AdminPassword","enumHTTPMethod","enumCallbackEncoding","Credentials","CallbackSchedule","enumPowerOuputVoltage","enumProximityReportModeType","enumPwmReportModeType","enumPwmPwrState","enumRangeFinderMode","RangeFinderCalib","enumFusionModeTypeAll","enumToggle","enumToggleAtPowerOn","DelayedPulse","enumDisplayMode","enumSerialVoltageLevel","SerialMode","MicroSeconds","SpiMode","enumPolarity","StepperDiags","StepPos","enumSteppingMode","AlertMode","AuxMode","enumTempSensorTypeAll","enumWakeUpReason","enumWakeUpState","MinOfHalfHourBits","HoursOfDayBits","DaysOfWeekBits","DaysOfMonthBits","MonthsOfYearBits","enumWLANSec","WLANConfig","enumWLANState","HText","ApiURL","enumBaseType","HwId","PubStrText"];
 $ApiEnums = [
     "enumBool"           => ["FALSE","TRUE"],
     "enumOnOff"          => ["OFF","ON"],
@@ -9488,10 +10674,10 @@ $ApiEnums = [
     "enumDaisyState"     => ["READY","IS_CHILD","FIRMWARE_MISMATCH","CHILD_MISSING","CHILD_LOST"],
     "enumProximityReportModeType" => ["NUMERIC","PRESENCE","PULSECOUNT"],
     "enumExcitationMode" => ["OFF","DC","AC"],
-    "enumVoltageSense"   => ["INT","EXT"],
     "enumLedType"        => ["RGB","RGBW","WS2811"],
     "enumAdvertisingMode" => ["IMMEDIATE","PERIOD_AVG","PERIOD_MIN","PERIOD_MAX"],
     "enumInputType"      => ["ANALOG_FAST","DIGITAL4","ANALOG_SMOOTH"],
+    "enumCaptureTypeAll" => ["NONE","TIMED","V_MAX","V_MIN","I_MAX","I_MIN","P_MAX","P_MIN","V_AVG_MAX","V_AVG_MIN","V_RMS_MAX","V_RMS_MIN","I_AVG_MAX","I_AVG_MIN","I_RMS_MAX","I_RMS_MIN","P_AVG_MAX","P_AVG_MIN","PF_MIN","DPF_MIN"],
     "enumFlashSettings"  => ["LOADED","SAVED","MODIFIED"]
 ];
 // Decode an attribute value received from REST API
@@ -9564,9 +10750,9 @@ function ApiJsonEncodeAttribute(VHubServerHTTPRequest $httpReq, mixed $php_val, 
         return APIPassword($httpReq, $php_val);
     case 27:                            // APNPassword
         return APIPassword($httpReq, $php_val);
-    case 62:                            // UserPassword
+    case 63:                            // UserPassword
         return APIPassword($httpReq, $php_val);
-    case 63:                            // AdminPassword
+    case 64:                            // AdminPassword
         return APIPassword($httpReq, $php_val);
     case 86:                            // StepPos
         return round($php_val * 16.0);
@@ -9610,11 +10796,11 @@ function ApiTxtEncodeAttribute(VHubServerHTTPRequest $httpReq, mixed $val, int $
         return APIBitString("012345678TP", $val);
     case 48:                            // BaudRate
         return ($val).' [kbps]';
-    case 52:                            // InputChainDiags
+    case 53:                            // InputChainDiags
         return APIBitString("NW5CDLRT", $val);
-    case 62:                            // UserPassword
+    case 63:                            // UserPassword
         return APIPassword($httpReq, $val);
-    case 63:                            // AdminPassword
+    case 64:                            // AdminPassword
         return APIPassword($httpReq, $val);
     case 78:                            // DelayedPulse
         return ($val->moving ? "{$val->target} in {$val->ms} [ms]" : 'none');
@@ -9637,5 +10823,5 @@ function ApiTxtEncodeAttribute(VHubServerHTTPRequest $httpReq, mixed $val, int $
     }
 }
 
-class APINode{    protected VHubServer $server;    public string $name;    protected array $subnodes;    protected array $values;    // immediate properties    protected array $types;     // immediate properties type, for edition    protected bool $modified;   // true if the node (or subnode) state needs to be saved    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $name)    {        for($fclasslen = strlen($name); $fclasslen > 0; $fclasslen--) {            if(!ctype_digit($name[$fclasslen-1])) break;        }        $this->server = $server;        $this->name = $name;        $this->fclass = substr(ucfirst($name), 0, $fclasslen);        $this->subnodes = [];   // Associative array        $this->values = [];     // Associative array        $this->types = [];      // Associative array        $this->modified = false;    }    protected function setupTypes(VHubServerHTTPRequest $httpReq): void    {        foreach($this->values as $name => $value) {            if(!isset($this->types[$name])) {                $this->types[$name] = $this->server->apiroot->getAttrType($httpReq, $this->fclass, $name, $value);            }        }    }    public function addSubnode(string $name, APINode $subnode): void    {        $this->subnodes[$name] = $subnode;    }    public function hasSubnode(string $name): bool    {        return isset($this->subnodes[$name]);    }    public function subnodeNames(): array    {        return array_keys($this->subnodes);    }    public function subnode(string $name): APINode    {        return $this->subnodes[$name];    }    public function getattr(string $name): mixed    {        return $this->values[$name];    }    public function setattr(string $name, string $value): void    {        if(!isset($this->types[$name])) {            // unknown attribute, assume read-only            return;        }        $attrtype = $this->types[$name];        if($attrtype >= 0) {            // read-only attribute            return;        }        $this->values[$name] = ApiRestDecodeAttribute($attrtype, $value);    }    public function search(array $nodepath, array $ctxpath): array    {        $apinode = $this;        for($offset = 0; $offset < sizeof($nodepath); $offset++) {            $key = $nodepath[$offset];            if(isset($apinode->subnodes[$key])) {                $apinode = $apinode->subnodes[$key];            } else if(sizeof($ctxpath) == 0 && sizeof($apinode->values) > 0) {                if(isset($apinode->values[$key])) {                    return [ $apinode, $apinode, $key ];                } else {                    return [ $apinode, $apinode, null ];                }            } else {                return [ null, null, null ];            }        }        $ctxnode = $apinode;        for($offset = 0; $offset < sizeof($ctxpath); $offset++) {            $key = $ctxpath[$offset];            if(isset($ctxnode->subnodes[$key])) {                $ctxnode = $ctxnode->subnodes[$key];            } else if(sizeof($ctxnode->values) > 0) {                if(isset($ctxnode->values[$key])) {                    return [ $apinode, $ctxnode, $key ];                } else {                    return [ $apinode, $ctxnode, null ];                }            } else {                return [ $apinode, null, null ];            }        }        return [ $apinode, $ctxnode, null ];    }    public function loadState(VHubServerHTTPRequest $httpReq, mixed $data, bool $detectChanges): bool    {        foreach($data as $name => $value) {            if($name == 'VirtualHub4web' || $name == 'FileList') {                // VirtualHub4web own data is handled separately, just ignore here            } else if((is_object($value) || is_array($value)) && !isset($this->values['advertisedValue'])) {                if (!isset($this->subnodes[$name])) {                    // Automatically instantiate typed dynamic nodes                    switch($name) {                        case 'dataLogger':                            $moduleData = (isset($data->module) ? $data->module : $data['module']);                            $this->subnodes[$name] = new APIDataLoggerNode($httpReq, $this->server, $name, $moduleData);                            break;                        case 'services':                            $this->subnodes[$name] = new APIServicesNode($httpReq, $this->server, $name);                            break;                        default:                            if(is_object($value) && isset($value->reportFrequency)) {                                $this->subnodes[$name] = new APISensorNode($httpReq, $this->server, $name);                            } else {                                $this->subnodes[$name] = new APINode($httpReq, $this->server, $name);                            }                    }                    if($detectChanges) $this->modified = true;                }                $subres = $this->subnodes[$name]->loadState($httpReq, $value, $detectChanges);                if($detectChanges && $subres) $this->modified = true;            } else {                if(!isset($this->types[$name])) {                    if($detectChanges) $this->modified = true;                    $this->types[$name] = $this->server->apiroot->getAttrType($httpReq, $this->fclass, $name, $value);                    $decoded = ApiJsonDecodeAttribute($value, $this->types[$name]);                    $this->values[$name] = $decoded;                } else {                    $decoded = ApiJsonDecodeAttribute($value, $this->types[$name]);                    if($this->values[$name] != $decoded) {                        if($detectChanges) $this->modified = true;                        $this->values[$name] = $decoded;                    }                }            }        }        return $this->modified;    }    public function hasChanged(): bool    {        return $this->modified;    }    public function saveState(): array    {        $res = [];        foreach($this->subnodes as $name => $subnode) {            $res[$name] = $subnode->saveState();        }        foreach($this->values as $name => $value) {            $pseudoHttpReq = new VHubServerHTTPRequest(true);            $pseudoHttpReq->setAuthUser('admin');            $res[$name] = ApiJsonEncodeAttribute($pseudoHttpReq, $value, $this->types[$name]);        }        $this->modified = false;        return $res;    }    public function printJSON(VHubServerHTTPRequest $httpReq): void    {        $isleaf = sizeof($this->values) > 0;        $sep = '{';        if($isleaf) {            foreach($this->values as $key => $value) {                $jsonval = ApiJsonEncodeAttribute($httpReq, $value, $this->types[$key]);                $httpReq->put("{$sep}\"{$key}\":".json_encode($jsonval, JSON_UNESCAPED_SLASHES));                $sep = ',';            }        } else {            if(sizeof($this->subnodes) == 0) {                $httpReq->put('{}');                return;            }            foreach($this->subnodes as $name => $subnode) {                $httpReq->put("{$sep}\"{$name}\":");                $subnode->printJSON($httpReq);                $sep = ',';            }        }        $httpReq->put('}');    }    public function printJZON(VHubServerHTTPRequest $httpReq): void    {        $isleaf = sizeof($this->values) > 0;        $sep = '[';        if($isleaf) {            foreach($this->values as $key => $value) {                $jsonval = ApiJsonEncodeAttribute($httpReq, $value, $this->types[$key]);                $httpReq->put($sep.json_encode($jsonval, JSON_UNESCAPED_SLASHES ));                $sep = ',';            }        } else {            if(sizeof($this->subnodes) == 0) {                $httpReq->put('[]');                return;            }            foreach($this->subnodes as $subnode) {                $httpReq->put($sep);                $subnode->printJZON($httpReq);                $sep = ',';            }        }        $httpReq->put(']');    }    public function printJSONValue(VHubServerHTTPRequest $httpReq, string $key): void    {        $value = $this->values[$key];        $jsonval = ApiJsonEncodeAttribute($httpReq, $value, $this->types[$key]);        $httpReq->put(json_encode($jsonval, JSON_UNESCAPED_SLASHES));    }    public function printHTML(VHubServerHTTPRequest $httpReq, string $label): void    {        $isleaf = sizeof($this->values) > 0;        $cssclass = ($isleaf ? "interface" : "folder");        $httpReq->put("<dl name='{$label}' class='{$cssclass}'><h4>{$label} <a href='javascript:reload()'>refresh</a></h4>\n");        if($isleaf) {            foreach($this->values as $key => $value) {                $attrtype = $this->types[$key];                $txtval = ApiTxtEncodeAttribute($httpReq, $value, $attrtype);                if($key == 'networkUrl') {                    $relUrl = substr($txtval, 1);                    $txtval = "<a href='{$relUrl}'>Browse REST API</a>";                }                $httpReq->put("<div name='{$key}'><dt>{$key}:</dt><dd>{$txtval}</dd>");                if($attrtype < 0) {                    $attrtype = abs($attrtype);                    $httpReq->put("<a href='javascript:' onclick='edit(this,{$attrtype})'>edit</a></div>\n");                } else {                    $httpReq->put('</div>');                }            }        } else {            foreach($this->subnodes as $name => $subnode) {                $subnode->printHTML($httpReq, $name);            }        }        $httpReq->put("</dl>");    }    public function printHTMLValue(VHubServerHTTPRequest $httpReq, string $key): void    {        $value = $this->values[$key];        $attrtype = $this->types[$key];        $txtval = ApiTxtEncodeAttribute($httpReq, $value, $attrtype);        $httpReq->put($txtval);    }    public function printTXT(VHubServerHTTPRequest $httpReq, string $label): void    {        $isleaf = sizeof($this->values) > 0;        $httpReq->put("*** {$label}\r\n");        if($isleaf) {            foreach($this->values as $key => $value) {                $attrtype = $this->types[$key];                $txtval = ApiTxtEncodeAttribute($httpReq, $value, $attrtype);                if(is_string($value)) {                    $txtval = "\"{$txtval}\"";                }                $httpReq->put("{$key}: {$txtval}\r\n");            }        } else {            foreach($this->subnodes as $name => $subnode) {                $httpReq->put("=> {$name}\r\n");            }            foreach($this->subnodes as $name => $subnode) {                $httpReq->put("\r\n");                $subnode->printTXT($httpReq, $name);            }        }    }    public function printTXTValue(VHubServerHTTPRequest $httpReq, string $key): void    {        $value = $this->values[$key];        $attrtype = $this->types[$key];        $txtval = ApiTxtEncodeAttribute($httpReq, $value, $attrtype);        if(is_string($value)) {            $txtval = "\"{$txtval}\"";        }        $httpReq->put($txtval);    }    public function printXML(VHubServerHTTPRequest $httpReq, string $label): void    {        $isleaf = sizeof($this->values) > 0;        $httpReq->put("<{$label}>\r\n");        if($isleaf) {            foreach($this->values as $key => $value) {                $attrtype = $this->types[$key];                $txtval = ApiTxtEncodeAttribute($httpReq, $value, $attrtype);                $httpReq->put("<{$key}>{$txtval}</{$key}>\r\n");            }        } else {            foreach($this->subnodes as $name => $subnode) {                $subnode->printXML($httpReq, $name);            }        }        $httpReq->put("</{$label}>\r\n");    }    public function printXMLValue(VHubServerHTTPRequest $httpReq, string $key): void    {        $value = $this->values[$key];        $attrtype = $this->types[$key];        $txtval = ApiTxtEncodeAttribute($httpReq, $value, $attrtype);        $httpReq->put($txtval);    }    public function isSensor(): bool    {        return false;    }}class APIArrayNode extends APINode{    public function saveState(): array    {        $res = [];        foreach($this->subnodes as $subnode) {            $res[] = $subnode->saveState();        }        $this->modified = false;        return $res;    }    public function printJSON(VHubServerHTTPRequest $httpReq): void    {        if(sizeof($this->subnodes) == 0) {            $httpReq->put('[]');            return;        }        $sep = '[';        foreach($this->subnodes as $subnode) {            $httpReq->put($sep);            $subnode->printJSON($httpReq);            $sep = ',';        }        $httpReq->put(']');    }    public function printJZON(VHubServerHTTPRequest $httpReq): void    {        if(sizeof($this->subnodes) == 0) {            $httpReq->put('[]');            return;        }        $sep = '[';        foreach($this->subnodes as $name => $subnode) {            $httpReq->put($sep);            $subnode->printJZON($httpReq);            $sep = ',';        }        $httpReq->put(']');    }    public function printHTML(VHubServerHTTPRequest $httpReq, string $label): void    {        $httpReq->put("<dl name='{$label}' class='folder'><h4>{$label} <a href='javascript:reload()'>refresh</a></h4>\n");        foreach($this->subnodes as $index => $subnode) {            $subnode->printHTML($httpReq, "entry #{$index}");        }    }    public function printTXT(VHubServerHTTPRequest $httpReq, string $label): void    {        foreach($this->subnodes as $index => $subnode) {            $subnode->printTXT($httpReq, "{$label}[{$index}]");        }    }    public function printXML(VHubServerHTTPRequest $httpReq, string $label): void    {        if($label == 'whitePages') {            $sublabel = 'whitePage';        } else {            $sublabel = 'ypEntry';        }        $httpReq->put("<{$label}>\r\n");        foreach($this->subnodes as $subnode) {            $subnode->printXML($httpReq, $sublabel);        }        $httpReq->put("</{$label}>\r\n");    }}class APIModuleNode extends APINode{    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $name)    {        parent::__construct($httpReq, $server, $name);        $this->values['productName'] = '';        $this->values['serialNumber'] = '';        $this->values['logicalName'] = '';        $this->values['productId'] = 0;        $this->values['productRelease'] = 0;        $this->values['firmwareRelease'] = '';        $this->values['persistentSettings'] = 0;        $this->values['luminosity'] = 0;        $this->values['beacon'] = 0;        $this->values['upTime'] = 0;        $this->values['usbCurrent'] = 0;        $this->values['rebootCountdown'] = 0;        $this->values['userVar'] = 0;        $this->setupTypes($httpReq);    }}class APIDeviceModuleNode extends APIModuleNode{    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $name)    {        global $ApiDef;        parent::__construct($httpReq, $server, $name);        $this->values['lastSeen'] = 0;        $this->values['parentHub'] = '';        $this->values['parentIP'] = '';        $this->types['lastSeen'] = $ApiDef['Watchdog']['lastTrigger'];        $this->types['parentHub'] = $ApiDef['Module']['serialNumber'];        $this->types['parentIP'] = $ApiDef['Network']['ipAddress'];    }}class APICloudModuleNode extends APIModuleNode{    protected array $cachedAttributes;    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $name)    {        parent::__construct($httpReq, $server, $name);        $this->cachedAttributes = [ 'logicalName', 'luminosity', 'beacon', 'userVar', 'persistentSettings' ];        $this->values['productName'] = 'VirtualHub-4web';        $this->values['productId'] = 0xc10d;        $this->values['productRelease'] = 1;        $this->values['upTime'] = round(gettimeofday(true) * 1000.0) & 0xffffffff;        $versionDotPos = strrpos(VERSION, '.');        if($versionDotPos !== FALSE) {            $this->values['firmwareRelease'] = substr(VERSION, $versionDotPos+1);        } else {            $this->values['firmwareRelease'] = VERSION;        }    }    public function loadStateFromCloudConf(VHubServerHTTPRequest $httpReq, GlobalCloudConf $cloudConf)    {        $this->values['serialNumber'] = $cloudConf->serialNumber;        foreach($this->cachedAttributes as $key) {            if(isset($cloudConf->valuesCache[$key])) {                $this->values[$key] = $cloudConf->valuesCache[$key];            }        }    }    public function compareStateToCloudConf(VHubServerHTTPRequest $httpReq, GlobalCloudConf $cloudConf, array &$changes)    {        foreach($this->cachedAttributes as $key) {            if(isset($cloudConf->valuesCache[$key]) && $cloudConf->valuesCache[$key] != $this->values[$key]) {                $changes[$key] = $this->values[$key];            }        }    }}class APIFunctionNode extends APINode{    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $name)    {        parent::__construct($httpReq, $server, $name);        $this->values['logicalName'] = '';        $this->values['advertisedValue'] = '';        $this->setupTypes($httpReq);    }}class APISensorNode extends APINode{    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $name)    {        parent::__construct($httpReq, $server, $name);        $this->values['logicalName'] = '';        $this->values['unit'] = '';        $this->values['currentValue'] = 0;        $this->values['lowestValue'] = 0;        $this->values['highestValue'] = 0;        $this->values['currentRawValue'] = 0;        $this->values['logFrequency'] = '1/s';        $this->values['reportFrequency'] = 'OFF';        $this->values['advMode'] = 0;        $this->values['calibrationParam'] = '0,';        $this->values['resolution'] = 0.01;        $this->values['sensorState'] = 1;        $this->setupTypes($httpReq);    }    public function isSensor(): bool    {        return true;    }    // Return current sensor value, if valid    //    public function getSensorValue(): float    {        $avgVal = NAN;        if($this->values['sensorState'] == 0) {            $avgVal = $this->values['currentValue'];        }        return $avgVal;    }}class APINetworkNode extends APIFunctionNode{    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $name)    {        parent::__construct($httpReq, $server, $name);        $this->values['readiness'] = 0;        $this->values['macAddress'] = '00:00:00:00:00:00';        $this->values['ipAddress'] = '0.0.0.0';        $this->values['subnetMask'] = '0.0.0.0';        $this->values['router'] = '0.0.0.0';        $this->values['ipConfig'] = 'DHCP:169.254.95.6/16/169.254.0.1';        $this->values['primaryDNS'] = '0.0.0.0';        $this->values['secondaryDNS'] = '0.0.0.0';        $this->values['ntpServer'] = '0.0.0.0';        $this->values['userPassword'] = '';        $this->values['adminPassword'] = '';        $this->values['httpPort'] = 4444;        $this->values['defaultPage'] = '';        $this->values['discoverable'] = 0;        $this->values['wwwWatchdogDelay'] = 0;        $this->values['callbackUrl'] = '';        $this->values['callbackMethod'] = 0;        $this->values['callbackEncoding'] = 0;        $this->values['callbackCredentials'] = ':';        $this->values['callbackInitialDelay'] = 0;        $this->values['callbackSchedule'] = 'after 20s/60s';        $this->values['callbackMinDelay'] = 20;        $this->values['callbackMaxDelay'] = 60;        $this->values['poeCurrent'] = 0;        $this->setupTypes($httpReq);    }}class APICloudNetworkNode extends APINetworkNode{    protected array $cachedAttributes;    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $name)    {        parent::__construct($httpReq, $server, $name);        $this->cachedAttributes = ['defaultPage', 'userPassword', 'adminPassword'];        $this->values['ipAddress'] = $httpReq->getServerIP();        $this->values['httpPort'] = $httpReq->getServerPort();    }    public function loadStateFromCloudConf(VHubServerHTTPRequest $httpReq, GlobalCloudConf $cloudConf)    {        $this->values['logicalName'] = $cloudConf->valuesCache['networkName'];        foreach ($this->cachedAttributes as $key) {            if (isset($cloudConf->valuesCache[$key])) {                $this->values[$key] = $cloudConf->valuesCache[$key];            }        }    }    public function compareStateToCloudConf(VHubServerHTTPRequest $httpReq, GlobalCloudConf $cloudConf, array &$changes)    {        if ($cloudConf->valuesCache['networkName'] != $this->values['logicalName']) {            $changes['networkName'] = $this->values['logicalName'];        }        foreach ($this->cachedAttributes as $key) {            if (isset($cloudConf->valuesCache[$key]) && $cloudConf->valuesCache[$key] != $this->values[$key]) {                $changes[$key] = $this->values[$key];            }        }    }    public function setattr(string $name, string $value): void    {        if(substr($name,-8) == 'Password') {            $mustHash = (strlen($value) != 24);            if(!$mustHash) {                $decoded = base64_decode($value, true); // strict decode                if($decoded === false || strlen($decoded) != 17 || ord($decoded[0]) != 0) {                    // non a Base64-encoded hashed password                    $mustHash = true;                }            }            if($mustHash && $value != '') {                // for safety reasons, don't save the password but pre-hash it with the realm                // in order to prevent easy password recovery from the configuration file                $user = substr($name, 0, -8);                $realm = $this->server->apiroot->cloudConf->authRealm;                $value = base64_encode(chr(0).md5($user . ':' . $realm . ':' . $value, true));            }        }        parent::setattr($name, $value);    }}class APICloudFilesNode extends APIFunctionNode{    protected array $cachedAttributes;    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $name)    {        parent::__construct($httpReq, $server, $name);        $this->cachedAttributes = [ 'filesCount', 'freeSpace' ];        $this->values['filesCount'] = 0;        $this->values['freeSpace'] = FILES_MAX_SIZE;        $this->setupTypes($httpReq);    }    public function loadStateFromCloudConf(VHubServerHTTPRequest $httpReq, GlobalCloudConf $cloudConf)    {        $this->values['logicalName'] = $cloudConf->valuesCache['filesName'];        foreach($this->cachedAttributes as $key) {            if(isset($cloudConf->valuesCache[$key])) {                $this->values[$key] = $cloudConf->valuesCache[$key];            }        }    }    public function compareStateToCloudConf(VHubServerHTTPRequest $httpReq, GlobalCloudConf $cloudConf, array &$changes)    {        if($cloudConf->valuesCache['filesName'] != $this->values['logicalName']) {            $changes['filesName'] = $this->values['logicalName'];        }        foreach($this->cachedAttributes as $key) {            if(!isset($cloudConf->valuesCache[$key]) || $cloudConf->valuesCache[$key] != $this->values[$key]) {                $changes[$key] = $this->values[$key];            }        }    }    public function updateStats(VHubServerHTTPRequest $httpReq, int $filesCount, int $totalSize)    {        $freeSpace = ($totalSize >= FILES_MAX_SIZE ? 0 : FILES_MAX_SIZE - $totalSize);        if($this->values['filesCount'] != $filesCount || $this->values['freeSpace'] != $freeSpace) {            $this->values['filesCount'] = $filesCount;            $this->values['freeSpace'] = $freeSpace;            $this->modified = true;        }    }}class APIDataLoggerNode extends APIFunctionNode{    protected string $serial;    protected array $deviceValues;    // actual values on the device    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $name, mixed $moduleData)    {        parent::__construct($httpReq, $server, $name);        // Setup emulated values        $this->serial = (isset($moduleData->serialNumber) ? $moduleData->serialNumber : $moduleData['serialNumber']);        $this->values['logicalName'] = '';        $this->values['advertisedValue'] = 'ON';        $this->values['currentRunIndex'] = 1;        $this->values['timeUTC'] = 0;        $this->values['recording'] = 1;        $this->values['autoStart'] = 1;        $this->values['beaconDriven'] = 0;        $this->values['usage'] = 1;        $this->values['clearHistory'] = 0;        $this->setupTypes($httpReq);        // Setup default device values as well        $this->deviceValues['logicalName'] = '';        $this->deviceValues['advertisedValue'] = '';        $this->deviceValues['currentRunIndex'] = 0;        $this->deviceValues['timeUTC'] = 0;        $this->deviceValues['recording'] = 0;        $this->deviceValues['autoStart'] = 0;        $this->deviceValues['beaconDriven'] = 0;        $this->deviceValues['usage'] = 0;        $this->deviceValues['clearHistory'] = 0;        $this->setupTypes($httpReq);    }    // We cache the device values for use in very specific cases    public function loadState(VHubServerHTTPRequest $httpReq, mixed $data, bool $detectChanges): bool    {        if(!$detectChanges) {            // This is an emulated datalogger, only reload the last known device UTC time            $this->values['timeUTC'] = (isset($data->timeUTC) ? $data->timeUTC : $data['timeUTC']);            // Compute current datalogger usage based on file list            $tarfile = $this->server->files->accessDeviceFiles($httpReq, $this->serial);            $knownFiles = $tarfile->knownFilesMatching('datalogger/*');            $usage = 0;            if(sizeof($knownFiles) == 0) {                foreach ($knownFiles as $tarObj) {                    $usage += $tarObj->contentSize;                }                $usage = intVal(round($usage / (DATAFILE_MAX_COUNT * DATAFILE_MAX_SIZE)));                if($usage < 1) {                    $usage = 1;                }            }            $this->values['usage'] = $usage;            return false;        }        foreach($data as $name => $value) {            $decoded = ApiJsonDecodeAttribute($value, $this->types[$name]);            if($this->deviceValues[$name] != $decoded) {                if($detectChanges) $this->modified = true;                $this->deviceValues[$name] = $decoded;            }        }        // When updating from device, mirror the last known device UTC time as well        $this->values['timeUTC'] = $this->deviceValues['timeUTC'];        return $this->modified;    }    // We cache the device values for later use    public function saveState(): array    {        $res = [];        foreach($this->deviceValues as $name => $value) {            $pseudoHttpReq = new VHubServerHTTPRequest(true);            $pseudoHttpReq->setAuthUser('admin');            $res[$name] = ApiJsonEncodeAttribute($pseudoHttpReq, $value, $this->types[$name]);        }        $this->modified = false;        return $res;    }}class APIWPRecordNode extends APINode{    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $name, object $template)    {        parent::__construct($httpReq, $server, $name);        $this->fclass = 'DeviceInfo';        $this->values['serialNumber'] = $template->serialNumber;        $this->values['logicalName'] = $template->logicalName;        $this->values['productName'] = $template->productName;        $this->values['productId'] = $template->productId;        $this->values['networkUrl'] = $template->networkUrl;        $this->values['beacon'] = $template->beacon;        $this->values['index'] = $template->index;        $this->setupTypes($httpReq);    }    public function loadState(VHubServerHTTPRequest $httpReq, mixed $data, bool $detectChanges): bool    {        if($detectChanges) {            if ($this->values['logicalName'] != $data->logicalName || $this->values['beacon'] != $data->beacon) {                $this->values['logicalName'] = $data->logicalName;                $this->values['beacon'] = $data->beacon;                $this->server->notif->appendModuleNotification($httpReq, $this->values);                $this->modified = true;            }            foreach ($data as $name => $value) {                if ($this->values[$name] != $value) {                    $this->values[$name] = $value;                    $this->modified = true;                }            }            return $this->modified;        } else {            foreach ($data as $name => $value) {                $this->values[$name] = $value;            }            return false;        }    }}class APIWhitePagesNode extends APIArrayNode{    protected array $arrayIndexBySerial;    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $name)    {        parent::__construct($httpReq, $server, $name);        $this->arrayIndexBySerial = [];    }    public function loadState(VHubServerHTTPRequest $httpReq, mixed $wpdef, bool $detectChanges): bool    {        foreach($wpdef as $wprec) {            $wpentry = (object)$wprec;            $serial = $wpentry->serialNumber;            if(!$this->server->apiroot->bySerial->hasSubnode($serial) && $serial != $this->server->apiroot->cloudConf->serialNumber) {                // unknown device, ignore services                continue;            }            if(isset($this->arrayIndexBySerial[$serial])) {                $arrayIndex = $this->arrayIndexBySerial[$serial];                $changed = $this->subnodes[$arrayIndex]->loadState($httpReq, $wpentry, $detectChanges);                if($changed && $detectChanges) {                    $this->modified = true;                }            } else {                $subnode = new APIWPRecordNode($httpReq, $this->server, $serial, $wpentry);                $this->arrayIndexBySerial[$serial] = sizeof($this->subnodes);                $this->subnodes[] = $subnode;                if($detectChanges) {                    $this->modified = true;                    $cloudSerial = $this->server->apiroot->cloudConf->serialNumber;                    $this->server->notif->appendModuleArrivalNotifications($httpReq, $cloudSerial, $subnode->values);                }            }        }        // FIXME: detect device removal?        return $this->modified;    }    public function sortServices(VHubServerHTTPRequest $httpReq)    {        usort($this->subnodes, function(APIWPRecordNode $a,APIWPRecordNode $b) { return $a->values['index'] - $b->values['index']; });    }    public function saveStateForSerial(string $serial): array    {        $res = [];        if(isset($this->arrayIndexBySerial[$serial])) {            $arrayIndex = $this->arrayIndexBySerial[$serial];            $res[] = $this->subnodes[$arrayIndex]->saveState();        }        return $res;    }}class APIYPRecordNode extends APINode{    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $hwId, object $template)    {        parent::__construct($httpReq, $server, $hwId);        $this->fclass = 'Provider';        $this->values['baseType'] = $template->baseType;        $this->values['hardwareId'] = $template->hardwareId;        $this->values['logicalName'] = $template->logicalName;        $this->values['advertisedValue'] = $template->advertisedValue;        $this->values['index'] = $template->index;        $this->setupTypes($httpReq);        // Update global index of funydx by hwid        $this->server->apiroot->funYdxByHwId[$template->hardwareId] = $template->index;    }    public function loadState(VHubServerHTTPRequest $httpReq, mixed $data, bool $detectChanges): bool    {        if($detectChanges) {            $funchanged = false;            if ($this->values['baseType'] != $data->baseType) {                $this->values['baseType'] = $data->baseType;                $funchanged = true;            }            if ($this->values['logicalName'] != $data->logicalName) {                $this->values['logicalName'] = $data->logicalName;                $funchanged = true;            }            if ($this->values['index'] != $data->index) {                $this->values['index'] = $data->index;                $funchanged = true;                // Update global index of funydx by hwid                $this->server->apiroot->funYdxByHwId[$this->values['hardwareId']] = $data->index;            }            if($funchanged) {                $this->server->notif->appendFunctionNameNotification($httpReq, $this->values);                $this->modified = true;            }            if ($this->values['advertisedValue'] != $data->advertisedValue) {                $this->values['advertisedValue'] = $data->advertisedValue;                $this->server->notif->appendFunctionValNotification($httpReq, $this->values);                $this->modified = true;            }            return $this->modified;        } else {            foreach ($data as $name => $value) {                $this->values[$name] = $value;            }            return false;        }    }}class APIYPCategNode extends APIArrayNode{    protected array $arrayIndexByHardwareId;    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $name)    {        parent::__construct($httpReq, $server, $name);        $this->arrayIndexByHardwareId = [];    }    public function loadState(VHubServerHTTPRequest $httpReq, mixed $ypcateg, bool $detectChanges): bool    {        foreach($ypcateg as $yprec) {            $ypentry = (object)$yprec;            $hwId = $ypentry->hardwareId;            if(isset($this->arrayIndexByHardwareId[$hwId])) {                $arrayIndex = $this->arrayIndexByHardwareId[$hwId];                $changed = $this->subnodes[$arrayIndex]->loadState($httpReq, $ypentry, $detectChanges);                if($changed && $detectChanges) {                    $this->modified = true;                }            } else {                $parts = explode('.', $hwId);                $serial = $parts[0];                if(!$this->server->apiroot->bySerial->hasSubnode($serial) && $serial != $this->server->apiroot->cloudConf->serialNumber) {                    // unknown device, ignore services                    continue;                }                $subnode = new APIYPRecordNode($httpReq, $this->server, $hwId, $ypentry);                $this->arrayIndexByHardwareId[$hwId] = sizeof($this->subnodes);                $this->subnodes[] = $subnode;                if($detectChanges) {                    $this->modified = true;                    $this->server->notif->appendFunctionNameNotification($httpReq, $subnode->values);                }            }        }        // FIXME: detect function removal        return $this->modified;    }    public function saveStateForHwIdPattern(string $pattern): array    {        $res = [];        foreach($this->subnodes as $yprecord) {            if(preg_match($pattern, $yprecord->values['hardwareId'])) {                $res[] = $yprecord->saveState();            }        }        return $res;    }}class APIYellowPagesNode extends APINode{    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $name)    {        parent::__construct($httpReq, $server, $name);    }    public function loadState(VHubServerHTTPRequest $httpReq, mixed $ypdef, bool $detectChanges): bool    {        foreach($ypdef as $categ => $ypcateg) {            if(!isset($this->subnodes[$categ])) {                $this->addSubnode($categ, new APIYPCategNode($httpReq, $this->server, $categ));                $this->modified = true;            }            $categnode = $this->subnodes[$categ];            $changed = $categnode->loadState($httpReq, $ypcateg, $detectChanges);            if($changed) {                $this->modified = true;            }        }        return $this->modified;    }    public function saveStateForSerial(string $serial): array    {        $res = [];        $pattern = '~^'.$serial.'[.]~';        foreach($this->subnodes as $categ => $categnode) {            $subres = $categnode->saveStateForHwIdPattern($pattern);            if(sizeof($subres) > 0) {                $res[$categ] = $subres;            }        }        return $res;    }}class APIServicesNode extends APINode{    public APIWhitePagesNode $wp;    public APIYellowPagesNode $yp;    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $name)    {        parent::__construct($httpReq, $server, $name);        $this->wp = new APIWhitePagesNode($httpReq, $this->server, 'whitePages');        $this->yp = new APIYellowPagesNode($httpReq, $this->server, 'yellowPages');        $this->addSubnode('whitePages', $this->wp);        $this->addSubnode('yellowPages', $this->yp);    }    public function sortServices(VHubServerHTTPRequest $httpReq)    {        $this->wp->sortServices($httpReq);    }    public function saveStateForSerial(string $serial): array    {        return [            'whitePages' => $this->wp->saveStateForSerial($serial),            'yellowPages' => $this->yp->saveStateForSerial($serial)        ];    }}class APIDeviceAPINode extends APINode{    public APIDeviceModuleNode $module;    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $name)    {        parent::__construct($httpReq, $server, $name);        $this->module = new APIDeviceModuleNode($httpReq, $this->server, 'module');        $this->addSubnode('module', $this->module);    }}class DeviceFileList{    protected VHubServer $server;    protected string $serial;    protected bool $modified;    protected array $entries;    // Possible status for entries:    // - discovered: file discovered on device, to be downloaded to VirtualHub4web    // - uploaded: file uploaded to VirtualHub4web, to be uploaded to device    // - known: file exists both on device and in VirtualHub4web    // - deleting: file deleted on VirtualHub4web, to be deleted on device    // - deleted: file deleted on VirtualHub4web and deleted on device, expected to disappear    // - disappeared: file disappeared on device, to be deleted on VirtualHub4web    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $serial)    {        $this->server = $server;        $this->serial = $serial;        $this->modified = false;        $this->entries = [];    }    public function loadState(VHubServerHTTPRequest $httpReq, array $data): void    {        for($i = 0; $i < sizeof($data); $i++) {            $this->entries[$data[$i]->name] = $data[$i];        }    }    public function saveState(): array    {        $res = [];        foreach($this->entries as $path => $entry) {            $res[] = $entry;        }        $this->modified = false;        return $res;    }    public function hasChanged(): bool    {        return $this->modified;    }    protected function setEntryState(VHubServerHTTPRequest $httpReq, string $filename, string $newState): void    {        if(!isset($this->entries[$filename])) {            $this->entries[$filename] = new stdClass();            $this->entries[$filename]->name = $filename;            $this->entries[$filename]->size = 0;            $this->entries[$filename]->crc = 0;            $this->entries[$filename]->status = $newState;            $this->modified = true;            VHubServer::Log($httpReq, LOG_FILESYNC, 4, "File {$filename} on {$this->serial} added in state {$newState}");        } else if($this->entries[$filename]->status != $newState) {            $this->entries[$filename]->status = $newState;            $this->modified = true;            VHubServer::Log($httpReq, LOG_FILESYNC, 4, "File {$filename} on {$this->serial} is now in state {$newState}");        }    }    // compare a known fileList to the current device filesystem    function compareToDevice(VHubServerHTTPRequest $httpReq, array $filerecs): bool    {        // first detect all changes compared to VirtualHub4web state        $foundOnDevice = [];        for($i = 0; $i < sizeof($filerecs); $i++) {            $entry = $filerecs[$i];            $foundOnDevice[$entry->name] = true;            if(!isset($this->entries[$entry->name])) {                // new entry                $entry->status = 'discovered';                $this->entries[$entry->name] = $entry;                $this->modified = true;                VHubServer::Log($httpReq, LOG_FILESYNC, 4, "File {$entry->name} on {$this->serial} added in state {$entry->status}");                continue;            }            $existing = $this->entries[$entry->name];            VHubServer::Log($httpReq, LOG_FILESYNC, 5, "CompareToDevice {$entry->name} on {$this->serial}: status={$existing->status}");            switch($existing->status) {                case 'discovered':  // new file on device, not yet downloaded                    break;                case 'deleting':    // deletion is expected next time the device connects                    VHubServer::Log($httpReq, LOG_FILESYNC, 2, "File {$entry->name} on {$this->serial} is scheduled for deletion");                    $this->setEntryState($httpReq, $entry->name, 'deleted');                    break;                case 'deleted':     // deletion failed? retry                    VHubServer::Log($httpReq, LOG_FILESYNC, 2, "File deletion for {$entry->name} failed on {$this->serial}, retrying");                    $this->deleteOnDevice($httpReq, $entry->name);                    break;                case 'uploaded':                    if($entry->size == $existing->size && ($entry->crc & 0xffffffff) == ($existing->crc & 0xffffffff)) {                        // file on device is the same                        $this->setEntryState($httpReq, $entry->name, 'known');                    }                    break;                case 'disappeared':                case 'known':                    if($entry->size == $existing->size && ($entry->crc & 0xffffffff) == ($existing->crc & 0xffffffff)) {                        $this->setEntryState($httpReq, $entry->name, 'known');                    } else {                        // file has changed on device, must be downloaded                        VHubServer::Log($httpReq, LOG_FILESYNC, 4, "File {$entry->name} has changed on {$this->serial}");                        $this->setEntryState($httpReq, $entry->name, 'discovered');                    }                    break;            }        }        foreach($this->entries as $filename => $entry) {            if(!isset($foundOnDevice[$filename])) {                switch($entry->status) {                    case 'discovered':  // new file on device, not yet downloaded, has disappeared                    case 'deleting':    // deletion is expected next time the device connects                    case 'deleted':     // file just deleted on device                        VHubServer::Log($httpReq, LOG_FILESYNC, 4, "File {$filename} is no more in {$this->serial}");                        unset($this->entries[$filename]);                        $this->modified = true;                        break;                    case 'uploaded':                        // expect new file to appear on device shortly                        break;                    case 'disappeared':                    case 'known':                        $this->setEntryState($httpReq, $filename, 'disappeared');                        break;                }            }        }        // Then process changes        foreach($this->entries as $filename => $entry) {            switch($entry->status) {                case 'discovered':                    // download file asap                    $fcontent = $this->server->tryDownload($httpReq, $this->serial, $filename, false);                    if(is_null($fcontent)) {                        VHubServer::Log($httpReq, LOG_FILESYNC, 4, "Will download {$filename} from {$this->serial}");                    } else {                        $this->server->files->saveDeviceFile($httpReq, $this->serial, 'files/'.$filename, $fcontent);                        $this->setEntryState($httpReq, $filename, 'known');                    }                    break;                case 'deleting':                case 'deleted':                    // deletion already scheduled, nothing to be done                    break;                case 'uploaded':                    VHubServer::Log($httpReq, LOG_FILESYNC, 4, "Must upload {$filename} to {$this->serial}");                    $tarfile = $this->server->files->accessDeviceFiles($httpReq, $this->serial);                    $obj = $tarfile->searchTarFile($httpReq, 'files/'.$filename);                    if(is_null($obj)) {                        VHubServer::Log($httpReq, LOG_FILESYNC, 1, "Cannot upload {$filename} to {$this->serial}, file is missing on VirtualHub4web");                    } else {                        $this->server->scheduleUploadOnDevice($httpReq, $this->serial, $filename, $obj->content);                    }                    break;                case 'disappeared':                    VHubServer::Log($httpReq, LOG_FILESYNC, 4, "File {$filename} has disappeared on {$this->serial}, removing on VirtualHub4web");                    $tarfile = $this->server->files->accessDeviceFiles($httpReq, $this->serial);                    $tarfile->processTarFile($httpReq, 'files/'.$filename, TAROP_DELETE_FILE);                    unset($this->entries[$filename]);                    break;                case 'known':                    VHubServer::Log($httpReq, LOG_FILESYNC, 5, "File {$filename} is up-to-date on {$this->serial}");                    break;            }        }        return $this->modified;    }    // propagate VirtualHub4web upload to the device    function uploadToDevice(VHubServerHTTPRequest $httpReq, string $filename, int $filesize, int $crc): void    {        $this->entries[$filename] = (object)['name' => $filename, 'size' => $filesize, 'crc' => $crc, 'status' => 'uploaded'];        $this->modified = true;        VHubServer::Log($httpReq, LOG_FILESYNC, 4, "File {$filename} for {$this->serial} uploaded to VirtualHub4web");    }    // propagate VirtualHub4web delete to the device    function deleteOnDevice(VHubServerHTTPRequest $httpReq, string $filename): void    {        VHubServer::Log($httpReq, LOG_FILESYNC, 4, "Schedule deletion of {$filename} on {$this->serial}");        $url = '/files.json?a=del&f='.$this->server->_escapeAttr($filename);        $this->server->scheduleQueryOnDevice($httpReq, $this->serial, 'GET', $url);        $this->setEntryState($httpReq, $filename, 'deleting');    }    // propagate VirtualHub4web format to the device    function formatOnDevice(VHubServerHTTPRequest $httpReq): void    {        VHubServer::Log($httpReq, LOG_FILESYNC, 4, "Schedule filesystem format on {$this->serial}");        $this->server->scheduleQueryOnDevice($httpReq, $this->serial, 'GET', '/files.json?a=format');        foreach($this->entries as $filename => $entry) {            $this->setEntryState($httpReq, $filename, 'deleting');        }    }}class APIDeviceNode extends APINode{    public DeviceCloudConf $cloudConf;    public DeviceFileList $fileList;    public APIServicesNode $services;    public APIDeviceAPINode $api;    public ?DeviceStats $deviceStats;    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $serial)    {        parent::__construct($httpReq, $server, $serial);        $this->cloudConf = new DeviceCloudConf();        $this->fileList = new DeviceFileList($httpReq, $this->server, $serial);        $this->services = new APIServicesNode($httpReq, $this->server, 'services');        $this->api = new APIDeviceAPINode($httpReq, $this->server, 'api');        $this->addSubnode('api', $this->api);        $this->deviceStats = null;    }    // Load device global state from file data or live device api    public function loadState(VHubServerHTTPRequest $httpReq, mixed $data, $detectChanges): bool    {        if(isset($data->VirtualHub4web)) {            $this->cloudConf->loadState($httpReq, $data->VirtualHub4web);        }        if(isset($data->FileList)) {            $this->fileList->loadState($httpReq, $data->FileList);        }        // Restore services (originally published by the hub) from individual device files        // next to the api tree, where we have saved them there, instead as from the hub.        // This avoids keeping a dependence between the device and its own hub,        // and allows to transpose easily a device from one VirtualHub4web to the other        if(isset($data->services)) {            $this->services->loadState($httpReq, $data->services, false);        }        $modified = parent::loadState($httpReq, $data, $detectChanges);        if(isset($data->VirtualHub4web)) {            if (isset($data->VirtualHub4web->lastSeen)) {                $this->api->module->values['lastSeen'] = time() - $data->VirtualHub4web->lastSeen;            }            if (isset($data->VirtualHub4web->parentHub)) {                $this->api->module->values['parentHub'] = $data->VirtualHub4web->parentHub;                $this->api->module->values['parentIP'] = $data->VirtualHub4web->parentIP;            }        }        return $modified;    }     // Save device global state into an array for saving    public function saveState(): array    {        $res = parent::saveState();        $res['services'] = $this->services->saveState();        $res['FileList'] = $this->fileList->saveState();        $res['VirtualHub4web'] = $this->cloudConf->saveState();        return $res;    }    // Mark node as modified to force saving VirtualHub4web configuration    public function markAsChanged()    {        $this->modified = true;    }    public function hasChanged(): bool    {        return $this->modified || $this->fileList->hasChanged();    }    // Prepare to collect device statistics    public function initStats(VHubServerHTTPRequest $httpReq): void    {        $this->deviceStats = new DeviceStats();    }    // Prepare to save device statistics to the device-specific file    public function getDeviceStats(): ?DeviceStats    {        return $this->deviceStats;    }}class APICloudApiNode extends APINode{    public APICloudModuleNode $module;    public APICloudNetworkNode $network;    public APICloudFilesNode $files;    public APIServicesNode $services;    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $name)    {        parent::__construct($httpReq, $server, $name);        $this->module = new APICloudModuleNode($httpReq, $this->server, 'module');        $this->network = new APICloudNetworkNode($httpReq, $this->server, 'network');        $this->files = new APICloudFilesNode($httpReq, $this->server, 'files');        $this->services = new APIServicesNode($httpReq, $this->server, 'services');        $this->addSubnode('module', $this->module);        $this->addSubnode('network', $this->network);        $this->addSubnode('files', $this->files);        $this->addSubnode('services', $this->services);    }    public function loadStateFromCloudConf(VHubServerHTTPRequest $httpReq, GlobalCloudConf $cloudConf): void    {        $this->module->loadStateFromCloudConf($httpReq, $cloudConf);        $this->network->loadStateFromCloudConf($httpReq, $cloudConf);        $this->files->loadStateFromCloudConf($httpReq, $cloudConf);    }    public function compareStateToCloudConf(VHubServerHTTPRequest $httpReq, GlobalCloudConf $cloudConf, array &$changes)    {        $this->module->compareStateToCloudConf($httpReq, $cloudConf, $changes);        $this->network->compareStateToCloudConf($httpReq, $cloudConf, $changes);        $this->files->compareStateToCloudConf($httpReq, $cloudConf, $changes);    }}class APIBySerialNode extends APINode{    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $name)    {        parent::__construct($httpReq, $server, $name);    }}class APIRootNode extends APINode{    public GlobalCloudConf $cloudConf;    public APICloudApiNode $api;    public APIBySerialNode $bySerial;    public array $funYdxByHwId;    protected array $guessedAttrTypes;    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $name)    {        parent::__construct($httpReq, $server, $name);        $this->server->apiroot = $this;        $this->cloudConf = new GlobalCloudConf();        $this->api = new APICloudApiNode($httpReq, $this->server, 'api');        $this->bySerial = new APIBySerialNode($httpReq, $this->server, 'bySerial');        $this->funYdxByHwId = [];        $this->guessedAttrTypes = [];        $this->addSubnode('api', $this->api);        $this->addSubnode('bySerial', $this->bySerial);    }    // Load VirtualHub4web global configuration from saved state    public function loadState(VHubServerHTTPRequest $httpReq, mixed $data, bool $detectChanges): bool    {        if(isset($data->VirtualHub4web)) {            $this->cloudConf->loadState($httpReq, $data->VirtualHub4web);            $this->api->loadStateFromCloudConf($httpReq, $this->cloudConf);        }        return true;    // not relevant for global configuration    }    // Save VirtualHub4web global state into configuration object    public function saveState(): array    {        $res = [];        $res['VirtualHub4web'] = $this->cloudConf->saveState();        return $res;    }    // Return a list of changes to VirtualHub4web state since last loaded    public function getStateChanges(VHubServerHTTPRequest $httpReq): array    {        $changes = [];        $this->api->compareStateToCloudConf($httpReq, $this->cloudConf, $changes);        return $changes;    }    // Load our own services into the whitePages/yellowPages    public function loadOwnServices(VHubServerHTTPRequest $httpReq)    {        $wpdef = new stdClass();        $wpdef->serialNumber = $this->cloudConf->serialNumber;        $wpdef->logicalName = $this->api->module->getattr('logicalName');        $wpdef->productName = $this->api->module->getattr('productName');        $wpdef->productId = $this->api->module->getattr('productId');        $wpdef->networkUrl = '/api';        $wpdef->beacon = $this->api->module->getattr('beacon');        $wpdef->index = 0;        $filesdef = new stdClass();        $filesdef->baseType = 0;        $filesdef->hardwareId = $this->cloudConf->serialNumber.'.files';        $filesdef->logicalName = $this->api->files->getattr('logicalName');        $filesdef->advertisedValue = $this->api->files->getattr('advertisedValue');        $filesdef->index = 0;        $netdef = clone $filesdef;        $netdef->hardwareId = $this->cloudConf->serialNumber.'.network';        $netdef->logicalName = $this->api->network->getattr('logicalName');        $filesdef->advertisedValue = $this->api->network->getattr('advertisedValue');        $netdef->index = 1;        $ypdef = new stdClass();        $ypdef->Files = [ $filesdef ];        $ypdef->Network = [ $netdef ];        $this->api->services->wp->loadState($httpReq, [$wpdef], false);        $this->api->services->yp->loadState($httpReq, $ypdef, false);    }    // Attempt to load specified service definitions into the VirtualHub4web    // Return true if success or false if a devYdx needs to be allocated    public function loadServices(VHubServerHTTPRequest $httpReq, string $hubSerial, object $servicesdef, bool $canUpdateDevYdx): bool    {        $hubDevYdx = max($this->cloudConf->getDevYdx($hubSerial), 0);        $wpdef = $servicesdef->whitePages;        foreach($wpdef as &$wpentry) {            $serial = $wpentry->serialNumber;            if(!$this->bySerial->hasSubnode($serial) && $serial != $this->server->apiroot->cloudConf->serialNumber) {                // unknown device, ignore services                VHubServer::Log($httpReq, LOG_VHUBSERVER, 4, "LoadServices: ignore unknown serial $serial");                continue;            }            $parentDevYdx = ($serial == $hubSerial ? 0 : $hubDevYdx);            $devYdx = $this->cloudConf->getDevYdx($serial);            if ($devYdx < 0) { // new device                if(!$canUpdateDevYdx) return false;                $devYdx = $this->cloudConf->allocDevYdx($serial, $parentDevYdx);                if($devYdx < 0) {                    // too many devices for this instance of VirtualHub-4web                    VHubServer::Log($httpReq, LOG_VHUBSERVER, 2, "Too many devices on this instance, ignoring $serial");                    continue;                }            } else if($parentDevYdx != -1 && $this->cloudConf->getParentDevYdx($serial) != $parentDevYdx) {                if(!$canUpdateDevYdx) return false;                $this->cloudConf->setParentDevYdx($serial, $parentDevYdx);            }            $wpentry->networkUrl = "/bySerial/$serial/api";            $wpentry->index = $devYdx;        }        $this->api->services->loadState($httpReq, $servicesdef, false);        return true;    }    // Return a services structure describing services offered by the given serial    public function saveServicesForSerial(string $serial): array    {        return $this->api->services->saveStateForSerial($serial);    }    // Return the known (or guessed) type of a given attribute    public function getAttrType(VHubServerHTTPRequest $httpReq, string $functionClass, string $attrName, mixed $value): int    {        global $ApiDef;        // First search into known function class definitions (generated file)        if(isset($ApiDef[$functionClass]) && isset($ApiDef[$functionClass][$attrName])) {            return $ApiDef[$functionClass][$attrName];        }        // Compute inference table when needed for the first time        VHubServer::Log($httpReq, LOG_VHUBSERVER, 4, "Infer attribute type for [{$functionClass}.]{$attrName}");        if(sizeof($this->guessedAttrTypes) == 0) {            $typesByAttr = [];            foreach($ApiDef as $fclass => $classdef) {                foreach($classdef as $attr => $typeidx) {                    if(!isset($typesByAttr[$attr])) {                        $typesByAttr[$attr] = [ $typeidx => [ 'cnt' => 1, 'idx' => $typeidx ] ];                    } else if(!isset($typesByAttr[$attr][$typeidx])) {                        $typesByAttr[$attr][$typeidx] = [ 'cnt' => 1, 'idx' => $typeidx ];                    } else {                        $typesByAttr[$attr][$typeidx]['cnt'] += 1;                    }                }            }            foreach($typesByAttr as $attr => $alltypes) {                $bestCnt = 0;                foreach($alltypes as $typedesc => $typestats) {                    if($bestCnt < $typestats['cnt']) {                        $bestCnt = $typestats['cnt'];                        $this->guessedAttrTypes[$attr] = $typestats['idx'];                    }                }            }        }        // If this is a brand new attribute, assume read-only and infer type from value        if(!isset($this->guessedAttrTypes[$attrName])) {            if (is_numeric($value)) {                $this->guessedAttrTypes[$attrName] = $ApiDef['DeviceInfo']['index'];    // aka read-only Int            } else {                $this->guessedAttrTypes[$attrName] = $ApiDef['Module']['serialNumber']; // aka read-only Text            }        }        return $this->guessedAttrTypes[$attrName];    }}
-const LOG_VHUBSERVER = 0;const LOG_HTTPCALLBACK = 1;const LOG_WSCALLBACK = 2;const LOG_CLIENTREQ = 3;const LOG_TARFILE = 4;const LOG_DATALOGGER = 5;const LOG_FILESYNC = 6;const GET_LAST_VERSION_URL = 'http://www.yoctopuce.com/FR/common/getLastFirmwareLink.php?serial=VHUB4WEB-00000';const VHUB4WEB_SESSIONS = VHUB4WEB_DATA.'/sessions';// Object used to retrieve data sent by HTTP Client and to send data back//class VHubServerHTTPRequest{    protected int $reqStartTime;    protected int $reqProcessTime;    protected int $nErr;    protected int $nWrn;    protected string $dataSent;    protected string $clientIP;    protected string $clientId;    protected string $method;    protected string $requestURI;    protected string $userAgent;    protected string $node;    protected string $rawPostData;    protected ?array $jsonPostData;    protected array $args;    protected array $authParams;    protected bool $shortReq;    public function __construct(bool $pseudo = false)    {        $this->reqStartTime = intval(round(1000 * microtime(true)));        $this->reqProcessTime = $this->reqStartTime;        $this->nErr = 0;        $this->nWrn = 0;        $this->clientIP = $_SERVER['REMOTE_ADDR'];        if(isset($_SERVER['HTTP_X_FORWARDED_FOR']) && $_SERVER['HTTP_X_FORWARDED_FOR']) {            $this->clientIP = $_SERVER['HTTP_X_FORWARDED_FOR'];        }        $this->clientSn = '';        $this->clientId = $this->clientIP;        $this->method = $_SERVER['REQUEST_METHOD'];        $this->requestURI = $_SERVER['REQUEST_URI'];        $this->userAgent = (isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : 'unspecified');        $this->node = '';        $this->args = [];        $this->authParams = [];        $this->rawPostData = '';        $this->jsonPostData = null;        $this->shortReq = false;        $this->dataSent = '';        if($pseudo) {            // shortcut for creating a pseudo context            return;        }        if($this->method == 'POST') {            $this->rawPostData = file_get_contents("php://input");            $this->reqProcessTime = intval(round(1000 * microtime(true)));            if(str_starts_with($this->rawPostData, '{')) {                // Most likely JSON post data (not Form-encoded)                if(str_ends_with($this->requestURI, 'HTTPCallback')) {                    $this->jsonPostData = json_decode(iconv("ISO-8859-1", "UTF-8", $this->rawPostData), true);                    //file_put_contents(VHUB4WEB_DATA.'/VHUB4WEB-postCbData.json', json_encode($this->jsonPostData, JSON_PRETTY_PRINT));                } else {                    $this->jsonPostData = json_decode($this->rawPostData, true);                    //file_put_contents(VHUB4WEB_DATA.'/VHUB4WEB-postData.json', json_encode($this->jsonPostData, JSON_PRETTY_PRINT));                }            }            if($this->jsonPostData) {                if(isset($this->jsonPostData['x-yauth'])) {                    $this->authParams = $this->jsonPostData['x-yauth'];                    $this->authParams['type'] = 'x-yauth';                }                if(isset($this->authParams['method'])) {                    $this->method = $this->authParams['method'];                }            }        }        if(sizeof($this->authParams) == 0 && isset($_SERVER['PHP_AUTH_DIGEST'])) {            preg_match_all('~(nonce|nc|cnonce|qop|username|uri|response)=(?:([\'"])([^\2]+?)\2|([^\s,]+))~',                $_SERVER['PHP_AUTH_DIGEST'], $matches, PREG_SET_ORDER);            $this->authParams['type'] = 'digest';            foreach ($matches as $m) {                $this->authParams[$m[1]] = $m[3] ?: $m[4];            }        }        if(isset($this->authParams['uri'])) {            // If an authentication is provided, make sure to use the authenticated URI instead of            // then unverified parameters possibly passed in the query            $this->requestURI = $this->authParams['uri'];        }        $this->parseRequestURI($this->requestURI);    }    protected function parseRequestURI(string $uri): void    {        $baseURI = preg_replace('~/$~', '', dirname($_SERVER["SCRIPT_NAME"]));        if(str_starts_with($uri, $baseURI)) {            // get relative URI (remove heading slash as well, if any)            $uri = substr($uri, strlen($baseURI)+1);        }        $this->node = $uri;        $this->shortReq = false;        $this->args = [];        $qpos = strpos($uri, '?');        if($qpos !== FALSE) {            $this->node = substr($uri, 0, $qpos);            $query = substr($uri, $qpos+1);            if(str_ends_with($query, '&.')) {                $this->shortReq = true;                $query = substr($query, 0, -2);            }            parse_str($query, $arguments);            foreach($arguments as $name => $value) {                if(is_string($value)) {                    $this->args[$name] = $value;                }            }        }    }    public function getRequestTimestamp(): int    {        return intval(round($this->reqStartTime / 1000));    }    public function getIOReadTime(): int    {        return $this->reqProcessTime - $this->reqStartTime;    }    public function getProcessingTime(): int    {        return intval(round(1000 * microtime(true))) - $this->reqProcessTime;    }    public function getErrorCount(): int    {        return $this->nErr;    }    public function getWarningCount(): int    {        return $this->nWrn;    }    public function incLogCount(int $logSeverity): void    {        switch($logSeverity) {            case 1: $this->nErr++; return;            case 2: $this->nWrn++; return;        }    }    public function getProtocol(): string    {        return isset($_SERVER['HTTPS']) && !empty($_SERVER['HTTPS']) ? 'https' : 'http';    }    public function getMethod(): string    {        return $this->method;    }    public function getRequestHostname(): string    {        return $_SERVER['SERVER_NAME'];    }    public function getRequestURL(): string    {        return $this->requestURI;    }    public function getFullClientRequest(): string    {        return $this->getMethod().' '.$this->getRequestURL().' '.$_SERVER['SERVER_PROTOCOL'];    }    public function getServerPort(): int    {        return intVal($_SERVER['SERVER_PORT']);    }    public function getServerIP(): string    {        return (isset($_SERVER['SERVER_ADDR']) ? $_SERVER['SERVER_ADDR'] : '0.0.0.0');    }    public function getClientIP(): string    {        return $this->clientIP;    }    public function setClientIdent(string $clientSerial, string $clientIdent): void    {        $this->clientSn = $clientSerial;        $this->clientId = $clientIdent;    }    public function getClientSerial(): string    {        return $this->clientSn;    }    public function getClientIdent(): string    {        return $this->clientId;    }    public function getUserAgent(): string    {        return $this->userAgent;    }    public function getOrigin(): string    {        if (isset($_SERVER['HTTP_ORIGIN']) && !is_null($_SERVER['HTTP_ORIGIN']) && $_SERVER['HTTP_ORIGIN'] != 'null') {            return $_SERVER['HTTP_ORIGIN'];        }        return '*';    }    public function getAuthUser(): string    {        if(isset($this->authParams['username'])) {            return $this->authParams['username'];        }        return '';    }    public function newNonce(): string    {        $newSessions = [];        if(!is_dir(VHUB4WEB_SESSIONS)) {            mkdir(VHUB4WEB_SESSIONS, 0700);        } else {            $now = time();            $files = scandir(VHUB4WEB_SESSIONS);            if($files !== FALSE) {                foreach($files as $fname) {                    if(!preg_match('/^([0-9a-f]{20})_(new|act)$/', $fname, $matches)) continue;                    if($matches[2] == 'new') {                        $hexstamp = substr($matches[1], 0, -12);                        $stamp = hexdec($hexstamp);                        $newSessions[$fname] = $now - $stamp;                    } else {                        $this->checkSession($matches[1], $A1);                    }                }            }        }        // Cleanup old inactive pending sessionIds        foreach($newSessions as $fname => $age) {            if($age > SESSION_MAX_INACTIVITY) {                $fullpath = VHUB4WEB_SESSIONS.'/'.$fname;                if(file_exists($fullpath)) {                    try { @unlink($fullpath); } catch(Throwable $e) {}                }            }        }        // Allocate a new secure session ID, make sure it is unused        do {            $res = strtolower(dechex(time()).bin2hex(random_bytes(6)));            $fname = "{$res}_new";        } while(isset($newSessions[$fname]));        // Create the new (empty) session file        file_put_contents(VHUB4WEB_SESSIONS.'/'.$fname, '');        // If we have too many valid pending sessions, delay new allocations        if(sizeof($newSessions) > SESSION_MAX_PENDING) {            usleep(199000);        }        return $res;    }    public function checkSession(string $nonce, &$A1 = null): bool    {        if(!is_dir(VHUB4WEB_SESSIONS)) {            return false;        }        $actfile = VHUB4WEB_SESSIONS."/{$nonce}_act";        if(!file_exists($actfile)) {            return false;        }        $data = explode(':', file_get_contents($actfile));        if(sizeof($data) < 2 || time()-hexdec($data[0]) > SESSION_MAX_INACTIVITY) {            try { @unlink($actfile); } catch(Throwable $e) {}            return false;        }        $A1 = $data[1];        return true;    }    public function touchSession(string $nonce, string $A1)    {        if(!is_dir(VHUB4WEB_SESSIONS)) {            return false;        }        $actfile = VHUB4WEB_SESSIONS."/{$nonce}_act";        file_put_contents($actfile, dechex(time()).':'.$A1);    }    public function checkPassword(string $password): bool    {        $authvals = $this->authParams;        $reqkeys = [ 'uri', 'nonce', 'nc', 'cnonce', 'qop', 'response' ];        foreach($reqkeys as $key) {            if(!isset($authvals[$key]) || !is_string($authvals[$key])) {                VHubServer::Log($this, LOG_CLIENTREQ, 3, "Missing x-yauth parameter {$key}");                return false;            }        }        if(!is_dir(VHUB4WEB_SESSIONS)) {            return false;        }        $nonce = $authvals['nonce'];        if(!preg_match('/^([0-9a-f]{20})$/', $nonce)) {            return false;        }        $newSessionFile = VHUB4WEB_SESSIONS."/{$nonce}_new";        if(file_exists($newSessionFile)) {            // new session with a valid nonce, check signature against password            try { @unlink($newSessionFile); } catch(Throwable $e) {}            $A1 = bin2hex(substr(base64_decode($password),1));        } else if(!$this->checkSession($nonce, $A1)) {            return false; // invalid nonce (possibly expired)        }        if($authvals['type'] == 'x-yauth') {            $A2 = sha1($this->method.':'.$authvals['uri']);            $signature = sha1($A1.':'.$authvals['nonce'].':'.$authvals['nc'].':'.$authvals['cnonce'].':'.$authvals['qop'].':'.$A2);        } else {            $A2 = md5($this->method.':'.$authvals['uri']);            $signature = md5($A1.':'.$authvals['nonce'].':'.$authvals['nc'].':'.$authvals['cnonce'].':'.$authvals['qop'].':'.$A2);        }        if($authvals['response'] != $signature) {            return false;        }        $this->touchSession($nonce, $A1);        return true;    }    public function setAuthUser(string $username): void    {        $this->authParams['username'] = $username;    }    public function getNode(): string    {        return $this->node;    }    public function getArg(string $argName): ?string    {        if(isset($this->args[$argName])) {            return $this->args[$argName];        }        return null;    }    public function getAllArgs(): array    {        return $this->args;    }    public function getRawPostData(): string    {        return $this->rawPostData;    }    public function getJsonPostData(): ?array    {        return $this->jsonPostData;    }    public function isShortReq(): bool    {        return $this->shortReq;    }    public function putStatus(int $status): void    {        http_response_code($status);    }    public function putHeader(string $header): void    {        header($header);    }    public function requestAuthentication(string $realm, string $reason): void    {        if(isset($this->authParams['type']) && $this->authParams['type'] == 'x-yauth') {            // Our custom authentication that does not pop-up a dialog on browsers            $this->putStatus(204);        } else {            // Request standard digest authentication            $this->putStatus(401);            $this->putHeader('WWW-Authenticate: Digest realm="' . $realm .                '",qop="auth",nonce="' . $this->newNonce() . '",opaque="' . md5($realm) . '"');        }        $this->putHeader('X-Auth-Error: ' . $reason);        // mark user as not authentified        $this->setAuthUser('');    }    public function put(string $message): void    {        $this->dataSent .= $message;        Print($message);    }    public function getDataReceived(): int    {        $res = strlen($this->getFullClientRequest()) + strlen($this->rawPostData);        if(function_exists('apache_request_headers')) {            $headers = apache_request_headers();            foreach ($headers as $header => $value) {                $res += strlen($header) + strlen($value) + 4;            }        }        return $res;    }    public function getDataSent(): int    {        $res = strlen($this->dataSent);        if(function_exists('apache_response_headers')) {            flush();            $headers = apache_response_headers();            foreach ($headers as $header => $value) {                $res += strlen($header) + strlen($value) + 4;            }        }        return $res;    }    public function getRequestTrace(): string    {        $eventTime = date('Y-m-d H:i:s',time());        $clientIdent = $this->getClientIdent();        $serverIdent = $this->getRequestHostname();        $phpVersion = phpversion().' '.php_sapi_name();        $res = "{$eventTime}: from {$clientIdent} ({$this->clientIP}) to {$serverIdent} (PHP {$phpVersion})\r\n";        $res .= '--- HTTP Request: '.$this->getFullClientRequest()."\r\n";        if(function_exists('apache_request_headers')) {            $headers = apache_request_headers();            foreach ($headers as $header => $value) {                $res .= "{$header}: {$value}\r\n";            }        }        $res .= $this->rawPostData."\r\n";        $res .= '--- HTTP Reply: '."\r\n";        if(function_exists('apache_response_headers')) {            flush();            $headers = apache_response_headers();            foreach ($headers as $header => $value) {                $res .= "{$header}: {$value}\r\n";            }        }        return $res.$this->dataSent;    }}class PhpErrorException extends Exception{    public function __construct(int $errno, string $errstr, string $errfile, int $errline)    {        parent::__construct($errstr, $errno);        $this->file = $errfile;        $this->line = $errline;    }}class VHubServer{    // Static properties (globals)    public static array $DebugLevel = [        LOG_VHUBSERVER => DEFAULT_LOGLEVEL,        LOG_HTTPCALLBACK => DEFAULT_LOGLEVEL,        LOG_WSCALLBACK => DEFAULT_LOGLEVEL,        LOG_CLIENTREQ => DEFAULT_LOGLEVEL,        LOG_TARFILE => DEFAULT_LOGLEVEL,        LOG_DATALOGGER => DEFAULT_LOGLEVEL,        LOG_FILESYNC => DEFAULT_LOGLEVEL    ];    public static array $DebugLevels = [ 'SOS - ', 'ERR - ', 'WRN - ', 'INF - ', 'NOT - ', 'DBG -' ];    public static array $DebugName = [        LOG_VHUBSERVER => "VSRV ",        LOG_HTTPCALLBACK => "HTCB ",        LOG_WSCALLBACK => "WSCB ",        LOG_CLIENTREQ => "CREQ ",        LOG_TARFILE => "TARF ",        LOG_DATALOGGER => "DLOG ",        LOG_FILESYNC => "FILE "    ];    // Navigable properties    public APIRootNode $apiroot;    // Device API cache    public NotifStream $notif;      // VHubServer output notification stream    public FileServer $files;       // File content server    // Regular internal properties    protected string $datadir;      // Data directory used by this instance, including trailing slash    protected array $fdcache;       // File descriptor cache to prevent open/close of TAR files within a single HTTP callback    // Freely accessible files:    protected array $safeFiles = [ 'iframe.html', 'webapp.html', 'ssdp.xml', 'index.html', 'info.json', 'favicon.svg', 'favicon.ico' ];    // Extra parameters that do not require admin rights:    protected array $safeParams = [ 'node', 'abs', 'ctx', 'dir', 'fw', 'hub', 'len', 'pos', 'rnd', 'scr', 'logUrl', 'id', 'run', 'utc', 'from', 'to' ];    protected static VHubServerHTTPRequest $CurrentHTTPRequest;    public static function ProcessHTTPRequest(): void    {        // Make sure PHP configuration is still OK to write logs, etc.        $err = check_php_conf(true);        if(sizeof($err) > 0) {            VHubServer::DisplayFriendlyErrors($err);        }        // Install global error and exception handlers        set_error_handler('VHubServer::ErrorHandler', E_ALL);        set_exception_handler('VHubServer::ExceptionHandler');        // Dispatch HTTP request        $request = new VHubServerHTTPRequest();        VHubServer::$CurrentHTTPRequest = $request;        $isHub = preg_match('/VirtualHub|YoctoHub/', $request->getUserAgent());        if(preg_match('~^HTTPCallback$~i', $request->getNode())) {            // Make sure this request does not come from a browser            if(!$isHub) {                VHubServer::DisplayFriendlyErrors([[                    'error' => 'UserAgent',                    'msg' => 'This service URL is not meant to be called by a web browser.',                    'cause' => 'The URL ending with <b>HTTPCallback</b> should only be used as HTTP callback URL by '.                        'VirtualHub or by a YoctoHub. In order to access VirtualHub-4web UI, remove HTTPCallback '.                        'from the browser address.'                ]]);            }            // Invoke HTTP callback support code            VHubServer::HTTPCallback($request);        } else {            // Make sure this request does not come from a YoctoHub/VirtualHub            if($isHub) {                $url = $request->getRequestHostname().$request->getRequestURL();                VHubServer::Abort($request, 'Hub configuration error: '.$url.' is not a correct HTTP Callback URL');            }            // Invoke Hub emulation support code            VHubServer::ClientRequest($request);        }    }    public static function DisplayFriendlyErrors(array $err): void    {        // Note: this function is used to report early configuration errors,        //       before even creating the VHubServerHTTPRequest object        Print("<style>\n");        Print("body{font-family:sans-serif;text-align:justify;background-color:lightyellow;}\n");        Print("a{font-size:small;}\n");        Print(".more{display:none;font-style:italic;padding:6px;width:600px;}\n");        Print("</style>\n");        Print("<h2>VirtualHub-4web fatal error</h2>\n");        Print("<script>\nfunction show(id) { document.getElementById(id).style.display='block'; }\n</script>\n");        if(sizeof($err) > 1) {            Print("<p>Oops, multiple problems have been found:</p>\n");        } else {            Print("<p>Oops, a serious problem has been detected:</p>\n");        }        Print("<ul>\n");        foreach($err as $error) {            Print("<li>{$error['msg']} <a href='javascript:show(\"{$error['error']}\")'>tell me more</a><div class='more' id='{$error['error']}'>{$error['cause']}</div></li>\n");        }        Print("</ul>\n");        die("</body>\n");    }    public static function Log(VHubServerHTTPRequest $httpReq, int $logType, int $logLevel, string $message): void    {        if ($logLevel <= VHubServer::$DebugLevel[$logType]) {            $logfile = VHUB4WEB_DATA.'/VHUB4WEB-logs.txt';            $fullmsg = date('Y-m-d H:i:s ',time()).                VHubServer::$DebugName[$logType].VHubServer::$DebugLevels[$logLevel].                $httpReq->getClientIdent().' '.$message;            file_put_contents($logfile, $fullmsg."\n", FILE_APPEND | LOCK_EX);            if(filesize($logfile) > SERVERLOGS_MAX_SIZE) {                rename($logfile, VHUB4WEB_DATA.'/VHUB4WEB-logs-older.txt');            }        }        $httpReq->incLogCount($logLevel);    }    public static function Abort(VHubServerHTTPRequest $httpReq, string $message, array $stackTrace = []): void    {        VHubServer::Log($httpReq, LOG_VHUBSERVER, 0, $message);        $httpReq->put(htmlspecialchars($message)."\n");        // If the fatal error is caused by a hub callback, keep the latest trace in a separate text file        $hubSerial = $httpReq->getClientSerial();        if($hubSerial) {            $tracefile = VHUB4WEB_DATA."/{$hubSerial}-fatal.trace";            $tracedata = $httpReq->getRequestTrace();            // append full debug information to trace file            $tracedata .= "--- Fatal Error:\r\n{$message}\r\n";            for($i = 0; $i < sizeof($stackTrace); $i++) {                $origin = basename($stackTrace[$i]['file']).':'.$stackTrace[$i]['line'];                if($i+1 < sizeof($stackTrace)) {                    $nextLevel = $stackTrace[$i + 1];                    $classPrefix = '';                    if (isset($nextLevel['class']) && $nextLevel['class'] != '') {                        $classPrefix = $nextLevel['class'] . '::';                    }                    $origin = $classPrefix . $stackTrace[$i + 1]['function'] . " ({$origin})";                }                $tracedata .= "called from {$origin}\r\n";            }            file_put_contents($tracefile, $tracedata);        }        die("\nAbort.\n");    }    public static function ErrorHandler(int $errno, string $errstr, string $errfile, int $errline): void    {        throw new PhpErrorException($errno, $errstr, $errfile, $errline);    }    public static function ExceptionHandler(Throwable $ex): void    {        // We don't receive the context from the caller in case of exception,        // so we need to use the static variable. This works for PHP since        // there is only one request per process        $httpReq = VHubServer::$CurrentHTTPRequest;        if(is_null($httpReq)) {            $httpReq = new VHubServerHTTPRequest(true);        }        $origin = basename($ex->getFile()).':'.$ex->getLine();        $stackTrace = $ex->getTrace();        if(sizeof($stackTrace) > 0) {            $classPrefix = '';            if(isset($stackTrace[0]['class']) && $stackTrace[0]['class'] != '') {                $classPrefix = $stackTrace[0]['class'].'::';            }            $origin = $classPrefix.$stackTrace[0]['function']." ({$origin})";        }        VHubServer::Abort($httpReq, $ex->getMessage()." in ".$origin, $stackTrace);    }    public static function HTTPCallback(VHubServerHTTPRequest $httpReq): void    {        if($httpReq->getMethod() != "POST") {            VHubServer::Abort($httpReq, 'Invalid HTTP method, expected a Yocto-API POST Callback');        }        // The input stream was already consumed, we need to make it available to the YoctoLib API        $_SERVER['HTTP_RAW_POST_DATA'] = $httpReq->getRawPostData();        $_SERVER['HTTP_JSON_POST_DATA'] = $jsonPostData = $httpReq->getJsonPostData();        if(is_null($jsonPostData)) {            VHubServer::Abort($httpReq, 'Cannot parse Yocto-API POST data');        }        // Identify the network hub first        if(isset($jsonPostData['serial'])) {            $hubSerial = $jsonPostData['serial'];        } else {            $hubSerial = $jsonPostData['/api.json']['module']['serialNumber'];        }        // In PHP, we have to instantiate a new server for every connection (not persistent accross calls)        $server = new VHubServer($httpReq, VHUB4WEB_DATA);        $server->loadState($httpReq);        // enable HTTP callback Cache        if(!file_exists(VHUB4WEB_DATA . "/cache_dir")) {            mkdir(VHUB4WEB_DATA . "/cache_dir");        }        YAPI::SetHTTPCallbackCacheDir(VHUB4WEB_DATA . "/cache_dir");        // Try to RegisterHub - if it fails, we will catch the exception from caller        $errmsg = '';        if($server->apiroot->cloudConf->md5signPwd) {            $auth = base64_decode($server->apiroot->cloudConf->md5signPwd);            YAPI::RegisterHub("{$auth}@callback", $errmsg);        } else {            YAPI::RegisterHub("callback", $errmsg);        }        // Try to retrieve the network name        $network = YNetwork::FindNetwork($hubSerial.'.network');        if($network->isOnline()) {            $hubName = $network->get_logicalName();        } else {            $hubName = $hubSerial;        }        $httpReq->setClientIdent($hubSerial, $hubName);        VHubServer::Log($httpReq, LOG_HTTPCALLBACK, 5, 'Incoming HTTP Callback from ' . $hubName);        $server->prepareToNotify($httpReq);        $nReset = 0;        $nDevices = $server->discoverDevices($httpReq, $nReset);        $server->transferDeviceFiles($httpReq);        if(isset($jsonPostData['tRepBuf'])) {            $tRepBufSize = $jsonPostData['tRepBuf'];            $tRepDataSize = $server->processTimedReports($httpReq, $hubSerial);            $tRepUsage = intVal(round(100 * $tRepDataSize / $tRepBufSize));        } else {            $server->emulateTimedReports($httpReq);            $tRepUsage = -1;        }        $server->executePendingQueries($httpReq, $network->get_serialNumber());        $server->saveDeviceState($httpReq);        $server->saveState($httpReq);        $server->closeNotificationStream($httpReq);        $httpReq->put('VirtualHub-4web callback complete.');        // Save last request for trace purposes        if($httpReq->getErrorCount() > 0) {            $reqfile = 'lastError.trace';        } else if($httpReq->getWarningCount() > 0) {            $reqfile = 'lastWarning.trace';        } else {            $reqfile = 'lastCallback.trace';        }        $trace = $httpReq->getRequestTrace();        $server->files->saveDeviceFile($httpReq, $hubSerial, $reqfile, $trace);        // backup any previous fatal trace in the same place        $tracefile = VHUB4WEB_DATA."/{$hubSerial}-fatal.trace";        if(file_exists($tracefile)) {            $fataltrace = file_get_contents($tracefile);            $server->files->saveDeviceFile($httpReq, $hubSerial, 'lastFatal.trace', $fataltrace);            unlink($tracefile);        }        // Update hub stats at the very end        $hubNode = $server->apiroot->bySerial->subnode($hubSerial);        $hubStats = $hubNode->getDeviceStats();        if(!is_null($hubStats)) {            $hubStats->appendStats($httpReq, $tRepUsage, $nDevices, $nReset);            $statsObj = $hubStats->saveState();            $server->files->saveDeviceFile($httpReq, $hubSerial, 'stats.json', json_encode($statsObj, JSON_UNESCAPED_SLASHES));        }    }    public static function ClientRequest(VHubServerHTTPRequest $httpReq): void    {        $server = new VHubServer($httpReq, VHUB4WEB_DATA);        $server->loadState($httpReq);        // Allow cross-origin requests, including authentication        $httpReq->putHeader('Access-Control-Allow-Origin: '.$httpReq->getOrigin());        $httpReq->putHeader('Access-Control-Allow-Credentials: true');        $httpReq->putHeader('Access-Control-Allow-Headers: Authorization');        $httpReq->putHeader('Vary: Origin');        $httpReq->putHeader('X-DNS-Prefetch-Control: off');        // Parse requested node path        $reqpath = $httpReq->getNode();        if($reqpath == '') {            $defaultPage = $server->apiroot->api->network->getattr('defaultPage');            if($defaultPage == '') {                $defaultPage = 'index.html';            }            $rootUrl = parse_url($httpReq->getRequestURL(), PHP_URL_PATH);            if(!str_ends_with($rootUrl, '/')) {                $rootUrl .= '/';            }            $httpReq->putStatus(302);            $httpReq->putHeader('Location: '.$rootUrl.$defaultPage);            return;        }        $extension = '';        $nodepath = explode('/', $reqpath);        $filename = array_pop($nodepath);        if($filename == '') {            $filename = array_pop($nodepath);        }        $filepart = explode('.', $filename);        if(sizeof($filepart) > 1) {            // remove file extension            $extension = $filepart[sizeof($filepart)-1];            $nodepath[] = substr($filename, 0, -(strlen($extension)+1));        } else {            $nodepath[] = $filename;        }        // Determines if authentication is required        $userPwd = $server->apiroot->api->network->getattr('userPassword');        $adminPwd = $server->apiroot->api->network->getattr('adminPassword');        $requiresAdmin = false;        $requiresAuth = false;        if(sizeof($nodepath) > 1 || array_search($reqpath, $server->safeFiles) === false) {            if($userPwd != '') {                $requiresAuth = true;            }        }        if($adminPwd) {            if($httpReq->getMethod() != 'GET') {                $requiresAuth = true;                $requiresAdmin = true;            } else if($nodepath[0] != 'iframe') {                $allArgs = $httpReq->getAllArgs();                foreach($allArgs as $key => $value) {                    if(array_search($key, $server->safeParams) !== false) continue;                    if($key == 'a' && ($value == 'list' || $value == 'dir')) continue;                    if($key == 'f' && isset($allArgs['a']) && $allArgs['a'] == 'dir') continue;                    $requiresAuth = true;                    $requiresAdmin = true;                    break;                }            }        }        if($requiresAuth) {            if(!$server->digestAuthenticate($httpReq)) {                die('Unauthorized user');            }            if($userPwd != '' && $adminPwd == '') {                // when only a user password is set, accept only 'user'                if($httpReq->getAuthUser() == 'admin') {                    die('Unauthorized user');                }            } else if($adminPwd != '') {                // if an admin password is set, make sure only 'admin' is logged in when required                if ($requiresAdmin) {                    if ($httpReq->getAuthUser() != 'admin') {                        $httpReq->requestAuthentication($server->apiroot->cloudConf->authRealm, 'Admin rights required');                        die('Admin rights required');                    }                }            }        }        if(!$adminPwd) {            // when no admin password is required, grant admin rights to logged user            $httpReq->setAuthUser('admin');        }        // Distinguish between API requests and simple file requests        if($nodepath[0] == 'api' ||            ($nodepath[0] == 'bySerial' && (sizeof($nodepath) < 3 || $nodepath[2] == 'api'))) {            $server->processAPI($httpReq, $nodepath, $extension);            return;        }        $logLevel = ($filename == 'not.byn' || $filename == 'flash.json' ? 5 : 4);        VHubServer::Log($httpReq, LOG_CLIENTREQ, $logLevel, "Sending file ".json_encode($nodepath)." ".$extension);        // Handle local file requests        if(sizeof($nodepath) == 1) {            switch($filename) {                case 'logs.txt':            // logs.txt?pos=...                    $pos = ($httpReq->getArg('pos') ?: '0');                    // Note: that serialNumber has not been reloaded from the config file,                    //       so it might not be the real one. But it is anyway the one against                    //       which the serveLogs function will compare, so that does not matter :-)                    $server->serveLogs($httpReq, $server->apiroot->cloudConf->serialNumber, intVal($pos));                    return;                case 'upload.html':         // upload.html?...                    $server->handleUpload($httpReq, '');                    return;                case 'not.byn':             // not.byn?len=...&abs=...                    $server->serveNotifications($httpReq);                    return;                case 'flash.json':          // flash.json?a=list - ignore for now                    $httpReq->put('{"total":0, "list":[]}');                    return;                case 'getInstaller.json':   // getInstaller.json?forVersion=...                    $server->serveInstaller($httpReq);                    return;                case 'testcb.txt':          // testcb.txt[?w=10]                    // FIXME: emulate callbacks to third party services ?                    return;                case 'cbdata.txt':          // cbdata.txt?n=                    return;                case 'info.json':           // info.json                    $server->serveInfo($httpReq);                    return;                case 'stats.json':                    $server->serveStats($httpReq);                    return;                case 'configure.json':                    $server->serveConf($httpReq);                    return;                case 'edithtml.js':         // edit.thml, generated file                    global $ApiAttrEdit;                    $server->files->sendFileContent($httpReq, $ApiAttrEdit, 'js');                    return;                case 'files.json':          // files.json?a=(dir|stat|del/format)&f=...                    $action = ($httpReq->getArg('a') ?: 'dir');                    $fname = ($httpReq->getArg('f') ?: '*');                    $server->files->filesCmd($httpReq, $action, $fname);                    $server->saveState($httpReq);                    return;                case 'Yv4wI.js':                    $server->serveYV4webInstaller($httpReq);                    return;                default:                    $server->files->sendFile($httpReq, $reqpath, $extension);                    return;            }        }        if(sizeof($nodepath) >= 3 && $nodepath[0] == 'bySerial') {            // Send special file or cached file from subdevice if available            switch($filename) {                case 'logger.json':         // logger.json[?id=...&utc=...]                case 'dataLogger.json':     // dataLogger.json[?id=...&utc=...]                    $fid = ($httpReq->getArg('id') ?: '');                    $run = ($httpReq->getArg('run') ?: '');                    $utc = ($httpReq->getArg('utc') ?: '');                    $fromUtc = ($httpReq->getArg('from') ?: '');                    $toUtc = ($httpReq->getArg('to') ?: '');                    $server->serveLogger($httpReq, $nodepath[1], $fid, $run, $utc, $fromUtc, $toUtc, ($filename != 'logger.json'));                    return;                case 'logs.txt':            // logs.txt?pos=...                    $pos = ($httpReq->getArg('pos') ?: '0');                    $server->serveLogs($httpReq, $nodepath[1], intVal($pos));                    return;                case 'upload.html':         // upload.html?...                    $server->handleUpload($httpReq, $nodepath[1]);                    return;                case 'files.json':          // files.json?a=(dir|stat|del/format)&f=...                    $action = ($httpReq->getArg('a') ?: 'dir');                    $fname = ($httpReq->getArg('f') ?: '*');                    $server->files->deviceFilesCmd($httpReq, $nodepath[1], $action, $fname);                    $server->saveState($httpReq);                    return;                case 'edithtml.js':         // edit.thml is the same for all devices (our own generated file)                    global $ApiAttrEdit;                    $server->files->sendFileContent($httpReq, $ApiAttrEdit, 'js');                    return;            }            $server->files->sendDeviceFile($httpReq, $nodepath[1], implode('/', array_slice($nodepath, 2)).'.'.$extension, $extension);            return;        }        $server->files->sendFile($httpReq, $reqpath, $extension);    }    public function __construct(VHubServerHTTPRequest $httpReq, string $datadir)    {        $this->datadir = $datadir.'/';        $this->apiroot = new APIRootNode($httpReq, $this, '');        $this->files = new FileServer($this);        $this->fdcache = [];    }    public function getDataDir(): string    {        return $this->datadir;    }    public function fexists(string $relativePath): bool    {        return file_exists($this->datadir.$relativePath);    }    public function filesize(string $relativePath): int    {        return filesize($this->datadir.$relativePath);    }    protected function fopen_cached(VHubServerHTTPRequest $httpReq, string $relativePath): mixed    {        if(str_ends_with($relativePath, '.tar')) {            if (!isset($this->fdcache[$relativePath])) {                $fp = fopen($this->datadir . $relativePath, "r+b");                VHubServer::Log($httpReq, LOG_VHUBSERVER, 5, "fopen({$relativePath}): fp={$fp}");                $this->fdcache[$relativePath] = $fp;            } else {                $fp = $this->fdcache[$relativePath];                fseek($fp, 0, SEEK_SET);            }        } else {            $fp = fopen($this->datadir . $relativePath, "r+b");            VHubServer::Log($httpReq, LOG_VHUBSERVER, 5, "fopen({$relativePath}): fp={$fp}");        }        return $fp;    }    public function fopen_ro(VHubServerHTTPRequest $httpReq, string $relativePath): mixed    {        $fp = $this->fopen_cached($httpReq, $relativePath);        if (!flock($fp, LOCK_SH)) { // acquire a shared lock for reading            VHubServer::Log($httpReq, LOG_VHUBSERVER, 2, "Could not get shared lock to read {$relativePath}");        }        return $fp;    }    public function fopen_rw(VHubServerHTTPRequest $httpReq, string $relativePath): mixed    {        $fp = $this->fopen_cached($httpReq, $relativePath);        if (!flock($fp, LOCK_EX)) { // acquire an exclusive lock for writing            VHubServer::Log($httpReq, LOG_VHUBSERVER, 2, "Could not get exclusive lock to write {$relativePath}");        }        return $fp;    }    public function frewrite(VHubServerHTTPRequest $httpReq, string $relativePath): mixed    {        if (isset($this->fdcache[$relativePath]) || file_exists($this->datadir . $relativePath)) {            $fp = $this->fopen_cached($httpReq, $relativePath);        } else {            $fp = fopen($this->datadir . $relativePath, "wb");        }        if (!flock($fp, LOCK_EX)) { // acquire an exclusive lock            VHubServer::Log($httpReq, LOG_VHUBSERVER, 2, "Fail to get exclusive lock to rewrite file {$relativePath}");        }        ftruncate($fp, 0);      // truncate file (needed despite fopen(w) because of flock)        return $fp;    }    public function fclose(VHubServerHTTPRequest $httpReq, mixed $fp, string $relativePath): void    {        fflush($fp);                    // flush output before releasing the lock        flock($fp, LOCK_UN);   // release the lock        // Keep descriptor open for optimizations if path is found in cache        if(!isset($this->fdcache[$relativePath])) {            VHubServer::Log($httpReq, LOG_VHUBSERVER, 5, "fclose({$relativePath}): fp={$fp}");            fclose($fp);        }    }    public function fappend(VHubServerHTTPRequest $httpReq, string $relativePath, $text): void    {        file_put_contents($this->datadir.$relativePath, $text, FILE_APPEND | LOCK_EX);    }    public function loadFile(VHubServerHTTPRequest $httpReq, string $relativePath, bool $getExclusiveLock = false, &$filedesc = null): string    {        if($getExclusiveLock) {            if(!$this->fexists($relativePath)) {                $filedesc = null;                return '{}';            }            $fp = $this->fopen_rw($httpReq, $relativePath);            $contents = stream_get_contents($fp);            fseek($fp, 0, SEEK_SET);            $filedesc = $fp;        } else {            $fp = $this->fopen_ro($httpReq, $relativePath);            $contents = stream_get_contents($fp);            $this->fclose($httpReq, $fp, $relativePath);        }        return $contents;    }    public function saveFile(VHubServerHTTPRequest $httpReq, string $relativePath, string $content, $fp = null): void    {        if(!$fp) {            $fp = $this->frewrite($httpReq, $relativePath);        } else {            fseek($fp, 0, SEEK_SET);            ftruncate($fp, 0);        }        fwrite($fp, $content);        $this->fclose($httpReq, $fp, $relativePath);    }    public function loadState(VHubServerHTTPRequest $httpReq): void    {        // load VirtualHub4web API state        if(file_exists($this->datadir.STATE_FILE)) {            // Load current state            $apiobj = json_decode($this->loadFile($httpReq, STATE_FILE), false, 99, JSON_THROW_ON_ERROR);            $this->apiroot->loadState($httpReq, $apiobj, false);            $this->apiroot->loadOwnServices($httpReq);        } else {            // Create initial state            VHubServer::Log($httpReq, LOG_VHUBSERVER, 3, "Config file does not yet exist, creating one");            $this->apiroot->loadOwnServices($httpReq);            $cloudapiobj = $this->apiroot->saveState();            $this->saveFile($httpReq, STATE_FILE, json_encode($cloudapiobj, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));        }        // load client hubs API state        foreach (glob($this->datadir.'????????-?*.tar') as $tarname) {            if(!preg_match('~/([A-Z0-9]+-[0-9a-fA-F]+).tar$~', $tarname, $matches)) {                continue;            }            $serial = $matches[1];            $apijson = $this->files->loadDeviceFile($httpReq, $serial, 'api.json');            if(is_null($apijson)) {                continue;            }            try {                $apiobj = json_decode($apijson, false, 99, JSON_THROW_ON_ERROR);            } catch(Throwable $err) {                VHubServer::Log($httpReq, LOG_VHUBSERVER, 2, "Error parsing client api file for {$serial}: ".$err->getMessage());                continue;            }            $apinode = new APIDeviceNode($httpReq, $this, $serial);            $this->apiroot->bySerial->addSubnode($serial, $apinode);            $apinode->loadState($httpReq, $apiobj, false);            if(sizeof($apiobj->services->whitePages) > 0 && isset($apiobj->VirtualHub4web)) {                $hubSerial = $apiobj->VirtualHub4web->parentHub;                $this->apiroot->loadServices($httpReq, $hubSerial, $apiobj->services, false);                // Load statistics for root nodes                if($serial == $hubSerial) {                    $apinode->initStats($httpReq);                    $statsjson = $this->files->loadDeviceFile($httpReq, $serial, 'stats.json');                    if(is_null($statsjson)) {                        continue;                    }                    try {                        $statsobj = json_decode($statsjson, false, 99, JSON_THROW_ON_ERROR);                    } catch(Throwable $err) {                        VHubServer::Log($httpReq, LOG_VHUBSERVER, 2, "Error parsing client stats file for {$serial}: ".$err->getMessage());                        continue;                    }                    $devStats = $apinode->getDeviceStats();                    $devStats->loadState($httpReq, $statsobj);                }            }        }        $this->apiroot->api->services->sortServices($httpReq);    }    public function updateCloudState(VHubServerHTTPRequest $httpReq): void    {        $stateChanges = $this->apiroot->getStateChanges($httpReq);        if(sizeof($stateChanges) > 0) {            // Reload state file while keeping an exclusive lock to update it            $cloudapiobj = json_decode($this->loadFile($httpReq, STATE_FILE, true, $fp), true, 99, JSON_THROW_ON_ERROR);            // Selectively update changed values            foreach($stateChanges as $key => $value) {                if (!str_ends_with($key, 'Password')) {                    // don't log password changes, to avoid security problems                    VHubServer::Log($httpReq, LOG_VHUBSERVER, 4, "Attribute change: $key = $value");                }                if ($key != 'persistentSettings') {                    $cloudapiobj['VirtualHub4web']['valuesCache'][$key] = $value;                }            }            // Handle persistentSettings change            if(isset($stateChanges['persistentSettings'])) {                switch($stateChanges['persistentSettings']) {                    case 0: // revert from last saved settings                        foreach ($cloudapiobj['VirtualHub4web']['savedSettings'] as $key => $savedValue) {                            $cloudapiobj['VirtualHub4web']['valuesCache'][$key] = $savedValue;                        }                        $cloudapiobj['VirtualHub4web']['valuesCache']['persistentSettings'] = 0;                        break;                    case 1: // save settings to persistent storage                        foreach ($this->apiroot->cloudConf->savedSettings as $key => $prevValue) {                            if(isset($cloudapiobj['VirtualHub4web']['valuesCache'][$key])) {                                $cloudapiobj['VirtualHub4web']['savedSettings'][$key] = $cloudapiobj['VirtualHub4web']['valuesCache'][$key];                            }                        }                        $cloudapiobj['VirtualHub4web']['valuesCache']['persistentSettings'] = 1;                        break;                }            } else {                foreach ($cloudapiobj['VirtualHub4web']['savedSettings'] as $key => $savedValue) {                    if($cloudapiobj['VirtualHub4web']['valuesCache'][$key] != $savedValue) {                        $cloudapiobj['VirtualHub4web']['valuesCache']['persistentSettings'] = 2;                        break;                    }                }            }            // Save file and release lock            $apitxt = json_encode($cloudapiobj, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);            $this->saveFile($httpReq, STATE_FILE, $apitxt, $fp);            // Reload updated state            $apiobj = json_decode($apitxt, false, 99, JSON_THROW_ON_ERROR);            $this->apiroot->loadState($httpReq, $apiobj, false);        }    }    public function saveState(VHubServerHTTPRequest $httpReq): void    {        $this->updateCloudState($httpReq);        foreach($this->apiroot->bySerial->subnodeNames() as $serial) {            $subnode = $this->apiroot->bySerial->subnode($serial);            if($subnode->hasChanged()) {                // Note: this code will change the state file so that next answers to client API                // stay coherent, but the propagation to the device itself is handled separately                // by the temporary "-changes.txt" file associated to the device hub                VHubServer::Log($httpReq, LOG_VHUBSERVER, 4, "Updating api.json for {$serial} after change");                $apiobj = $subnode->saveState();                $this->files->saveDeviceFile($httpReq, $serial, 'api.json', json_encode($apiobj, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES));            }        }    }    public function prepareToNotify(VHubServerHTTPRequest $httpReq): void    {        $this->notif = NotifStream::StreamAt($httpReq, $this, -1);        $this->notif->openForAppend($httpReq);    }    public function closeNotificationStream(VHubServerHTTPRequest $httpReq): void    {        $this->notif->close($httpReq);    }    public function _escapeAttr(string $attrval): string    {        $safecodes = [ '%21', '%23', '%24', '%27', '%28', '%29', '%2A', '%2C', '%2F', '%3A', '%3B', '%40', '%3F', '%5B', '%5D' ];        $safechars = [ '!', "#", "$", "'", "(", ")", '*', ",", "/", ":", ";", "@", "?", "[", "]" ];        return str_replace($safecodes, $safechars, urlencode($attrval));    }    public function digestAuthenticate(VHubServerHTTPRequest $httpReq): bool    {        $realm = $this->apiroot->cloudConf->authRealm;        $user = $httpReq->getAuthUser();        if(!$user) {            $httpReq->requestAuthentication($realm, 'Authentication required');            return false;        }        if($user != 'user' && $user != 'admin') {            $httpReq->requestAuthentication($realm, "Unknown user {$user}");            return false;        }        // check password        $pwd = $this->apiroot->api->network->getattr($user.'Password');        if(!$httpReq->checkPassword($pwd)) {            VHubServer::Log($httpReq, LOG_VHUBSERVER, 4, "Authentication failure for user {$user} from IP ".$httpReq->getClientIP());            $httpReq->requestAuthentication($realm, "Invalid credentials for user {$user}");            return false;        }        // login successful        return true;    }    public function scheduleUploadOnDevice(VHubServerHTTPRequest $httpReq, string $targetSerial, string $str_path, string $bin_content): void    {        $body = "Content-Disposition: form-data; name=\"$str_path\"; filename=\"api\"\r\n" .            "Content-Type: application/octet-stream\r\n" .            "Content-Transfer-Encoding: binary\r\n\r\n" . $bin_content;        do {            $boundary = sprintf("Zz%06xzZ", mt_rand(0, 0xffffff));        } while (str_contains($body, $boundary));        $mimebody = "--{$boundary}\r\n{$body}\r\n--{$boundary}--\r\n";        $this->scheduleQueryOnDevice($httpReq, $targetSerial, 'POST', '/upload.html', $mimebody);    }    public function scheduleQueryOnDevice(VHubServerHTTPRequest $httpReq, string $targetSerial, string $reqType, string $url, string $body = ''): void    {        $deviceNode = $this->apiroot->bySerial->subnode($targetSerial);        $rootHub = $deviceNode->cloudConf->parentHub;        if($rootHub == '') {            VHubServer::Log($httpReq, LOG_VHUBSERVER, 3, "Cannot apply change to {$targetSerial}, unknown parent hub");            return;        }        if($targetSerial != $rootHub) {            $url = '/bySerial/'.$targetSerial.$url;        }        $fullreq = date('Y-m-d_H:i:s ',time()).$reqType.' '.$url."\n";        if($body != '') {            $fullreq .= base64_encode($body)."\n";        }        $this->fappend($httpReq, $rootHub.'-pending.req', $fullreq);    }    public function sendCallbackApiCommand(VHubServerHTTPRequest $httpReq, string $command, ?string $extradata = null): void    {        VHubServer::Log($httpReq, LOG_VHUBSERVER, 5, "@YoctoAPI:".$command);        $httpReq->put("\n@YoctoAPI:{$command}\n");        if(!is_null($extradata)) {            $httpReq->put($extradata."\n");        }    }    public function executePendingQueries(VHubServerHTTPRequest $httpReq, string $rootHub): void    {        // check if there are pending queries for the specified root hub        $pendingfile = $this->datadir.$rootHub.'-pending.req';        if(!file_exists($pendingfile)) {            return;        }        // load and unlink (atomically) pending reqiests        $runningfile = str_replace('pending', 'running', $pendingfile);        rename($pendingfile, $runningfile);        $requests = preg_split('/\r\n|\r|\n/', file_get_contents($runningfile));        unlink($runningfile);        for($i = 0; $i < sizeof($requests); $i++) {            $req = explode(' ', $requests[$i]);            if(sizeof($req) < 3) {                continue;            }            $reqUrl = trim($req[2]);            if($req[1] == 'GET') {                VHubServer::Log($httpReq, LOG_VHUBSERVER, 4, "Execute GET ".json_encode($reqUrl));                $this->sendCallbackApiCommand($httpReq, 'GET '.$reqUrl);            } else if($req[1] == 'POST') {                if($i+1 >= sizeof($requests)) {                    VHubServer::Log($httpReq, LOG_VHUBSERVER, 2, "Cannot execute POST request on {$reqUrl}, missing body");                    return;                }                $str_body = base64_decode($requests[++$i]);                $boundary = '???';                $endb = strpos($str_body, "\r");                if (str_starts_with($str_body, '--') && $endb > 2 && $endb < 20) {                    $boundary = substr($str_body, 2, $endb - 2);                }                $this->sendCallbackApiCommand($httpReq, 'POST '.$reqUrl.' '.strlen($str_body).':'.$boundary, $str_body);            }        }        // requests have been executed, force next callback immediately        $this->sendCallbackApiCommand($httpReq, '%');    }    public function tryDownload(VHubServerHTTPRequest $httpReq, string $serial, string $fname, bool $requestAgain): ?string    {        VHubServer::Log($httpReq, LOG_VHUBSERVER, 5, "Try to load {$fname} from {$serial}");        $module = YModule::FindModule($serial.'.module');        try {            $fcontent = $module->_download($fname);            if(str_starts_with($fcontent, '64#')) {                $fcontent = substr($fcontent,3);                $fcontent = base64_decode($fcontent);            }            if($requestAgain) {                // request file for the next time anyway                $apinode = $this->apiroot->bySerial->subnode($serial);                $rootHub = $apinode->cloudConf->parentHub;                $rootUrl = ($rootHub != $serial ? '/bySerial/'.$serial : '');                $this->sendCallbackApiCommand($httpReq, "+{$rootUrl}/{$fname}");            }            return $fcontent;        } catch(Throwable $exception) {            // Most probably caused by the file content not being posted in the HTTP callback data            $serial = $module->get_serialNumber();            VHubServer::Log($httpReq, LOG_VHUBSERVER, 5, "Cannot load {$fname} from {$serial}: ".$exception->getMessage());        }        return null;    }    public function discoverDevices(VHubServerHTTPRequest $httpReq, &$nReset): int    {        // First create a list of modules with yoctohubs at the bottoms, and the virtualhubs at the very end        $clientIP = $httpReq->getClientIP();        $modules = [];        $virthubs = [];        $nReset = 0;        $module = YModule::FirstModule();        while($module) {            $apibin = $module->_download('api.json');            $apistr = iconv("ISO-8859-1", "UTF-8", $apibin);            $apiobj = new stdClass();            $apiobj->api = json_decode($apistr, false, 99, JSON_THROW_ON_ERROR);            $toadd = ['module' => $module, 'apiobj' => $apiobj];            if(isset($apiobj->api->services)) {                $prodId = $apiobj->api->module->productId;                if($prodId == 0xc10d) {                    // add any other virtualhub-4web very very last, even after virtualhubs                    $virthubs[] = $toadd;                } else if($prodId == 0) {                    // add virtualhub in a separate list                    array_unshift($virthubs, $toadd);                } else {                    // add yoctohubs at the end                    $modules[] = $toadd;                }            } else {                // add other module at the start                array_unshift($modules, $toadd);            }            $module = $module->nextModule();        }        foreach($virthubs as $toadd) {            $modules[] = $toadd;        }        // Then process the list in this order        for($mi = 0; $mi < sizeof($modules); $mi++) {            $module = $modules[$mi]['module'];            $apiobj = $modules[$mi]['apiobj'];            $serial = $module->get_serialNumber();            if($this->apiroot->bySerial->hasSubnode($serial)) {                $apinode = $this->apiroot->bySerial->subnode($serial);                $lastSeen = $apinode->api->module->getattr('lastSeen');                $prevUptime = $apinode->api->module->getattr('upTime');                $apinode->loadState($httpReq, $apiobj, true);                // detect device resets                $newUptime = $apinode->api->module->getattr('upTime');                $deltaUptime = ($newUptime - $prevUptime) & 0xffffffff;                $safeUptimeSec = intdiv(max($newUptime, $deltaUptime), 1000);                // Ensure that uptime difference matches expectations with 2 % margin + 10 sec                $wasReset = abs($safeUptimeSec - $lastSeen) < (0.02*$lastSeen + 10);                if($wasReset) {                    $apinode->cloudConf->deviceResetDetected();                    $nReset++;                }            } else {                $apinode = new APIDeviceNode($httpReq, $this, $serial);                $apinode->loadState($httpReq, $apiobj, true);                $this->apiroot->bySerial->addSubnode($serial, $apinode);            }            $apinode->cloudConf->lastSeen = time();            if($apinode->cloudConf->reconnect) {                VHubServer::Log($httpReq, LOG_VHUBSERVER, 3, "Fast reconnect requested for {$serial}");                $apinode->cloudConf->reconnect = 0;                $this->sendCallbackApiCommand($httpReq, '%');            }            $apinode->markAsChanged();            if(isset($apiobj->api->services) && substr($serial, 0, 7) != 'YHUBSHL') {                $devYdxExists = $this->apiroot->loadServices($httpReq, $serial, $apiobj->api->services, false);                if (!$devYdxExists) {                    // Reload state file while keeping an exclusive lock to update it                    $cloudapiobj = json_decode($this->loadFile($httpReq, STATE_FILE, true, $fp), false, 99, JSON_THROW_ON_ERROR);                    $this->apiroot->loadState($httpReq, $cloudapiobj, false);                    $this->apiroot->loadServices($httpReq, $serial, $apiobj->api->services, true);                    $cloudapiobj = $this->apiroot->saveState();                    $this->saveFile($httpReq, STATE_FILE, json_encode($cloudapiobj, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES), $fp);                }                // store link to parent hub and services in subdevice                $wpdef = $apiobj->api->services->whitePages;                foreach ($wpdef as $wpentry) {                    $subserial = $wpentry->serialNumber;                    if(!$this->apiroot->bySerial->hasSubnode($subserial)) {                        // device is supposed to have been loaded first                        VHubServer::Log($httpReq, LOG_VHUBSERVER, 4, "Dropping services for unknown serial {$subserial}; possibly a subdevice of a hub connected via USB?");                        continue;                    }                    $apisubnode = $this->apiroot->bySerial->subnode($subserial);                    if($apisubnode->cloudConf->parentHub != $serial || $apisubnode->cloudConf->parentIP != $clientIP) {                        $apisubnode->cloudConf->parentHub = $serial;                        $apisubnode->cloudConf->parentIP = $clientIP;                        $apisubnode->markAsChanged();                    }                    $subservices = $this->apiroot->saveServicesForSerial($subserial);                    $apisubnode->services->loadState($httpReq, $subservices, true);                }            }        }        return sizeof($modules);    }    public function transferDeviceFiles(VHubServerHTTPRequest $httpReq): void    {        $module = YModule::FirstModule();        while($module) {            $serial = $module->get_serialNumber();            $apinode = $this->apiroot->bySerial->subnode($serial);            $knownFirmware = $apinode->cloudConf->yfsVer;            $currentfirmware = $apinode->api->module->getattr('firmwareRelease');            // Download built-in files if needed            $yfsFiles = [];            if(!$this->files->isKnownDeviceFile($httpReq, $serial, 'yfs/icon2d.png')) {                $yfsFiles[] = 'icon2d.png';            }            if (!str_starts_with($serial, 'Y3DMK001')) { // Yocto-3D has no built-in UI                if ($knownFirmware != $currentfirmware ||                       (!$this->files->isKnownDeviceFile($httpReq, $serial, 'yfs/details.html') &&                        !$this->files->isKnownDeviceFile($httpReq, $serial, 'yfs/details.html.gz'))) {                    // Must download UI files                    if ((str_contains($currentfirmware, ':') || intVal($currentfirmware) >= 51000) &&                        !str_starts_with($serial, 'YHUB') &&                        !str_starts_with($serial, 'VIRTHUB') &&                        !str_starts_with($serial, 'VHUB4WEB')) {                        // Download _FS all at once                        try {                            $fscontent = $module->_download('_FS');                            if (str_starts_with($fscontent, '64#')) {                                $fscontent = substr($fscontent, 3);                                $fscontent = base64_decode($fscontent);                            }                            $this->files->saveAllDeviceFiles($httpReq, $serial, $fscontent);                            $apinode->cloudConf->yfsVer = $currentfirmware;                            $apinode->markAsChanged();                            VHubServer::Log($httpReq, LOG_FILESYNC, 3, "Downloaded all UI files for {$serial}");                        } catch (Throwable $exception) {                            $msg = $exception->getMessage();                            if (str_contains($msg, 'Network error')) {                                VHubServer::Log($httpReq, LOG_FILESYNC, 2, "Failed to open _FS file for {$serial}: " . $msg);                            }                        }                    } else {                        // Older firmware, try to download individual files                        $yfsFiles[] = 'details.html';                        $yfsFiles[] = 'configure.html';                    }                }            }            foreach ($yfsFiles as $fname) {                $fcontent = $this->tryDownload($httpReq, $serial, $fname, false);                if (!is_null($fcontent)) {                    if (strlen($fcontent) > 4 && ord($fcontent[0]) == 0x1f && ord($fcontent[1]) == 0x8b) {                        $fname .= '.gz';                    }                    $this->files->saveDeviceFile($httpReq, $serial, 'yfs/' . $fname, $fcontent);                    if(str_starts_with($fname, 'details.html')) {                        $apinode->cloudConf->yfsVer = $currentfirmware;                        $apinode->markAsChanged();                        VHubServer::Log($httpReq, LOG_FILESYNC, 3, "Downloaded individual UI files for {$serial}");                    }                }            }            // Check latest logs as well            $rootHub = $apinode->cloudConf->parentHub;            $rootUrl = ($rootHub != $serial ? '/bySerial/'.$serial : '');            try {                $logUrl = 'logs.txt';                if($apinode->cloudConf->logPos != 0) {                    $logUrl .= '?pos='.$apinode->cloudConf->logPos;                }                $logs = $module->_download($logUrl);                $endPos = strrpos($logs, "\n@");                if($endPos > 0) {                    $newLogPos = intVal(substr($logs, $endPos+2));                    $logs = date("[Y-m-d H:i:s]\n", time()).substr($logs, 0, $endPos);                    $prevLogs = $this->files->loadDeviceFile($httpReq, $serial, 'logs.txt');                    if(!is_null($prevLogs)) {                        $prevLogs = preg_replace('~ *$~', '', $prevLogs);                        $logs = $prevLogs.$logs;                    }                    $logsLen = strlen($logs);                    if($logsLen > DEVICELOGS_MAX_SIZE) {                        $logs = substr($logs, -DEVICELOGS_MAX_SIZE);                    } else if($logsLen < DEVICELOGS_MAX_SIZE) {                        $logs .= str_repeat(' ', DEVICELOGS_MAX_SIZE - $logsLen);                    }                    $this->files->saveDeviceFile($httpReq, $serial, 'logs.txt', $logs);                    $apinode->cloudConf->logPos = $newLogPos;                    $this->notif->appendConfigChangeNotification($httpReq, $serial);                    $apinode->markAsChanged();                    // request new logs.txt for the next time                    $logUrl = 'logs.txt?pos='.$apinode->cloudConf->logPos;                    $this->sendCallbackApiCommand($httpReq, "+{$rootUrl}/{$logUrl}");                } else {                    // no new log, request logs.txt next time nevertheless                    $this->sendCallbackApiCommand($httpReq, "+{$rootUrl}/{$logUrl}");                }            } catch(Throwable $exception) {                $msg = $exception->getMessage();                if(!str_contains($msg, 'Network error')) {                    VHubServer::Log($httpReq, LOG_VHUBSERVER, 2, "Failed to open logs.txt for {$serial}: ".$msg);                }                $httpReq->put('logs.txt not available: '.$exception->getMessage()."\r\n");            }            // Download extra files for specific modules/functions            if($apinode->api->hasSubnode('display')) {                $fname = 'display.gif';                $fcontent = $this->tryDownload($httpReq, $serial, $fname, true);                if(!is_null($fcontent)) {                    $this->files->saveDeviceFile($httpReq, $serial, $fname, $fcontent);                }            }            if($apinode->api->hasSubnode('files')) {                $fname = 'files.json';                $fcontent = $this->tryDownload($httpReq, $serial, $fname, true);                if(!is_null($fcontent)) {                    try {                        // process file records                        $filesRecs = json_decode($fcontent, false, 99, JSON_THROW_ON_ERROR);                        if($apinode->fileList->compareToDevice($httpReq, $filesRecs)) {                            $apinode->markAsChanged();                        }                    } catch(Throwable $exception) {                        VHubServer::Log($httpReq, LOG_VHUBSERVER, 2, "Failed to parse files.json for {$serial}: ".$exception->getMessage());                    }                }            }            $module = $module->nextModule();        }    }    public function processTimedReports(VHubServerHTTPRequest $httpReq, string $hubSerial): int    {        $hubModule = YModule::FindModule($hubSerial);        // Index white page records to decode devYdx        $hubAPI = json_decode($hubModule->_download('api.json'));        $serialByDevYdx = [];        foreach($hubAPI->services->whitePages as $wpRec) {            $serialByDevYdx[$wpRec->index] = $wpRec->serialNumber;        }        $apinode = $this->apiroot->bySerial->subnode($hubSerial);        $tRep = null;        try {            $tRepURL = 'tRep.bin';            if($apinode->cloudConf->tRepPos != 0) {                $tRepURL .= '?pos='.$apinode->cloudConf->tRepPos;            }            $tRep = $hubModule->_download($tRepURL);        } catch(Throwable $exception) {            $msg = $exception->getMessage();            if(!str_contains($msg, 'Network error')) {                VHubServer::Log($httpReq, LOG_VHUBSERVER, 2, "Failed to open tRep.bin file for {$hubSerial}: ".$msg);            }            $httpReq->put('tRep.bin not available: '.$exception->getMessage()."\r\n");        }        if(is_null($tRep)) {            VHubServer::Log($httpReq, LOG_VHUBSERVER, 4, "tRep not available for now");            return -1;        }        // process all available timed reports        $currDevYdx = -1;        $currDevReports = [];        $newTRepPos = 0;        $newReps = 0;        $endPos = strlen($tRep);        for($pos = 0; $pos+2 < $endPos; ) {            $devYdx = ord($tRep[$pos++]);            $head = ord($tRep[$pos++]);            $data0 = ord($tRep[$pos++]);            $funYdx = $head & 0xf;            $extraLen = $head >> 4;            if($currDevYdx != $devYdx || $funYdx == 15 || $pos + $extraLen > $endPos) {                // flush pending reports                if($currDevYdx >= 0) {                    if(isset($serialByDevYdx[$currDevYdx])) {                        $currDevSerial = $serialByDevYdx[$currDevYdx];                        $this->notif->handleTrueTimedReportNotification($httpReq, $currDevSerial, $currDevReports);                        $currDevReports = [];                    }                }            }            if($devYdx == 0xff && $head == 0xff) {                // end of file marker, parse end position                $newTRepPos = $data0 + 0x100 * ord($tRep[$pos]) + 0x10000 * ord($tRep[$pos+1]) + 0x1000000 * ord($tRep[$pos+2]);                break;            }            if($pos + $extraLen > $endPos) break;            if($currDevYdx != $devYdx) {                $currDevYdx = $devYdx;            }            $rawReport = [ $data0 ];            for($i = 0; $i < $extraLen; $i++) {                $rawReport[] = ord($tRep[$pos+$i]);            }            $currDevReports[$funYdx] = $rawReport;            $pos += $extraLen;        }        if($newTRepPos) {            $newReps = ($newTRepPos - $apinode->cloudConf->tRepPos) & 0xffffffff;            $apinode->cloudConf->tRepPos = $newTRepPos;            $apinode->markAsChanged();            // request new logs.txt for the next time            $tRepURL = 'tRep.bin?pos='.$apinode->cloudConf->tRepPos;            $this->sendCallbackApiCommand($httpReq, "+/{$tRepURL}");        } else {            // missing events or no timed report, request tRep.bin next time nevertheless            $this->sendCallbackApiCommand($httpReq, "+/{$tRepURL}");        }        return $newReps;    }    public function emulateTimedReports(VHubServerHTTPRequest $httpReq): void    {        // default UTC timestamp taken from server, if no dataLogger is found        $timestamp = time();        $module = YModule::FirstModule();        while($module) {            $serial = $module->get_serialNumber();            $deviceNode = $this->apiroot->bySerial->subnode($serial);            $deviceApiNode = $deviceNode->api;            $values = [];            $fcount = $module->functionCount();            for($i = 0; $i < $fcount; $i++) {                if($module->functionBaseType($i) == 'Sensor') {                    // Sensor found, check if a timed report is available                    $functionId = $module->functionId($i);                    $functionNode = $deviceApiNode->subnode($functionId);                    $avgVal = $functionNode->getSensorValue();                    if(!is_nan($avgVal)) {                        $values[$functionId] = $avgVal;                    }                } else if($module->functionId($i) == 'dataLogger') {                    $functionNode = $deviceApiNode->subnode('dataLogger');                    $timestamp = $functionNode->get_timeUTC();                }            }            if(sizeof($values) > 0) {                $parentSerial = $deviceNode->cloudConf->parentHub;                $parentNode = $this->apiroot->bySerial->subnode($parentSerial);                $parentNet = $parentNode->api->subnode('network');                $period = min(intval($parentNet->getattr('callbackMinDelay')), 3600);                $freq = new DataFrequency($period);                $endTime = $freq->alignTimestamp($timestamp);                $startTime = $endTime - $period;                $reports = [];                foreach($values as $functionid => $avgVal) {                    $sensor = YSensor::FindSensor("{$serial}.{$functionId}");                    $unit = $sensor->get_unit();                    $measure = new YMeasure($startTime, $endTime, $avgVal, $avgVal, $avgVal);                    $reports[$functionId] = [ 'sensor' => $sensor, 'measure' => $measure, 'unit' => $unit, 'freq' => $freq];                }                $this->notif->appendEmulatedTimedReportNotification($httpReq, $serial, $reports);                $logger = new DataLogger($this, $serial);                $logger->appendMeasures($httpReq, $reports);            }            $module = $module->nextModule();        }    }    public function saveDeviceState(VHubServerHTTPRequest $httpReq): void    {        $module = YModule::FirstModule();        while($module) {            $serial = $module->get_serialNumber();            $apinode = $this->apiroot->bySerial->subnode($serial);            if($apinode->hasChanged()) {                $apiobj = $apinode->saveState();                $this->files->saveDeviceFile($httpReq, $serial, 'api.json', json_encode($apiobj, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES));            }            $module = $module->nextModule();        }    }    public function processAPI(VHubServerHTTPRequest $httpReq, array $nodepath, string $disptype): void    {        // Search for requested node        $ctx = $httpReq->getArg('ctx');        if($ctx) {            $ctxpath = explode('/', $ctx);        } else {            $ctxpath = [];        }        [ $apinode, $ctxnode, $subkey ] = $this->apiroot->search($nodepath, $ctxpath);        if(is_null($apinode)) {            $httpReq->putStatus(404);            $httpReq->put("Sorry, the requested node ".htmlspecialchars(implode('/',$nodepath))." does not exist [vhub4web]\r\n");            return;        }        if(!is_null($ctxnode)) {            if($ctxnode->fclass == 'Module' && $subkey == 'lastSeen' && !is_null($httpReq->getArg('lastSeen'))) {                // special request to force immediate reconnects after next HTTP Callback                $serial = $ctxnode->getattr('serialNumber');                $deviceNode = $this->apiroot->bySerial->subnode($serial);                $deviceNode->cloudConf->reconnect = 1;                $deviceNode->markAsChanged();                $this->saveState($httpReq);                $httpReq->put("%OK");                return;            }            // Apply changes to API nodes            foreach($httpReq->getAllArgs() as $setattr => $setval) {                if(array_search($setattr, ['node','fw','checkRW','rnd','ctx','scr','abs','dir','hub','len','pos','_','serialNumber','w']) !== FALSE) {                    // not real attributes change, shortcut                    continue;                }                if($ctxnode->fclass == 'DataLogger') {                    // Do not forward any datalogger requests for now                    continue;                }                if($setattr == 'persistentSettings' && $setval == '2') {                    // pseudo-change to trigger an immediate config change callback on client                    // no need to propagate this change to the client                    $this->notif->appendConfigChangeNotification($httpReq, $ctxnode->getattr('serialNumber'));                } else if($setattr != 'command') {                    // - special attribute command is never stored in the api                    VHubServer::Log($httpReq, LOG_VHUBSERVER, 4, "API requests attribute change: {$setattr} = {$setval} on ".json_encode($nodepath));                    $ctxnode->setattr($setattr, $setval);                }                if($nodepath[0] == 'bySerial') {                    // for remote devices, record change to perform next time the device becomes available                    $relpath = array_merge(array_slice($nodepath, 2), $ctxpath, [ $setattr ]);                    $changereq = '/'.implode('/', $relpath).'?'.$setattr.'='.$this->_escapeAttr($setval);                    $this->scheduleQueryOnDevice($httpReq, $nodepath[1], 'GET', $changereq);                }            }            $this->saveState($httpReq);        }        if(is_null($subkey)) {            // Display node            $this->files->sendContentHeader($httpReq, $disptype);            switch($disptype) {                case 'json':                    $apinode->printJSON($httpReq);                    break;                case 'jzon':                    $apinode->printJZON($httpReq);                    break;                case '':                case 'html':                    $devicedir = '';                    for($i = sizeof($nodepath)-1; $i > 0 && $nodepath[$i] != 'api'; $i--) {                        $devicedir .= '../';                    }                    for($basedir = $devicedir; $i > 0; $i--) {                        $basedir .= '../';                    }                    $baseHRef = ($basedir != '' ? "<BASE href='{$basedir}'/>" : '');                    $action = $httpReq->getNode();                    $httpReq->put("<!DOCTYPE html>{$baseHRef}".                        "<link href='edithtml.css' rel=stylesheet type='text/css'/>".                        "<SCRIPT src='edithtml.js'></SCRIPT><SCRIPT src='js/edit.js'></SCRIPT>".                        "<BODY onload='rescroll()'><form method='get' action='{$action}'>".                        "<INPUT type='hidden' name='scr'><INPUT type='hidden' name='ctx'>");                    $apinode->printHTML($httpReq, $apinode->name);                    $httpReq->put('</FORM>');                    break;                case 'txt':                    $apinode->printTXT($httpReq, $apinode->name);                    break;                case 'xml':                    $httpReq->put('<'.'?xml version=\"1.0\"?'.">\r\n");                    $apinode->printXML($httpReq, $apinode->name);                    break;            }        } else if(!$httpReq->isShortReq()) {            // Display value            switch($disptype) {                case 'json':                case 'jzon':                    $apinode->printJSONValue($httpReq, $subkey);                    break;                case 'txt':                    $apinode->printTXTValue($httpReq, $subkey);                    break;                case '':                case 'html':                    $apinode->printHTMLValue($httpReq, $subkey);                    break;                case 'xml':                    $apinode->printXMLValue($httpReq, $subkey);                    break;            }        }    }    public function serveInstaller(VHubServerHTTPRequest $httpReq): void    {        $res = [];        // Test command, to avoid timeouts        $testTimeout = $httpReq->getArg('testTimeout');        if(!is_null($testTimeout)) {            try {                $fp = fsockopen('www.yoctopuce.com', 80, $errorCode, $errorMsg, floatVal($testTimeout));                if($fp === FALSE) {                    $res['error'] = "{$errorMsg} (error {$errorCode})";                } else {                    $res['success'] = 1;                    fclose($fp);                }            } catch(Throwable $ex) {                $res['error'] = $ex->getMessage();            }            $this->files->sendContentHeader($httpReq, 'json');            $httpReq->put(json_encode($res, JSON_UNESCAPED_SLASHES));            return;        }        // Real command to prepare to run the installer        $version = $httpReq->getArg('forVersion');        $getVersionStr = @file_get_contents(GET_LAST_VERSION_URL);        if(!$version) {            // forVersion flag is enforce requirements for admin rights            $res['error'] = 'version specifier is MANDATORY';        } else if(!$getVersionStr) {            $res['error'] = 'unable to retrieve version information from www.yoctopuce.com';        } else if(!class_exists('ZipArchive')) {            $res['error'] = 'PHP zip extension is not enabled';        } else {            $getVersion = json_decode($getVersionStr);            if(is_null($getVersion)) {                $res['error'] = 'unable to retrieve version information from www.yoctopuce.com';            } else if($version == 'latest') {                $url = $getVersion->link;            } else {                $url = str_replace('.'.$getVersion->version.'.', '.'.urlencode($version).'.', $getVersion->link);            }            $res['installerURL'] = $url;            $installer = @file_get_contents($url);            if(!$installer) {                $res['error'] = "unable to retrieve installer from www.yoctopuce.com ({$url})";            } else {                $baseDir = dirname(dirname($_SERVER['SCRIPT_FILENAME']));                $tempFile = tempnam($baseDir, 'vhw');                $zip = new ZipArchive;                if (!@file_put_contents($tempFile, $installer)) {                    $res['error'] = 'unable to write ZIP file';                } else if($zip->open($tempFile) !== TRUE) {                    $res['error'] = 'unable to open ZIP file';                    @unlink($tempFile);                } else {                    $installer = $zip->getFromName('vhub4web-installer.php');                    $zip->close();                    @unlink($tempFile);                    if(!$installer) {                        $res['error'] = 'unable to read from ZIP file';                    } else {                        $installerName = 'vhub4web-installer.'.bin2hex(random_bytes(6)).'.php';                        $installerFile = $baseDir.'/'.$installerName;                        if(!@file_put_contents($installerFile, $installer)) {                            $res['error'] = 'unable to write installer file';                        } else {                            $baseUrl = dirname(dirname(parse_url($httpReq->getRequestURL(), PHP_URL_PATH)));                            $res['location'] = $baseUrl.'/'.$installerName;                        }                    }                }            }        }        $this->files->sendContentHeader($httpReq, 'json');        $httpReq->put(json_encode($res, JSON_UNESCAPED_SLASHES));    }    public function serveInfo(VHubServerHTTPRequest $httpReq): void    {        $uri = preg_replace('~(/info.json|\?).*~', '', $httpReq->getRequestURL());        if(str_starts_with($uri, '/')) {            $uri = substr($uri, 1);        }        $protocol = $httpReq->getProtocol();        $userPwd = $this->apiroot->api->network->getattr('userPassword');        $adminPwd = $this->apiroot->api->network->getattr('adminPassword');        $info = [            "productName" => $this->apiroot->api->module->getattr('productName'),            "serialNumber" => $this->apiroot->api->module->getattr('serialNumber'),            "firmwareRelease" => $this->apiroot->api->module->getattr('firmwareRelease'),            "dir" => "$uri",            "userPassword" => ($userPwd == '' ? "FALSE" : "TRUE"),            "adminPassword" => ($adminPwd == '' ? "FALSE" : "TRUE"),            "port" => [ $protocol.':'.$this->apiroot->api->network->getattr('httpPort') ],            "protocol" => "HTTP/1.1",            "realm" =>  $this->apiroot->cloudConf->authRealm,            "nonce" => $httpReq->newNonce()        ];        $this->files->sendContentHeader($httpReq, 'json');        $httpReq->put(json_encode($info, JSON_UNESCAPED_SLASHES));    }    public function serveStats(VHubServerHTTPRequest $httpReq): void    {        $stats = [];        foreach($this->apiroot->bySerial->subnodeNames() as $serial) {            $devnode = $this->apiroot->bySerial->subnode($serial);            $devstats = $devnode->getDeviceStats();            if(!is_null($devstats)) {                $stats[$serial] = $devstats->saveState();                $stats[$serial]['lastCallbackAge'] = $httpReq->getRequestTimestamp() - $stats[$serial]['prevTimestamp'];                $stats[$serial]['lastCallbackIP'] = $devnode->cloudConf->parentIP;                $hubname = '';                if($devnode->api->hasSubnode('network')) {                    $netnode = $devnode->api->subnode('network');                    $hubname = $netnode->getattr('logicalName');                    $stats[$serial]['callbackMaxDelay'] = $netnode->getattr('callbackMaxDelay');                }                $stats[$serial]['hubName'] = ($hubname != '' ? $hubname : $serial);            }        }        $this->files->sendContentHeader($httpReq, 'json');        $httpReq->put(json_encode($stats, JSON_UNESCAPED_SLASHES));    }    public function serveConf(VHubServerHTTPRequest $httpReq): void    {        $res = [];        $deleteDevice = $httpReq->getArg('deleteDevice');        if(!is_null($deleteDevice)) {            $serial = $deleteDevice;            $res['deleteDevice'] = [ 'target' => $serial, 'done' => 0 ];            $tarpath = VHUB4WEB_DATA.'/'.$deleteDevice.'.tar';            if(file_exists($tarpath)) {                unlink($tarpath);                // Reload the state file while keeping an exclusive lock to update it                $cloudapiobj = json_decode($this->loadFile($httpReq, STATE_FILE, true, $fp), false, 99, JSON_THROW_ON_ERROR);                $this->apiroot->loadState($httpReq, $cloudapiobj, false);                $this->apiroot->cloudConf->freeDevYdx($serial);                $cloudapiobj = $this->apiroot->saveState();                $this->saveFile($httpReq, STATE_FILE, json_encode($cloudapiobj, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES), $fp);                $cloudSerial = $this->server->apiroot->cloudConf->serialNumber;                $this->notif->appendModuleRemovalNotifications($httpReq, $cloudSerial, $serial);                $res['deleteDevice']['done'] = 1;            } else {                $res['deleteDevice']['errmsg'] = 'unknown device '.$serial;            }        }        $setCbMd5Pwd = $httpReq->getArg('callbackMD5Password');        if(!is_null($setCbMd5Pwd)) {            if($setCbMd5Pwd == '?') {                $res['callbackMD5Password'] = [ 'changed' => 0 ];            } else {                // Reload the state file while keeping an exclusive lock to update it                $cloudapiobj = json_decode($this->loadFile($httpReq, STATE_FILE, true, $fp), false, 99, JSON_THROW_ON_ERROR);                $this->apiroot->loadState($httpReq, $cloudapiobj, false);                $this->apiroot->cloudConf->md5signPwd = $setCbMd5Pwd;                $cloudapiobj = $this->apiroot->saveState();                $this->saveFile($httpReq, STATE_FILE, json_encode($cloudapiobj, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES), $fp);                $res['callbackMD5Password'] = [ 'changed' => 1 ];            }            $isSet = ($this->apiroot->cloudConf->md5signPwd ? 'YES' : 'NO');            $res['callbackMD5Password']['isSet'] = $isSet;        }        $this->files->sendContentHeader($httpReq, 'json');        $httpReq->put(json_encode($res, JSON_UNESCAPED_SLASHES));    }    public function serveYV4webInstaller(VHubServerHTTPRequest $httpReq): void    {        try {            $installer = @file_get_contents('http://www.yoctopuce.com/Yv4wI.js');            if(ord($installer[0]) == 0x1f && ord($installer[1]) == 0x8b) {                $httpReq->putHeader('Content-encoding: gzip');            }            $this->files->sendContentHeader($httpReq, 'js');            $httpReq->put($installer);        } catch(Throwable $e) {            $httpReq->putStatus(404);            $httpReq->put("Failed to fetch Yocto-Visualization-4web installer from www.yoctopuce.com: {$e->getMessage()}\r\n");        }    }    public function serveLogs(VHubServerHTTPRequest $httpReq, string $serial, int $pos): void    {        $logs = '';        if($serial == $this->apiroot->cloudConf->serialNumber) {            $fp = fopen(VHUB4WEB_DATA.'/VHUB4WEB-logs.txt', 'rb');            if($fp) {                $logs = stream_get_contents($fp);                fclose($fp);            }        } else {            $devlogs = $this->files->loadDeviceFile($httpReq, $serial, 'logs.txt');            if(!is_null($devlogs)) {                $logs = preg_replace('~ *$~', '', $devlogs);            }        }        // when the logs have wrapped, the first line indicates the start offset        $startPos = 0;        if(preg_match('~^@([0-9]+)\n~', $logs, $matches)) {            $startPos = intVal($matches[1]);            $logs = substr($logs, strlen($matches[0]));        }        $endPos = $startPos + strlen($logs);        $this->files->sendContentHeader($httpReq, 'txt');        if($pos <= $startPos) {            $httpReq->put($logs);        } else {            $httpReq->put(substr($logs, $pos - $startPos));        }        $httpReq->put("\n@$endPos");    }    public function serveNotifications(VHubServerHTTPRequest $httpReq): void    {        // default to unspecified position        if(!is_null($httpReq->getArg('abs'))) {            $position = intVal($httpReq->getArg('abs'));            $veryFirstCall = false;        } else {            $position = -1;            $veryFirstCall = true;        }        $this->notif = NotifStream::StreamAt($httpReq, $this, $position);        // For PHP must stay in "short notification" as it is the        // only reliable way to force Apache to flush ASAP        $position = $this->notif->openForRead($httpReq, 1);        $banner = "YN01@{$position}\n\n";        $httpReq->putHeader('Content-Type: text/plain; charset=x-user-defined');        $maxlength = $this->notif->predictSize();        $httpReq->putHeader('Content-length: '.(strlen($banner)+$maxlength));        $httpReq->put($banner);        $started = microtime(true);        while($maxlength != 0) {            $newNotif = $this->notif->readMore($httpReq, $maxlength);            if(strlen($newNotif) > 0) {                $httpReq->put($newNotif);                $maxlength -= strlen($newNotif);                // for PHP, close immediately to force a flush since Apache may be forcing cache                break;            }            // for PHP, flush every at every KEEPALIVE interval since Apache may be forcing cache            if(microtime(true) - $started > NOTIF_KEEPALIVE_DELAY) {                break;            }            // delay execution for up to 0,1 [s] before retrying            time_nanosleep(0, 100000);            // for PHP, we also flush quickly at the very first call to avoid any delay before            // connection is diagnosed as working            if($veryFirstCall) {                break;            }        }        if($maxlength > 0) {            $httpReq->put(str_repeat("\n", $maxlength));        }        $this->notif->close($httpReq);    }    public function serveLogger(VHubServerHTTPRequest $httpReq, string $serial, string $functionid, string $run, string $utc, string $fromUtc, string $toUtc, bool $verbose): void    {        $this->files->sendContentHeader($httpReq, 'json');        // Enumerate device sensors        $deviceNode = $this->apiroot->bySerial->subnode($serial);        $deviceApiNode = $deviceNode->api;        $sensorIds = [];        $functions = $deviceApiNode->subnodeNames();        foreach($functions as $funcid) {            if($deviceApiNode->subnode($funcid)->isSensor()) {                $sensorIds[] = $funcid;            }        }        if(sizeof($sensorIds) == 0) {            $httpReq->put('[]');            return;        }        if($functionid != '') {            if(!in_array($functionid, $sensorIds)) {                $functionid = '';            }        }        // Retrieve data from the datalogger        $logger = new DataLogger($this, $serial);        if($utc == '') {            // Dump summary            $fromStamp = ($fromUtc == '' ? 0 : intVal($fromUtc));            $toStamp = ($toUtc == '' ? 0xffff0000 : intVal($toUtc));            if($functionid == '') {                $sep = '[';                foreach($sensorIds as $funcid) {                    $httpReq->put($sep);                    $logger->printIndex($httpReq, $deviceApiNode->subnode($funcid), $funcid, $run, $fromStamp, $toStamp, $verbose);                    $sep = ',';                }                $httpReq->put(']');            } else {                $logger->printIndex($httpReq, $deviceApiNode->subnode($functionid), $functionid, $run, $fromStamp, $toStamp, $verbose);            }        } else if(str_contains($utc, ',')) {            // Dump multiple streams in details (bulk transfer)            $utcStamps = array_map(function($value) { return intval($value); }, explode(',', $utc));            $httpReq->put('[');            $logger->printRun($httpReq, $functionid, $run, $utcStamps, $verbose);            $httpReq->put(']');        } else {            // Dump a single stream in details            $utcStamp = intVal($utc);            $logger->printRun($httpReq, $functionid, $run, [ $utcStamp ], $verbose);        }    }    public function handleUpload(VHubServerHTTPRequest $httpReq, string $devserial = ''): void    {        $fname = '';        $content = '';        $jsonData = $httpReq->getJsonPostData();        if($jsonData && isset($jsonData['body'])) {            // JSON-encoded POST data            $fname = $jsonData['body']['filename'];            $content = base64_decode($jsonData['body']['b64content']);        } else {            $postdata = $httpReq->getRawPostData();            if (strlen($postdata) > 0) {                // Form-Encoded POST data                $fnameMatches = [];                $boundaryMatches = [];                if (!preg_match('/Content-Disposition: form-data; name="([^"]*)";/i', $postdata, $fnameMatches)) {                    die("upload.html: multipart/form-data encoding expected !\n");                }                if (!preg_match('/--\S*/', $postdata, $boundaryMatches)) {                    die("upload.html: multipart boundary not found\n");                }                $boundary = $boundaryMatches[0];                $fname = $fnameMatches[1];                $startPos = strpos($postdata, "\r\n\r\n", strlen($boundary));                $endPos = strpos($postdata, "\r\n" . $boundary, $startPos);                if ($startPos >= 0 && $endPos >= 0) {                    $startPos += 4;                    $content = substr($postdata, $startPos, $endPos - $startPos);                }            } else {                // PHP-Specific: Bug in many recent version (7.x), enable_post_data_reading does not work with .user.ini                // => we need to fallback to tentative processing based on PHP $_FILES variable                VHubServer::Log($httpReq, LOG_VHUBSERVER, 4, "Upload detected without proper enable_post_data_reading=0");                foreach ($_FILES as $fname => $filedef) {                    // problem: PHP replaces dots by underscores in the filename, we need to revert that                    $fname = preg_replace('~_(html|txt|xml|js|ts|bin|min|byn|gz|zip)~i', '.$1', $fname);                    $content = file_get_contents($filedef['tmp_name']);                }            }        }        if(!$fname) {            VHubServer::Log($httpReq, LOG_VHUBSERVER, 4, "Empty upload request");            return;        }        if($devserial == '') {            VHubServer::Log($httpReq, LOG_VHUBSERVER, 4, "Uploading {$fname} to VirtualHub4web files");            $this->files->filesUpload($httpReq, $fname, $content);        } else {            $csize = strlen($content);            VHubServer::Log($httpReq, LOG_VHUBSERVER, 4, "Scheduling upload of {$fname} to ${$devserial} ({$csize} bytes)");            $this->files->deviceFilesUpload($httpReq, $devserial, $fname, $content);        }        $this->saveState($httpReq);    }}
+class APINode{    protected VHubServer $server;    public string $name;    protected array $subnodes;    protected array $values;    // immediate properties    protected array $types;     // immediate properties type, for edition    protected bool $modified;   // true if the node (or subnode) state needs to be saved    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $name)    {        for($fclasslen = strlen($name); $fclasslen > 0; $fclasslen--) {            if(!ctype_digit($name[$fclasslen-1])) break;        }        $this->server = $server;        $this->name = $name;        $this->fclass = substr(ucfirst($name), 0, $fclasslen);        $this->subnodes = [];   // Associative array        $this->values = [];     // Associative array        $this->types = [];      // Associative array        $this->modified = false;    }    protected function setupTypes(VHubServerHTTPRequest $httpReq): void    {        foreach($this->values as $name => $value) {            if(!isset($this->types[$name])) {                $this->types[$name] = $this->server->apiroot->getAttrType($httpReq, $this->fclass, $name, $value);            }        }    }    public function addSubnode(string $name, APINode $subnode): void    {        $this->subnodes[$name] = $subnode;    }    public function hasSubnode(string $name): bool    {        return isset($this->subnodes[$name]);    }    public function subnodeNames(): array    {        return array_keys($this->subnodes);    }    public function subnode(string $name): APINode    {        return $this->subnodes[$name];    }    public function getattr(string $name): mixed    {        return $this->values[$name];    }    public function setattr(VHubServerHTTPRequest $httpReq, string $name, string $value): void    {        if(!isset($this->types[$name])) {            // unknown attribute, assume read-only            return;        }        $attrtype = $this->types[$name];        if($attrtype >= 0) {            // read-only attribute            return;        }        $this->values[$name] = ApiRestDecodeAttribute($attrtype, $value);    }    public function search(array $nodepath, array $ctxpath): array    {        $apinode = $this;        for($offset = 0; $offset < sizeof($nodepath); $offset++) {            $key = $nodepath[$offset];            if(isset($apinode->subnodes[$key])) {                $apinode = $apinode->subnodes[$key];            } else if(sizeof($ctxpath) == 0 && sizeof($apinode->values) > 0) {                if(isset($apinode->values[$key])) {                    return [ $apinode, $apinode, $key ];                } else {                    return [ $apinode, $apinode, null ];                }            } else {                return [ null, null, null ];            }        }        $ctxnode = $apinode;        for($offset = 0; $offset < sizeof($ctxpath); $offset++) {            $key = $ctxpath[$offset];            if(isset($ctxnode->subnodes[$key])) {                $ctxnode = $ctxnode->subnodes[$key];            } else if(sizeof($ctxnode->values) > 0) {                if(isset($ctxnode->values[$key])) {                    return [ $apinode, $ctxnode, $key ];                } else {                    return [ $apinode, $ctxnode, null ];                }            } else {                return [ $apinode, null, null ];            }        }        return [ $apinode, $ctxnode, null ];    }    public function loadState(VHubServerHTTPRequest $httpReq, mixed $data, bool $detectChanges): bool    {        foreach($data as $name => $value) {            if($name == 'VirtualHub4web' || $name == 'FileList') {                // VirtualHub4web own data is handled separately, just ignore here            } else if((is_object($value) || is_array($value)) && !isset($this->values['advertisedValue'])) {                if (!isset($this->subnodes[$name])) {                    // Automatically instantiate typed dynamic nodes                    switch($name) {                        case 'dataLogger':                            $moduleData = (isset($data->module) ? $data->module : $data['module']);                            $this->subnodes[$name] = new APIDataLoggerNode($httpReq, $this->server, $name, $moduleData);                            break;                        case 'wakeUpMonitor':                            $moduleData = (isset($data->module) ? $data->module : $data['module']);                            $this->subnodes[$name] = new APIWakeUpMonitorNode($httpReq, $this->server, $name, $moduleData);                            break;                        case 'services':                            $this->subnodes[$name] = new APIServicesNode($httpReq, $this->server, $name);                            break;                        default:                            if(is_object($value) && isset($value->reportFrequency)) {                                $this->subnodes[$name] = new APISensorNode($httpReq, $this->server, $name);                            } else {                                $this->subnodes[$name] = new APINode($httpReq, $this->server, $name);                            }                    }                    if($detectChanges) $this->modified = true;                }                $subres = $this->subnodes[$name]->loadState($httpReq, $value, $detectChanges);                if($detectChanges && $subres) $this->modified = true;            } else {                if(!isset($this->types[$name])) {                    if($detectChanges) $this->modified = true;                    $this->types[$name] = $this->server->apiroot->getAttrType($httpReq, $this->fclass, $name, $value);                    $decoded = ApiJsonDecodeAttribute($value, $this->types[$name]);                    $this->values[$name] = $decoded;                } else {                    $decoded = ApiJsonDecodeAttribute($value, $this->types[$name]);                    if($this->values[$name] != $decoded) {                        if($detectChanges) $this->modified = true;                        $this->values[$name] = $decoded;                    }                }            }        }        return $this->modified;    }    public function hasChanged(): bool    {        return $this->modified;    }    public function saveState(): array    {        $res = [];        foreach($this->subnodes as $name => $subnode) {            $res[$name] = $subnode->saveState();        }        foreach($this->values as $name => $value) {            $pseudoHttpReq = new VHubServerHTTPRequest(true);            $pseudoHttpReq->setAuthUser('admin');            $res[$name] = ApiJsonEncodeAttribute($pseudoHttpReq, $value, $this->types[$name]);        }        $this->modified = false;        return $res;    }    public function printJSON(VHubServerHTTPRequest $httpReq): void    {        $isleaf = sizeof($this->values) > 0;        $sep = '{';        if($isleaf) {            foreach($this->values as $key => $value) {                $jsonval = ApiJsonEncodeAttribute($httpReq, $value, $this->types[$key]);                $httpReq->putStr("{$sep}\"{$key}\":".json_encode($jsonval, JSON_UNESCAPED_SLASHES));                $sep = ',';            }        } else {            if(sizeof($this->subnodes) == 0) {                $httpReq->putStr('{}');                return;            }            foreach($this->subnodes as $name => $subnode) {                $httpReq->putStr("{$sep}\"{$name}\":");                $subnode->printJSON($httpReq);                $sep = ',';            }        }        $httpReq->putStr('}');    }    public function printJZON(VHubServerHTTPRequest $httpReq): void    {        $isleaf = sizeof($this->values) > 0;        $sep = '[';        if($isleaf) {            foreach($this->values as $key => $value) {                $jsonval = ApiJsonEncodeAttribute($httpReq, $value, $this->types[$key]);                $httpReq->putStr($sep.json_encode($jsonval, JSON_UNESCAPED_SLASHES ));                $sep = ',';            }        } else {            if(sizeof($this->subnodes) == 0) {                $httpReq->putStr('[]');                return;            }            foreach($this->subnodes as $subnode) {                $httpReq->putStr($sep);                $subnode->printJZON($httpReq);                $sep = ',';            }        }        $httpReq->putStr(']');    }    public function printJSONValue(VHubServerHTTPRequest $httpReq, string $key): void    {        $value = $this->values[$key];        $jsonval = ApiJsonEncodeAttribute($httpReq, $value, $this->types[$key]);        $httpReq->putStr(json_encode($jsonval, JSON_UNESCAPED_SLASHES));    }    public function printHTML(VHubServerHTTPRequest $httpReq, string $label): void    {        $isleaf = sizeof($this->values) > 0;        $cssclass = ($isleaf ? "interface" : "folder");        $httpReq->putStr("<dl name='{$label}' class='{$cssclass}'><h4>{$label} <a href='javascript:reload()'>refresh</a></h4>\n");        if($isleaf) {            foreach($this->values as $key => $value) {                $attrtype = $this->types[$key];                $txtval = ApiTxtEncodeAttribute($httpReq, $value, $attrtype);                if($key == 'networkUrl') {                    $relUrl = substr($txtval, 1);                    $txtval = "<a href='{$relUrl}'>Browse REST API</a>";                }                $httpReq->putStr("<div name='{$key}'><dt>{$key}:</dt><dd>{$txtval}</dd>");                if($attrtype < 0) {                    $attrtype = abs($attrtype);                    $httpReq->putStr("<a href='javascript:' onclick='edit(this,{$attrtype})'>edit</a></div>\n");                } else {                    $httpReq->putStr('</div>');                }            }        } else {            foreach($this->subnodes as $name => $subnode) {                $subnode->printHTML($httpReq, $name);            }        }        $httpReq->putStr("</dl>");    }    public function printHTMLValue(VHubServerHTTPRequest $httpReq, string $key): void    {        $value = $this->values[$key];        $attrtype = $this->types[$key];        $txtval = ApiTxtEncodeAttribute($httpReq, $value, $attrtype);        $httpReq->putStr($txtval);    }    public function printTXT(VHubServerHTTPRequest $httpReq, string $label): void    {        $isleaf = sizeof($this->values) > 0;        $httpReq->putStr("*** {$label}\r\n");        if($isleaf) {            foreach($this->values as $key => $value) {                $attrtype = $this->types[$key];                $txtval = ApiTxtEncodeAttribute($httpReq, $value, $attrtype);                if(is_string($value)) {                    $txtval = "\"{$txtval}\"";                }                $httpReq->putStr("{$key}: {$txtval}\r\n");            }        } else {            foreach($this->subnodes as $name => $subnode) {                $httpReq->putStr("=> {$name}\r\n");            }            foreach($this->subnodes as $name => $subnode) {                $httpReq->putStr("\r\n");                $subnode->printTXT($httpReq, $name);            }        }    }    public function printTXTValue(VHubServerHTTPRequest $httpReq, string $key): void    {        $value = $this->values[$key];        $attrtype = $this->types[$key];        $txtval = ApiTxtEncodeAttribute($httpReq, $value, $attrtype);        if(is_string($value)) {            $txtval = "\"{$txtval}\"";        }        $httpReq->putStr($txtval);    }    public function printXML(VHubServerHTTPRequest $httpReq, string $label): void    {        $isleaf = sizeof($this->values) > 0;        $httpReq->putStr("<{$label}>\r\n");        if($isleaf) {            foreach($this->values as $key => $value) {                $attrtype = $this->types[$key];                $txtval = ApiTxtEncodeAttribute($httpReq, $value, $attrtype);                $httpReq->putStr("<{$key}>{$txtval}</{$key}>\r\n");            }        } else {            foreach($this->subnodes as $name => $subnode) {                $subnode->printXML($httpReq, $name);            }        }        $httpReq->putStr("</{$label}>\r\n");    }    public function printXMLValue(VHubServerHTTPRequest $httpReq, string $key): void    {        $value = $this->values[$key];        $attrtype = $this->types[$key];        $txtval = ApiTxtEncodeAttribute($httpReq, $value, $attrtype);        $httpReq->putStr($txtval);    }    public function isSensor(): bool    {        return false;    }}class APIArrayNode extends APINode{    public function saveState(): array    {        $res = [];        foreach($this->subnodes as $subnode) {            $res[] = $subnode->saveState();        }        $this->modified = false;        return $res;    }    public function printJSON(VHubServerHTTPRequest $httpReq): void    {        if(sizeof($this->subnodes) == 0) {            $httpReq->putStr('[]');            return;        }        $sep = '[';        foreach($this->subnodes as $subnode) {            $httpReq->putStr($sep);            $subnode->printJSON($httpReq);            $sep = ',';        }        $httpReq->putStr(']');    }    public function printJZON(VHubServerHTTPRequest $httpReq): void    {        if(sizeof($this->subnodes) == 0) {            $httpReq->putStr('[]');            return;        }        $sep = '[';        foreach($this->subnodes as $name => $subnode) {            $httpReq->putStr($sep);            $subnode->printJZON($httpReq);            $sep = ',';        }        $httpReq->putStr(']');    }    public function printHTML(VHubServerHTTPRequest $httpReq, string $label): void    {        $httpReq->putStr("<dl name='{$label}' class='folder'><h4>{$label} <a href='javascript:reload()'>refresh</a></h4>\n");        foreach($this->subnodes as $index => $subnode) {            $subnode->printHTML($httpReq, "entry #{$index}");        }    }    public function printTXT(VHubServerHTTPRequest $httpReq, string $label): void    {        foreach($this->subnodes as $index => $subnode) {            $subnode->printTXT($httpReq, "{$label}[{$index}]");        }    }    public function printXML(VHubServerHTTPRequest $httpReq, string $label): void    {        if($label == 'whitePages') {            $sublabel = 'whitePage';        } else {            $sublabel = 'ypEntry';        }        $httpReq->putStr("<{$label}>\r\n");        foreach($this->subnodes as $subnode) {            $subnode->printXML($httpReq, $sublabel);        }        $httpReq->putStr("</{$label}>\r\n");    }}class APIModuleNode extends APINode{    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $name)    {        parent::__construct($httpReq, $server, $name);        $this->values['productName'] = '';        $this->values['serialNumber'] = '';        $this->values['logicalName'] = '';        $this->values['productId'] = 0;        $this->values['productRelease'] = 0;        $this->values['firmwareRelease'] = '';        $this->values['persistentSettings'] = 0;        $this->values['luminosity'] = 0;        $this->values['beacon'] = 0;        $this->values['upTime'] = 0;        $this->values['usbCurrent'] = 0;        $this->values['rebootCountdown'] = 0;        $this->values['userVar'] = 0;        $this->setupTypes($httpReq);    }}class APIDeviceModuleNode extends APIModuleNode{    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $name)    {        global $ApiDef;        parent::__construct($httpReq, $server, $name);        $this->values['lastSeen'] = 0;        $this->values['parentHub'] = '';        $this->values['parentIP'] = '';        $this->types['lastSeen'] = $ApiDef['Watchdog']['lastTrigger'];        $this->types['parentHub'] = $ApiDef['Module']['serialNumber'];        $this->types['parentIP'] = $ApiDef['Network']['ipAddress'];    }}class APICloudModuleNode extends APIModuleNode{    protected array $cachedAttributes;    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $name)    {        parent::__construct($httpReq, $server, $name);        $this->cachedAttributes = [ 'logicalName', 'luminosity', 'beacon', 'userVar', 'persistentSettings' ];        $this->values['productName'] = 'VirtualHub-4web';        $this->values['productId'] = 0xc10d;        $this->values['productRelease'] = 1;        $this->values['upTime'] = round(gettimeofday(true) * 1000.0) & 0xffffffff;        $versionDotPos = strrpos(VERSION, '.');        if($versionDotPos !== FALSE) {            $this->values['firmwareRelease'] = substr(VERSION, $versionDotPos+1);        } else {            $this->values['firmwareRelease'] = VERSION;        }    }    public function loadStateFromCloudConf(VHubServerHTTPRequest $httpReq, GlobalCloudConf $cloudConf)    {        $this->values['serialNumber'] = $cloudConf->serialNumber;        foreach($this->cachedAttributes as $key) {            if(isset($cloudConf->valuesCache[$key])) {                $this->values[$key] = $cloudConf->valuesCache[$key];            }        }    }    public function compareStateToCloudConf(VHubServerHTTPRequest $httpReq, GlobalCloudConf $cloudConf, array &$changes)    {        foreach($this->cachedAttributes as $key) {            if(isset($cloudConf->valuesCache[$key]) && $cloudConf->valuesCache[$key] != $this->values[$key]) {                $changes[$key] = $this->values[$key];            }        }    }}class APIFunctionNode extends APINode{    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $name)    {        parent::__construct($httpReq, $server, $name);        $this->values['logicalName'] = '';        $this->values['advertisedValue'] = '';        $this->setupTypes($httpReq);    }}class APISensorNode extends APINode{    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $name)    {        parent::__construct($httpReq, $server, $name);        $this->values['logicalName'] = '';        $this->values['unit'] = '';        $this->values['currentValue'] = 0;        $this->values['lowestValue'] = 0;        $this->values['highestValue'] = 0;        $this->values['currentRawValue'] = 0;        $this->values['logFrequency'] = '1/s';        $this->values['reportFrequency'] = 'OFF';        $this->values['advMode'] = 0;        $this->values['calibrationParam'] = '0,';        $this->values['resolution'] = 0.01;        $this->values['sensorState'] = 1;        $this->setupTypes($httpReq);    }    public function isSensor(): bool    {        return true;    }    // Return current sensor value, if valid    //    public function getSensorValue(): float    {        $avgVal = NAN;        if($this->values['sensorState'] == 0) {            $avgVal = $this->values['currentValue'];        }        return $avgVal;    }}class APINetworkNode extends APIFunctionNode{    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $name)    {        parent::__construct($httpReq, $server, $name);        $this->values['readiness'] = 0;        $this->values['macAddress'] = '00:00:00:00:00:00';        $this->values['ipAddress'] = '0.0.0.0';        $this->values['subnetMask'] = '0.0.0.0';        $this->values['router'] = '0.0.0.0';        $this->values['ipConfig'] = 'DHCP:169.254.95.6/16/169.254.0.1';        $this->values['primaryDNS'] = '0.0.0.0';        $this->values['secondaryDNS'] = '0.0.0.0';        $this->values['ntpServer'] = '0.0.0.0';        $this->values['userPassword'] = '';        $this->values['adminPassword'] = '';        $this->values['httpPort'] = 4444;        $this->values['defaultPage'] = '';        $this->values['discoverable'] = 0;        $this->values['wwwWatchdogDelay'] = 0;        $this->values['callbackUrl'] = '';        $this->values['callbackMethod'] = 0;        $this->values['callbackEncoding'] = 0;        $this->values['callbackCredentials'] = ':';        $this->values['callbackInitialDelay'] = 0;        $this->values['callbackSchedule'] = 'after 20s/60s';        $this->values['callbackMinDelay'] = 20;        $this->values['callbackMaxDelay'] = 60;        $this->values['poeCurrent'] = 0;        $this->setupTypes($httpReq);    }}class APICloudNetworkNode extends APINetworkNode{    protected array $cachedAttributes;    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $name)    {        parent::__construct($httpReq, $server, $name);        $this->cachedAttributes = ['defaultPage', 'userPassword', 'adminPassword'];        $this->values['ipAddress'] = $httpReq->getServerIP();        $this->values['httpPort'] = $httpReq->getServerPort();    }    public function loadStateFromCloudConf(VHubServerHTTPRequest $httpReq, GlobalCloudConf $cloudConf)    {        $this->values['logicalName'] = $cloudConf->valuesCache['networkName'];        foreach ($this->cachedAttributes as $key) {            if (isset($cloudConf->valuesCache[$key])) {                $this->values[$key] = $cloudConf->valuesCache[$key];            }        }    }    public function compareStateToCloudConf(VHubServerHTTPRequest $httpReq, GlobalCloudConf $cloudConf, array &$changes)    {        if ($cloudConf->valuesCache['networkName'] != $this->values['logicalName']) {            $changes['networkName'] = $this->values['logicalName'];        }        foreach ($this->cachedAttributes as $key) {            if (isset($cloudConf->valuesCache[$key]) && $cloudConf->valuesCache[$key] != $this->values[$key]) {                $changes[$key] = $this->values[$key];            }        }    }    public function setattr(VHubServerHTTPRequest $httpReq, string $name, string $value): void    {        if(substr($name,-8) == 'Password') {            $mustHash = (strlen($value) != 24);            if(!$mustHash) {                $decoded = base64_decode($value, true); // strict decode                if($decoded === false || strlen($decoded) != 17 || ord($decoded[0]) != 0) {                    // non a Base64-encoded hashed password                    $mustHash = true;                }            }            if($mustHash && $value != '') {                // for safety reasons, don't save the password but pre-hash it with the realm                // in order to prevent easy password recovery from the configuration file                $user = substr($name, 0, -8);                $realm = $this->server->apiroot->cloudConf->authRealm;                $value = base64_encode(chr(0).md5($user . ':' . $realm . ':' . $value, true));            }        }        parent::setattr($httpReq, $name, $value);    }}class APICloudFilesNode extends APIFunctionNode{    protected array $cachedAttributes;    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $name)    {        parent::__construct($httpReq, $server, $name);        $this->cachedAttributes = [ 'filesCount', 'freeSpace' ];        $this->values['filesCount'] = 0;        $this->values['freeSpace'] = FILES_MAX_SIZE;        $this->setupTypes($httpReq);    }    public function loadStateFromCloudConf(VHubServerHTTPRequest $httpReq, GlobalCloudConf $cloudConf)    {        $this->values['logicalName'] = $cloudConf->valuesCache['filesName'];        foreach($this->cachedAttributes as $key) {            if(isset($cloudConf->valuesCache[$key])) {                $this->values[$key] = $cloudConf->valuesCache[$key];            }        }    }    public function compareStateToCloudConf(VHubServerHTTPRequest $httpReq, GlobalCloudConf $cloudConf, array &$changes)    {        if($cloudConf->valuesCache['filesName'] != $this->values['logicalName']) {            $changes['filesName'] = $this->values['logicalName'];        }        foreach($this->cachedAttributes as $key) {            if(!isset($cloudConf->valuesCache[$key]) || $cloudConf->valuesCache[$key] != $this->values[$key]) {                $changes[$key] = $this->values[$key];            }        }    }    public function updateStats(VHubServerHTTPRequest $httpReq, int $filesCount, int $totalSize)    {        $freeSpace = ($totalSize >= FILES_MAX_SIZE ? 0 : FILES_MAX_SIZE - $totalSize);        if($this->values['filesCount'] != $filesCount || $this->values['freeSpace'] != $freeSpace) {            $this->values['filesCount'] = $filesCount;            $this->values['freeSpace'] = $freeSpace;            $this->modified = true;        }    }}class APIDataLoggerNode extends APIFunctionNode{    protected string $serial;    protected array $deviceValues;    // actual values on the device    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $name, mixed $moduleData)    {        parent::__construct($httpReq, $server, $name);        // Setup emulated values        $this->serial = (isset($moduleData->serialNumber) ? $moduleData->serialNumber : $moduleData['serialNumber']);        $this->values['logicalName'] = '';        $this->values['advertisedValue'] = 'ON';        $this->values['currentRunIndex'] = 1;        $this->values['timeUTC'] = 0;        $this->values['recording'] = 1;        $this->values['autoStart'] = 1;        $this->values['beaconDriven'] = 0;        $this->values['usage'] = 1;        $this->values['clearHistory'] = 0;        $this->setupTypes($httpReq);        // Setup default device values as well        $this->deviceValues['logicalName'] = '';        $this->deviceValues['advertisedValue'] = '';        $this->deviceValues['currentRunIndex'] = 0;        $this->deviceValues['timeUTC'] = 0;        $this->deviceValues['recording'] = 0;        $this->deviceValues['autoStart'] = 0;        $this->deviceValues['beaconDriven'] = 0;        $this->deviceValues['usage'] = 0;        $this->deviceValues['clearHistory'] = 0;        $this->setupTypes($httpReq);    }    // We cache the device values for use in very specific cases    public function loadState(VHubServerHTTPRequest $httpReq, mixed $data, bool $detectChanges): bool    {        if(!$detectChanges) {            // This is an emulated datalogger, only reload the last known device UTC time            $this->values['timeUTC'] = (isset($data->timeUTC) ? $data->timeUTC : $data['timeUTC']);            // Compute current datalogger usage based on file list            $tarfile = $this->server->files->accessDeviceFiles($httpReq, $this->serial);            $knownFiles = $tarfile->knownFilesMatching('datalogger/*');            $usage = 0;            if(sizeof($knownFiles) == 0) {                foreach ($knownFiles as $tarObj) {                    $usage += $tarObj->contentSize;                }                $usage = intVal(round($usage / (DATAFILE_MAX_COUNT * DATAFILE_MAX_SIZE)));                if($usage < 1) {                    $usage = 1;                }            }            $this->values['usage'] = $usage;            return false;        }        foreach($data as $name => $value) {            $decoded = ApiJsonDecodeAttribute($value, $this->types[$name]);            if($this->deviceValues[$name] != $decoded) {                if($detectChanges) $this->modified = true;                $this->deviceValues[$name] = $decoded;            }        }        // When updating from device, mirror the last known device UTC time as well        $this->values['timeUTC'] = $this->deviceValues['timeUTC'];        return $this->modified;    }    // Handle magic commands for the datalogger    public function setattr(VHubServerHTTPRequest $httpReq, string $name, string $value): void    {        if($name == 'clearHistory' && $value == '1') {            // Get a pointer to the datalogger emulator            $logger = new DataLogger($this->server, $this->serial);            $logger->clearHistory($httpReq);        } else {            parent::setattr($httpReq, $name, $value);        }    }    // We cache the device values for later use    public function saveState(): array    {        $res = [];        foreach($this->deviceValues as $name => $value) {            $pseudoHttpReq = new VHubServerHTTPRequest(true);            $pseudoHttpReq->setAuthUser('admin');            $res[$name] = ApiJsonEncodeAttribute($pseudoHttpReq, $value, $this->types[$name]);        }        $this->modified = false;        return $res;    }}class APIWakeUpMonitorNode extends APIFunctionNode{    protected string $serial;    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $name, mixed $moduleData)    {        global $ApiDef;        parent::__construct($httpReq, $server, $name);        $this->serial = (isset($moduleData->serialNumber) ? $moduleData->serialNumber : $moduleData['serialNumber']);        $this->values['sleepAfterCallback'] = 0;        $this->types['sleepAfterCallback'] = $ApiDef['HubPort']['enabled'];        $this->setupTypes($httpReq);    }    // Handle magic commands for the setting sleep after callback    public function setattr(VHubServerHTTPRequest $httpReq, string $name, string $value): void    {        parent::setattr($httpReq, $name, $value);        if($name == 'sleepAfterCallback') {            // remember to send the device to sleep at the end of next callback !            $apinode = $this->server->apiroot->bySerial->subnode($this->serial);            $apinode->cloudConf->sleepAfterCallback = intVal($value);            $apinode->markAsChanged();        }    }}class APIWPRecordNode extends APINode{    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $name, object $template)    {        parent::__construct($httpReq, $server, $name);        $this->fclass = 'DeviceInfo';        $this->values['serialNumber'] = $template->serialNumber;        $this->values['logicalName'] = $template->logicalName;        $this->values['productName'] = $template->productName;        $this->values['productId'] = intVal($template->productId);        $this->values['networkUrl'] = $template->networkUrl;        $this->values['beacon'] = intVal($template->beacon);        $this->values['index'] = intVal($template->index);        $this->setupTypes($httpReq);    }    public function loadState(VHubServerHTTPRequest $httpReq, mixed $data, bool $detectChanges): bool    {        if($detectChanges) {            if ($this->values['logicalName'] != $data->logicalName || $this->values['beacon'] != $data->beacon) {                $this->values['logicalName'] = $data->logicalName;                $this->values['beacon'] = $data->beacon;                $this->server->notif->appendModuleNotification($httpReq, $this->values);                $this->modified = true;            }            foreach ($data as $name => $value) {                if ($this->values[$name] != $value) {                    $this->values[$name] = $value;                    $this->modified = true;                }            }            return $this->modified;        } else {            foreach ($data as $name => $value) {                $this->values[$name] = $value;            }            return false;        }    }}class APIWhitePagesNode extends APIArrayNode{    protected array $arrayIndexBySerial;    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $name)    {        parent::__construct($httpReq, $server, $name);        $this->arrayIndexBySerial = [];    }    public function loadState(VHubServerHTTPRequest $httpReq, mixed $wpdef, bool $detectChanges): bool    {        foreach($wpdef as $wprec) {            $wpentry = (object)$wprec;            $serial = $wpentry->serialNumber;            if(!$this->server->apiroot->bySerial->hasSubnode($serial) && $serial != $this->server->apiroot->cloudConf->serialNumber) {                // unknown device, ignore services                continue;            }            if(isset($this->arrayIndexBySerial[$serial])) {                $arrayIndex = $this->arrayIndexBySerial[$serial];                $changed = $this->subnodes[$arrayIndex]->loadState($httpReq, $wpentry, $detectChanges);                if($changed && $detectChanges) {                    $this->modified = true;                }            } else {                $subnode = new APIWPRecordNode($httpReq, $this->server, $serial, $wpentry);                $this->arrayIndexBySerial[$serial] = sizeof($this->subnodes);                $this->subnodes[] = $subnode;                if($detectChanges) {                    $this->modified = true;                    $cloudSerial = $this->server->apiroot->cloudConf->serialNumber;                    $this->server->notif->appendModuleArrivalNotifications($httpReq, $cloudSerial, $subnode->values);                }            }        }        // FIXME: detect device removal?        return $this->modified;    }    public function sortServices(VHubServerHTTPRequest $httpReq)    {        usort($this->subnodes, function(APIWPRecordNode $a,APIWPRecordNode $b) { return $a->values['index'] - $b->values['index']; });    }    public function saveStateForSerial(string $serial): array    {        $res = [];        if(isset($this->arrayIndexBySerial[$serial])) {            $arrayIndex = $this->arrayIndexBySerial[$serial];            $res[] = $this->subnodes[$arrayIndex]->saveState();        }        return $res;    }}class APIYPRecordNode extends APINode{    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $hwId, object $template)    {        parent::__construct($httpReq, $server, $hwId);        $this->fclass = 'Provider';        $this->values['baseType'] = intVal($template->baseType);        $this->values['hardwareId'] = $template->hardwareId;        $this->values['logicalName'] = $template->logicalName;        $this->values['advertisedValue'] = $template->advertisedValue;        $this->values['index'] = intVal($template->index);        $this->setupTypes($httpReq);        // Update global index of funydx by hwid        $this->server->apiroot->funYdxByHwId[$template->hardwareId] = $template->index;    }    public function loadState(VHubServerHTTPRequest $httpReq, mixed $data, bool $detectChanges): bool    {        if($detectChanges) {            $funchanged = false;            if ($this->values['baseType'] != $data->baseType) {                $this->values['baseType'] = $data->baseType;                $funchanged = true;            }            if ($this->values['logicalName'] != $data->logicalName) {                $this->values['logicalName'] = $data->logicalName;                $funchanged = true;            }            if ($this->values['index'] != $data->index) {                $this->values['index'] = $data->index;                $funchanged = true;                // Update global index of funydx by hwid                $this->server->apiroot->funYdxByHwId[$this->values['hardwareId']] = $data->index;            }            if($funchanged) {                $this->server->notif->appendFunctionNameNotification($httpReq, $this->values);                $this->modified = true;            }            if ($this->values['advertisedValue'] != $data->advertisedValue) {                $this->values['advertisedValue'] = $data->advertisedValue;                $this->server->notif->appendFunctionValNotification($httpReq, $this->values);                $this->modified = true;            }            return $this->modified;        } else {            foreach ($data as $name => $value) {                $this->values[$name] = $value;            }            return false;        }    }}class APIYPCategNode extends APIArrayNode{    protected array $arrayIndexByHardwareId;    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $name)    {        parent::__construct($httpReq, $server, $name);        $this->arrayIndexByHardwareId = [];    }    public function loadState(VHubServerHTTPRequest $httpReq, mixed $ypcateg, bool $detectChanges): bool    {        foreach($ypcateg as $yprec) {            $ypentry = (object)$yprec;            $hwId = $ypentry->hardwareId;            if(isset($this->arrayIndexByHardwareId[$hwId])) {                $arrayIndex = $this->arrayIndexByHardwareId[$hwId];                $changed = $this->subnodes[$arrayIndex]->loadState($httpReq, $ypentry, $detectChanges);                if($changed && $detectChanges) {                    $this->modified = true;                }            } else {                $parts = explode('.', $hwId);                $serial = $parts[0];                if(!$this->server->apiroot->bySerial->hasSubnode($serial) && $serial != $this->server->apiroot->cloudConf->serialNumber) {                    // unknown device, ignore services                    continue;                }                $subnode = new APIYPRecordNode($httpReq, $this->server, $hwId, $ypentry);                $this->arrayIndexByHardwareId[$hwId] = sizeof($this->subnodes);                $this->subnodes[] = $subnode;                if($detectChanges) {                    $this->modified = true;                    $this->server->notif->appendFunctionNameNotification($httpReq, $subnode->values);                }            }        }        // FIXME: detect function removal        return $this->modified;    }    public function saveStateForHwIdPattern(string $pattern): array    {        $res = [];        foreach($this->subnodes as $yprecord) {            if(preg_match($pattern, $yprecord->values['hardwareId'])) {                $res[] = $yprecord->saveState();            }        }        return $res;    }}class APIYellowPagesNode extends APINode{    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $name)    {        parent::__construct($httpReq, $server, $name);    }    public function loadState(VHubServerHTTPRequest $httpReq, mixed $ypdef, bool $detectChanges): bool    {        foreach($ypdef as $categ => $ypcateg) {            if(!isset($this->subnodes[$categ])) {                $this->addSubnode($categ, new APIYPCategNode($httpReq, $this->server, $categ));                $this->modified = true;            }            $categnode = $this->subnodes[$categ];            $changed = $categnode->loadState($httpReq, $ypcateg, $detectChanges);            if($changed) {                $this->modified = true;            }        }        return $this->modified;    }    public function saveStateForSerial(string $serial): array    {        $res = [];        $pattern = '~^'.$serial.'[.]~';        foreach($this->subnodes as $categ => $categnode) {            $subres = $categnode->saveStateForHwIdPattern($pattern);            if(sizeof($subres) > 0) {                $res[$categ] = $subres;            }        }        return $res;    }}class APIServicesNode extends APINode{    public APIWhitePagesNode $wp;    public APIYellowPagesNode $yp;    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $name)    {        parent::__construct($httpReq, $server, $name);        $this->wp = new APIWhitePagesNode($httpReq, $this->server, 'whitePages');        $this->yp = new APIYellowPagesNode($httpReq, $this->server, 'yellowPages');        $this->addSubnode('whitePages', $this->wp);        $this->addSubnode('yellowPages', $this->yp);    }    public function sortServices(VHubServerHTTPRequest $httpReq)    {        $this->wp->sortServices($httpReq);    }    public function saveStateForSerial(string $serial): array    {        return [            'whitePages' => $this->wp->saveStateForSerial($serial),            'yellowPages' => $this->yp->saveStateForSerial($serial)        ];    }}class APIDeviceAPINode extends APINode{    public APIDeviceModuleNode $module;    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $name)    {        parent::__construct($httpReq, $server, $name);        $this->module = new APIDeviceModuleNode($httpReq, $this->server, 'module');        $this->addSubnode('module', $this->module);    }}class DeviceFileList{    protected VHubServer $server;    protected string $serial;    protected bool $modified;    protected array $entries;    // Possible status for entries:    // - discovered: file discovered on device, to be downloaded to VirtualHub4web    // - uploaded: file uploaded to VirtualHub4web, to be uploaded to device    // - known: file exists both on device and in VirtualHub4web    // - deleting: file deleted on VirtualHub4web, to be deleted on device    // - deleted: file deleted on VirtualHub4web and deleted on device, expected to disappear    // - disappeared: file disappeared on device, to be deleted on VirtualHub4web    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $serial)    {        $this->server = $server;        $this->serial = $serial;        $this->modified = false;        $this->entries = [];    }    public function loadState(VHubServerHTTPRequest $httpReq, array $data): void    {        for($i = 0; $i < sizeof($data); $i++) {            $this->entries[$data[$i]->name] = $data[$i];        }    }    public function saveState(): array    {        $res = [];        foreach($this->entries as $path => $entry) {            $res[] = $entry;        }        $this->modified = false;        return $res;    }    public function hasChanged(): bool    {        return $this->modified;    }    protected function setEntryState(VHubServerHTTPRequest $httpReq, string $filename, string $newState): void    {        if(!isset($this->entries[$filename])) {            $this->entries[$filename] = new stdClass();            $this->entries[$filename]->name = $filename;            $this->entries[$filename]->size = 0;            $this->entries[$filename]->crc = 0;            $this->entries[$filename]->status = $newState;            $this->modified = true;            VHubServer::Log($httpReq, LOG_FILESYNC, 4, "File {$filename} on {$this->serial} added in state {$newState}");        } else if($this->entries[$filename]->status != $newState) {            $this->entries[$filename]->status = $newState;            $this->modified = true;            VHubServer::Log($httpReq, LOG_FILESYNC, 4, "File {$filename} on {$this->serial} is now in state {$newState}");        }    }    // compare a known fileList to the current device filesystem    function compareToDevice(VHubServerHTTPRequest $httpReq, array $filerecs): bool    {        // first detect all changes compared to VirtualHub4web state        $foundOnDevice = [];        for($i = 0; $i < sizeof($filerecs); $i++) {            $entry = $filerecs[$i];            $foundOnDevice[$entry->name] = true;            if(!isset($this->entries[$entry->name])) {                // new entry                $entry->status = 'discovered';                $this->entries[$entry->name] = $entry;                $this->modified = true;                VHubServer::Log($httpReq, LOG_FILESYNC, 4, "File {$entry->name} on {$this->serial} added in state {$entry->status}");                continue;            }            $existing = $this->entries[$entry->name];            VHubServer::Log($httpReq, LOG_FILESYNC, 5, "CompareToDevice {$entry->name} on {$this->serial}: status={$existing->status}");            switch($existing->status) {                case 'discovered':  // new file on device, not yet downloaded                    break;                case 'deleting':    // deletion is expected next time the device connects                    VHubServer::Log($httpReq, LOG_FILESYNC, 2, "File {$entry->name} on {$this->serial} is scheduled for deletion");                    $this->setEntryState($httpReq, $entry->name, 'deleted');                    break;                case 'deleted':     // deletion failed? retry                    VHubServer::Log($httpReq, LOG_FILESYNC, 2, "File deletion for {$entry->name} failed on {$this->serial}, retrying");                    $this->deleteOnDevice($httpReq, $entry->name);                    break;                case 'uploaded':                    if($entry->size == $existing->size && ($entry->crc & 0xffffffff) == ($existing->crc & 0xffffffff)) {                        // file on device is the same                        $this->setEntryState($httpReq, $entry->name, 'known');                    }                    break;                case 'disappeared':                case 'known':                    if($entry->size == $existing->size && ($entry->crc & 0xffffffff) == ($existing->crc & 0xffffffff)) {                        $this->setEntryState($httpReq, $entry->name, 'known');                    } else {                        // file has changed on device, must be downloaded                        VHubServer::Log($httpReq, LOG_FILESYNC, 4, "File {$entry->name} has changed on {$this->serial}");                        $this->setEntryState($httpReq, $entry->name, 'discovered');                    }                    break;            }        }        foreach($this->entries as $filename => $entry) {            if(!isset($foundOnDevice[$filename])) {                switch($entry->status) {                    case 'discovered':  // new file on device, not yet downloaded, has disappeared                    case 'deleting':    // deletion is expected next time the device connects                    case 'deleted':     // file just deleted on device                        VHubServer::Log($httpReq, LOG_FILESYNC, 4, "File {$filename} is no more in {$this->serial}");                        unset($this->entries[$filename]);                        $this->modified = true;                        break;                    case 'uploaded':                        // expect new file to appear on device shortly                        break;                    case 'disappeared':                    case 'known':                        $this->setEntryState($httpReq, $filename, 'disappeared');                        break;                }            }        }        // Then process changes        foreach($this->entries as $filename => $entry) {            switch($entry->status) {                case 'discovered':                    // download file asap                    $fcontent = $this->server->tryDownload($httpReq, $this->serial, $filename, false);                    if(is_null($fcontent)) {                        VHubServer::Log($httpReq, LOG_FILESYNC, 4, "Will download {$filename} from {$this->serial}");                    } else {                        $this->server->files->saveDeviceFile($httpReq, $this->serial, 'files/'.$filename, $fcontent);                        $this->setEntryState($httpReq, $filename, 'known');                    }                    break;                case 'deleting':                case 'deleted':                    // deletion already scheduled, nothing to be done                    break;                case 'uploaded':                    VHubServer::Log($httpReq, LOG_FILESYNC, 4, "Must upload {$filename} to {$this->serial}");                    $tarfile = $this->server->files->accessDeviceFiles($httpReq, $this->serial);                    $obj = $tarfile->searchTarFile($httpReq, 'files/'.$filename);                    if(is_null($obj)) {                        VHubServer::Log($httpReq, LOG_FILESYNC, 1, "Cannot upload {$filename} to {$this->serial}, file is missing on VirtualHub4web");                    } else {                        $this->server->scheduleUploadOnDevice($httpReq, $this->serial, $filename, $obj->content);                    }                    break;                case 'disappeared':                    VHubServer::Log($httpReq, LOG_FILESYNC, 4, "File {$filename} has disappeared on {$this->serial}, removing on VirtualHub4web");                    $tarfile = $this->server->files->accessDeviceFiles($httpReq, $this->serial);                    $tarfile->processTarFile($httpReq, 'files/'.$filename, TAROP_DELETE_FILE);                    unset($this->entries[$filename]);                    break;                case 'known':                    VHubServer::Log($httpReq, LOG_FILESYNC, 5, "File {$filename} is up-to-date on {$this->serial}");                    break;            }        }        return $this->modified;    }    // propagate VirtualHub4web upload to the device    function uploadToDevice(VHubServerHTTPRequest $httpReq, string $filename, int $filesize, int $crc): void    {        $this->entries[$filename] = (object)['name' => $filename, 'size' => $filesize, 'crc' => $crc, 'status' => 'uploaded'];        $this->modified = true;        VHubServer::Log($httpReq, LOG_FILESYNC, 4, "File {$filename} for {$this->serial} uploaded to VirtualHub4web");    }    // propagate VirtualHub4web delete to the device    function deleteOnDevice(VHubServerHTTPRequest $httpReq, string $filename): void    {        VHubServer::Log($httpReq, LOG_FILESYNC, 4, "Schedule deletion of {$filename} on {$this->serial}");        $url = '/files.json?a=del&f='.$this->server->_escapeAttr($filename);        $this->server->scheduleQueryOnDevice($httpReq, $this->serial, 'GET', $url);        $this->setEntryState($httpReq, $filename, 'deleting');    }    // propagate VirtualHub4web format to the device    function formatOnDevice(VHubServerHTTPRequest $httpReq): void    {        VHubServer::Log($httpReq, LOG_FILESYNC, 4, "Schedule filesystem format on {$this->serial}");        $this->server->scheduleQueryOnDevice($httpReq, $this->serial, 'GET', '/files.json?a=format');        foreach($this->entries as $filename => $entry) {            $this->setEntryState($httpReq, $filename, 'deleting');        }    }}class APIDeviceNode extends APINode{    public DeviceCloudConf $cloudConf;    public DeviceFileList $fileList;    public APIServicesNode $services;    public APIDeviceAPINode $api;    public ?DeviceStats $deviceStats;    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $serial)    {        parent::__construct($httpReq, $server, $serial);        $this->cloudConf = new DeviceCloudConf();        $this->fileList = new DeviceFileList($httpReq, $this->server, $serial);        $this->services = new APIServicesNode($httpReq, $this->server, 'services');        $this->api = new APIDeviceAPINode($httpReq, $this->server, 'api');        $this->addSubnode('api', $this->api);        $this->deviceStats = null;    }    // Load device global state from file data or live device api    public function loadState(VHubServerHTTPRequest $httpReq, mixed $data, $detectChanges): bool    {        if(isset($data->VirtualHub4web)) {            $this->cloudConf->loadState($httpReq, $data->VirtualHub4web);        }        if(isset($data->FileList)) {            $this->fileList->loadState($httpReq, $data->FileList);        }        // Restore services (originally published by the hub) from individual device files        // next to the api tree, where we have saved them there, instead as from the hub.        // This avoids keeping a dependence between the device and its own hub,        // and allows to transpose easily a device from one VirtualHub4web to the other        if(isset($data->services)) {            $this->services->loadState($httpReq, $data->services, false);        }        $modified = parent::loadState($httpReq, $data, $detectChanges);        if(isset($data->VirtualHub4web)) {            if (isset($data->VirtualHub4web->lastSeen)) {                $this->api->module->values['lastSeen'] = time() - $data->VirtualHub4web->lastSeen;            }            if (isset($data->VirtualHub4web->parentHub)) {                $this->api->module->values['parentHub'] = $data->VirtualHub4web->parentHub;                $this->api->module->values['parentIP'] = $data->VirtualHub4web->parentIP;            }            if (isset($data->VirtualHub4web->sleepAfterCallback) && isset($this->api->subnodes['wakeUpMonitor'])) {                $wakeUpMonitorNode = $this->api->subnode('wakeUpMonitor');                $wakeUpMonitorNode->values['sleepAfterCallback'] = $data->VirtualHub4web->sleepAfterCallback;            }        }        return $modified;    }     // Save device global state into an array for saving    public function saveState(): array    {        $res = parent::saveState();        $res['services'] = $this->services->saveState();        $res['FileList'] = $this->fileList->saveState();        $res['VirtualHub4web'] = $this->cloudConf->saveState();        return $res;    }    // Mark node as modified to force saving VirtualHub4web configuration    public function markAsChanged()    {        $this->modified = true;    }    public function hasChanged(): bool    {        return $this->modified || $this->fileList->hasChanged();    }    // Prepare to collect device statistics    public function initStats(VHubServerHTTPRequest $httpReq): void    {        $this->deviceStats = new DeviceStats();    }    // Prepare to save device statistics to the device-specific file    public function getDeviceStats(): ?DeviceStats    {        return $this->deviceStats;    }}class APICloudApiNode extends APINode{    public APICloudModuleNode $module;    public APICloudNetworkNode $network;    public APICloudFilesNode $files;    public APIServicesNode $services;    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $name)    {        parent::__construct($httpReq, $server, $name);        $this->module = new APICloudModuleNode($httpReq, $this->server, 'module');        $this->network = new APICloudNetworkNode($httpReq, $this->server, 'network');        $this->files = new APICloudFilesNode($httpReq, $this->server, 'files');        $this->services = new APIServicesNode($httpReq, $this->server, 'services');        $this->addSubnode('module', $this->module);        $this->addSubnode('network', $this->network);        $this->addSubnode('files', $this->files);        $this->addSubnode('services', $this->services);    }    public function loadStateFromCloudConf(VHubServerHTTPRequest $httpReq, GlobalCloudConf $cloudConf): void    {        $this->module->loadStateFromCloudConf($httpReq, $cloudConf);        $this->network->loadStateFromCloudConf($httpReq, $cloudConf);        $this->files->loadStateFromCloudConf($httpReq, $cloudConf);    }    public function compareStateToCloudConf(VHubServerHTTPRequest $httpReq, GlobalCloudConf $cloudConf, array &$changes)    {        $this->module->compareStateToCloudConf($httpReq, $cloudConf, $changes);        $this->network->compareStateToCloudConf($httpReq, $cloudConf, $changes);        $this->files->compareStateToCloudConf($httpReq, $cloudConf, $changes);    }}class APIBySerialNode extends APINode{    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $name)    {        parent::__construct($httpReq, $server, $name);    }}class APIRootNode extends APINode{    public GlobalCloudConf $cloudConf;    public APICloudApiNode $api;    public APIBySerialNode $bySerial;    public array $funYdxByHwId;    protected array $guessedAttrTypes;    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $name)    {        parent::__construct($httpReq, $server, $name);        $this->server->apiroot = $this;        $this->cloudConf = new GlobalCloudConf();        $this->api = new APICloudApiNode($httpReq, $this->server, 'api');        $this->bySerial = new APIBySerialNode($httpReq, $this->server, 'bySerial');        $this->funYdxByHwId = [];        $this->guessedAttrTypes = [];        $this->addSubnode('api', $this->api);        $this->addSubnode('bySerial', $this->bySerial);    }    // Load VirtualHub4web global configuration from saved state    public function loadState(VHubServerHTTPRequest $httpReq, mixed $data, bool $detectChanges): bool    {        if(isset($data->VirtualHub4web)) {            $this->cloudConf->loadState($httpReq, $data->VirtualHub4web);            $this->api->loadStateFromCloudConf($httpReq, $this->cloudConf);        }        return true;    // not relevant for global configuration    }    // Save VirtualHub4web global state into configuration object    public function saveState(): array    {        $res = [];        $res['VirtualHub4web'] = $this->cloudConf->saveState();        return $res;    }    // Return a list of changes to VirtualHub4web state since last loaded    public function getStateChanges(VHubServerHTTPRequest $httpReq): array    {        $changes = [];        $this->api->compareStateToCloudConf($httpReq, $this->cloudConf, $changes);        return $changes;    }    // Load our own services into the whitePages/yellowPages    public function loadOwnServices(VHubServerHTTPRequest $httpReq)    {        $wpdef = new stdClass();        $wpdef->serialNumber = $this->cloudConf->serialNumber;        $wpdef->logicalName = $this->api->module->getattr('logicalName');        $wpdef->productName = $this->api->module->getattr('productName');        $wpdef->productId = $this->api->module->getattr('productId');        $wpdef->networkUrl = '/api';        $wpdef->beacon = $this->api->module->getattr('beacon');        $wpdef->index = 0;        $filesdef = new stdClass();        $filesdef->baseType = 0;        $filesdef->hardwareId = $this->cloudConf->serialNumber.'.files';        $filesdef->logicalName = $this->api->files->getattr('logicalName');        $filesdef->advertisedValue = $this->api->files->getattr('advertisedValue');        $filesdef->index = 0;        $netdef = clone $filesdef;        $netdef->hardwareId = $this->cloudConf->serialNumber.'.network';        $netdef->logicalName = $this->api->network->getattr('logicalName');        $filesdef->advertisedValue = $this->api->network->getattr('advertisedValue');        $netdef->index = 1;        $ypdef = new stdClass();        $ypdef->Files = [ $filesdef ];        $ypdef->Network = [ $netdef ];        $this->api->services->wp->loadState($httpReq, [$wpdef], false);        $this->api->services->yp->loadState($httpReq, $ypdef, false);    }    // Attempt to load specified service definitions into the VirtualHub4web    // Return true if success or false if a devYdx needs to be allocated    public function loadServices(VHubServerHTTPRequest $httpReq, string $hubSerial, object $servicesdef, bool $canUpdateDevYdx): bool    {        $hubDevYdx = $this->cloudConf->getDevYdx($hubSerial);        if($canUpdateDevYdx && $hubDevYdx < 0) {            $hubDevYdx = 0;        }        $wpdef = $servicesdef->whitePages;        foreach($wpdef as &$wpentry) {            $serial = $wpentry->serialNumber;            if(!$this->bySerial->hasSubnode($serial) && $serial != $this->server->apiroot->cloudConf->serialNumber) {                // unknown device, ignore services                VHubServer::Log($httpReq, LOG_VHUBSERVER, 4, "LoadServices: ignore unknown serial $serial");                continue;            }            $parentDevYdx = ($serial == $hubSerial ? 0 : $hubDevYdx);            $devYdx = $this->cloudConf->getDevYdx($serial);            VHubServer::Log($httpReq, LOG_VHUBSERVER, 4, "LoadServices for {$serial}: devYdx={$devYdx}, parentDevYdx={$parentDevYdx} (hubSerial={$hubSerial})");            if ($devYdx < 0) { // new device                if(!$canUpdateDevYdx) return false;                $devYdx = $this->cloudConf->allocDevYdx($serial, $parentDevYdx);                if($devYdx < 0) {                    // too many devices for this instance of VirtualHub-4web                    VHubServer::Log($httpReq, LOG_VHUBSERVER, 2, "Too many devices on this instance, ignoring $serial");                    continue;                }            } else if($parentDevYdx != -1 && $this->cloudConf->getParentDevYdx($serial) != $parentDevYdx) {                if(!$canUpdateDevYdx) return false;                $this->cloudConf->setParentDevYdx($serial, $parentDevYdx);            }            $wpentry->networkUrl = "/bySerial/$serial/api";            $wpentry->index = $devYdx;        }        $this->api->services->loadState($httpReq, $servicesdef, false);        return true;    }    // Return a services structure describing services offered by the given serial    public function saveServicesForSerial(string $serial): array    {        return $this->api->services->saveStateForSerial($serial);    }    // Return the known (or guessed) type of a given attribute    public function getAttrType(VHubServerHTTPRequest $httpReq, string $functionClass, string $attrName, mixed $value): int    {        global $ApiDef;        // First search into known function class definitions (generated file)        if(isset($ApiDef[$functionClass]) && isset($ApiDef[$functionClass][$attrName])) {            return $ApiDef[$functionClass][$attrName];        }        // Compute inference table when needed for the first time        VHubServer::Log($httpReq, LOG_VHUBSERVER, 4, "Infer attribute type for [{$functionClass}.]{$attrName}");        if(sizeof($this->guessedAttrTypes) == 0) {            $typesByAttr = [];            foreach($ApiDef as $fclass => $classdef) {                foreach($classdef as $attr => $typeidx) {                    if(!isset($typesByAttr[$attr])) {                        $typesByAttr[$attr] = [ $typeidx => [ 'cnt' => 1, 'idx' => $typeidx ] ];                    } else if(!isset($typesByAttr[$attr][$typeidx])) {                        $typesByAttr[$attr][$typeidx] = [ 'cnt' => 1, 'idx' => $typeidx ];                    } else {                        $typesByAttr[$attr][$typeidx]['cnt'] += 1;                    }                }            }            foreach($typesByAttr as $attr => $alltypes) {                $bestCnt = 0;                foreach($alltypes as $typedesc => $typestats) {                    if($bestCnt < $typestats['cnt']) {                        $bestCnt = $typestats['cnt'];                        $this->guessedAttrTypes[$attr] = $typestats['idx'];                    }                }            }        }        // If this is a brand new attribute, assume read-only and infer type from value        if(!isset($this->guessedAttrTypes[$attrName])) {            if (is_numeric($value)) {                $this->guessedAttrTypes[$attrName] = $ApiDef['DeviceInfo']['index'];    // aka read-only Int            } else {                $this->guessedAttrTypes[$attrName] = $ApiDef['Module']['serialNumber']; // aka read-only Text            }        }        return $this->guessedAttrTypes[$attrName];    }}
+const LOG_VHUBSERVER = 0;const LOG_HTTPCALLBACK = 1;const LOG_WSCALLBACK = 2;const LOG_CLIENTREQ = 3;const LOG_TARFILE = 4;const LOG_DATALOGGER = 5;const LOG_FILESYNC = 6;const GET_LAST_VERSION_URL = 'http://www.yoctopuce.com/FR/common/getLastFirmwareLink.php?serial=VHUB4WEB-00000';const VHUB4WEB_SESSIONS = VHUB4WEB_DATA.'/sessions';// Object used to retrieve data sent by HTTP Client and to send data back//class VHubServerHTTPRequest{    protected int $reqStartTime;    protected int $reqProcessTime;    protected int $nErr;    protected int $nWrn;    protected array $debugLevel;    protected string $dataSent;    protected string $clientIP;    protected string $clientId;    protected string $method;    protected string $requestURI;    protected string $userAgent;    protected string $node;    protected string $rawPostData;    protected ?array $jsonPostData;    protected array $args;    protected array $authParams;    protected bool $shortReq;    public function __construct(bool $pseudo = false)    {        $this->reqStartTime = intval(round(1000 * microtime(true)));        $this->reqProcessTime = $this->reqStartTime;        $this->nErr = 0;        $this->nWrn = 0;        $this->debugLevel = [            LOG_VHUBSERVER => DEFAULT_LOGLEVEL,            LOG_HTTPCALLBACK => DEFAULT_LOGLEVEL,            LOG_WSCALLBACK => DEFAULT_LOGLEVEL,            LOG_CLIENTREQ => DEFAULT_LOGLEVEL,            LOG_TARFILE => DEFAULT_LOGLEVEL,            LOG_DATALOGGER => DEFAULT_LOGLEVEL,            LOG_FILESYNC => DEFAULT_LOGLEVEL        ];        $this->clientIP = $_SERVER['REMOTE_ADDR'];        if(isset($_SERVER['HTTP_X_FORWARDED_FOR']) && $_SERVER['HTTP_X_FORWARDED_FOR']) {            $this->clientIP = $_SERVER['HTTP_X_FORWARDED_FOR'];        }        $this->clientSn = '';        $this->clientId = $this->clientIP;        $this->method = $_SERVER['REQUEST_METHOD'];        $this->requestURI = $_SERVER['REQUEST_URI'];        $this->userAgent = (isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : 'unspecified');        $this->node = '';        $this->args = [];        $this->authParams = [];        $this->rawPostData = '';        $this->jsonPostData = null;        $this->shortReq = false;        $this->dataSent = '';        if($pseudo) {            // shortcut for creating a pseudo context            return;        }        if($this->method == 'POST') {            $this->rawPostData = file_get_contents("php://input");            $this->reqProcessTime = intval(round(1000 * microtime(true)));            if(str_starts_with($this->rawPostData, '{')) {                // Most likely JSON post data (not Form-encoded)                if(str_ends_with($this->requestURI, 'HTTPCallback')) {                    $this->jsonPostData = json_decode(iconv("ISO-8859-1", "UTF-8", $this->rawPostData), true);                    //file_put_contents(VHUB4WEB_DATA.'/VHUB4WEB-postCbData.json', json_encode($this->jsonPostData, JSON_PRETTY_PRINT));                } else {                    $this->jsonPostData = json_decode($this->rawPostData, true);                    //file_put_contents(VHUB4WEB_DATA.'/VHUB4WEB-postData.json', json_encode($this->jsonPostData, JSON_PRETTY_PRINT));                }            }            if($this->jsonPostData) {                if(isset($this->jsonPostData['x-yauth'])) {                    $this->authParams = $this->jsonPostData['x-yauth'];                    $this->authParams['type'] = 'x-yauth';                }                if(isset($this->authParams['method'])) {                    $this->method = $this->authParams['method'];                }            }        }        if(sizeof($this->authParams) == 0 && isset($_SERVER['PHP_AUTH_DIGEST'])) {            preg_match_all('~(nonce|nc|cnonce|qop|username|uri|response)=(?:([\'"])([^\2]+?)\2|([^\s,]+))~',                $_SERVER['PHP_AUTH_DIGEST'], $matches, PREG_SET_ORDER);            $this->authParams['type'] = 'digest';            foreach ($matches as $m) {                $this->authParams[$m[1]] = $m[3] ?: $m[4];            }        }        if(isset($this->authParams['uri'])) {            // If an authentication is provided, make sure to use the authenticated URI instead of            // then unverified parameters possibly passed in the query            $this->requestURI = $this->authParams['uri'];        }        $this->parseRequestURI($this->requestURI);    }    protected function parseRequestURI(string $uri): void    {        $baseURI = preg_replace('~/$~', '', dirname($_SERVER["SCRIPT_NAME"]));        if(str_starts_with($uri, $baseURI)) {            // get relative URI (remove heading slash as well, if any)            $uri = substr($uri, strlen($baseURI)+1);        }        $this->node = $uri;        $this->shortReq = false;        $this->args = [];        $qpos = strpos($uri, '?');        if($qpos !== FALSE) {            $this->node = substr($uri, 0, $qpos);            $query = substr($uri, $qpos+1);            if(str_ends_with($query, '&.')) {                $this->shortReq = true;                $query = substr($query, 0, -2);            }            parse_str($query, $arguments);            foreach($arguments as $name => $value) {                if(is_string($value)) {                    if(str_starts_with($name, 'vhub4web_dbg')) {                        // special handling to enable increasing specific log level per request                        $logType = substr($name, 12);                        $logLevel = max(min(intVal($value), 5), 3);                        if($logType == '') {                            foreach($this->debugLevel as $logTypeIdx => $level) {                                if($level < $logLevel) {                                    $this->debugLevel[$logTypeIdx] = $logLevel;                                }                            }                        } else {                            $logTypeIdx = intVal($logType);                            if($this->debugLevel[$logTypeIdx] < $logLevel) {                                $this->debugLevel[$logTypeIdx] = $logLevel;                            }                        }                    } else {                        $this->args[$name] = $value;                    }                }            }        }    }    public function getRequestTimestamp(): int    {        return intval(round($this->reqStartTime / 1000));    }    public function getIOReadTime(): int    {        return $this->reqProcessTime - $this->reqStartTime;    }    public function getProcessingTime(): int    {        return intval(round(1000 * microtime(true))) - $this->reqProcessTime;    }    public function getErrorCount(): int    {        return $this->nErr;    }    public function getWarningCount(): int    {        return $this->nWrn;    }    public function getLogLavel($logType): int    {        return $this->debugLevel[$logType];    }    public function incLogCount(int $logSeverity): void    {        switch($logSeverity) {            case 1: $this->nErr++; return;            case 2: $this->nWrn++; return;        }    }    public function getProtocol(): string    {        return isset($_SERVER['HTTPS']) && !empty($_SERVER['HTTPS']) ? 'https' : 'http';    }    public function getMethod(): string    {        return $this->method;    }    public function getRequestHostname(): string    {        return $_SERVER['SERVER_NAME'];    }    public function getRequestURL(): string    {        return $this->requestURI;    }    public function getFullClientRequest(): string    {        return $this->getMethod().' '.$this->getRequestURL().' '.$_SERVER['SERVER_PROTOCOL'];    }    public function getServerPort(): int    {        return intVal($_SERVER['SERVER_PORT']);    }    public function getServerIP(): string    {        return (isset($_SERVER['SERVER_ADDR']) ? $_SERVER['SERVER_ADDR'] : '0.0.0.0');    }    public function getClientIP(): string    {        return $this->clientIP;    }    public function setClientIdent(string $clientSerial, string $clientIdent): void    {        $this->clientSn = $clientSerial;        $this->clientId = $clientIdent;    }    public function getClientSerial(): string    {        return $this->clientSn;    }    public function getClientIdent(): string    {        return $this->clientId;    }    public function getUserAgent(): string    {        return $this->userAgent;    }    public function getOrigin(): string    {        if (isset($_SERVER['HTTP_ORIGIN']) && !is_null($_SERVER['HTTP_ORIGIN']) && $_SERVER['HTTP_ORIGIN'] != 'null') {            return $_SERVER['HTTP_ORIGIN'];        }        return '*';    }    public function getAuthUser(): string    {        if(isset($this->authParams['username'])) {            return $this->authParams['username'];        }        return '';    }    public function newNonce(string $reason): string    {        $newSessions = [];        if(!is_dir(VHUB4WEB_SESSIONS)) {            mkdir(VHUB4WEB_SESSIONS, 0700);        } else {            $now = time();            $files = scandir(VHUB4WEB_SESSIONS);            if($files !== FALSE) {                foreach($files as $fname) {                    if(!preg_match('/^([0-9a-f]{20})_(new|act)$/', $fname, $matches)) continue;                    if($matches[2] == 'new') {                        $hexstamp = substr($matches[1], 0, -12);                        $stamp = hexdec($hexstamp);                        $newSessions[$fname] = $now - $stamp;                    } else {                        $this->checkSession($matches[1], $A1);                    }                }            }        }        // Cleanup old inactive pending sessionIds        foreach($newSessions as $fname => $age) {            if($age > SESSION_MAX_INACTIVITY) {                $fullpath = VHUB4WEB_SESSIONS.'/'.$fname;                if(file_exists($fullpath)) {                    try { @unlink($fullpath); } catch(Throwable $e) {}                }            }        }        // Allocate a new secure session ID, make sure it is unused        do {            $res = strtolower(dechex(time()).bin2hex(random_bytes(6)));            $fname = "{$res}_new";        } while(isset($newSessions[$fname]));        // Create the new (empty) session file        file_put_contents(VHUB4WEB_SESSIONS.'/'.$fname, '');        $sessionDesc = substr($fname, -9, 5);        VHubServer::Log($this, LOG_CLIENTREQ, 4, "Create new session $sessionDesc ($reason)");        // If we have too many valid pending sessions, delay new allocations        if(sizeof($newSessions) > SESSION_MAX_PENDING) {            usleep(199000);        }        return $res;    }    public function checkSession(string $nonce, &$A1 = null): string    {        if(!is_dir(VHUB4WEB_SESSIONS)) {            return "no sessions";        }        $actfile = VHUB4WEB_SESSIONS."/{$nonce}_act";        if(!file_exists($actfile)) {            return "invalid session";        }        $data = explode(':', file_get_contents($actfile));        if(sizeof($data) < 2) {            try { @unlink($actfile); } catch(Throwable $e) {}            return "bad session";        }        if(time()-hexdec($data[0]) > SESSION_MAX_INACTIVITY) {            try { @unlink($actfile); } catch(Throwable $e) {}            $sessionDesc = substr($nonce, -5);            VHubServer::Log($this, LOG_CLIENTREQ, 4, "Session $sessionDesc expired for ".(time()-hexdec($data[0]))." seconds");            return "session expired";        }        $A1 = $data[1];        return "OK";    }    public function touchSession(string $nonce, string $A1)    {        if(!is_dir(VHUB4WEB_SESSIONS)) {            return false;        }        $actfile = VHUB4WEB_SESSIONS."/{$nonce}_act";        file_put_contents($actfile, dechex(time()).':'.$A1);        $sessionDesc = substr($nonce, -5);        VHubServer::Log($this, LOG_CLIENTREQ, 5, "Touch session $sessionDesc");    }    public function checkPassword(string $password): string    {        $authvals = $this->authParams;        $reqkeys = [ 'uri', 'nonce', 'nc', 'cnonce', 'qop', 'response' ];        foreach($reqkeys as $key) {            if(!isset($authvals[$key]) || !is_string($authvals[$key])) {                VHubServer::Log($this, LOG_CLIENTREQ, 3, "Missing x-yauth parameter {$key}");                return "missing x-yauth";            }        }        if(!is_dir(VHUB4WEB_SESSIONS)) {            return "no sessions";        }        $nonce = $authvals['nonce'];        if(!preg_match('/^([0-9a-f]{20})$/', $nonce)) {            return "bad nonce";        }        $newSessionFile = VHUB4WEB_SESSIONS."/{$nonce}_new";        if(file_exists($newSessionFile)) {            // new session with a valid nonce, check signature against password            try { @unlink($newSessionFile); } catch(Throwable $e) {}            $A1 = bin2hex(substr(base64_decode($password),1));        } else {            $sessChk = $this->checkSession($nonce, $A1);            if($sessChk != "OK") {                return $sessChk; // invalid nonce (possibly expired)            }        }        if($authvals['type'] == 'x-yauth') {            $A2 = sha1($this->method.':'.$authvals['uri']);            $signature = sha1($A1.':'.$authvals['nonce'].':'.$authvals['nc'].':'.$authvals['cnonce'].':'.$authvals['qop'].':'.$A2);        } else {            $A2 = md5($this->method.':'.$authvals['uri']);            $signature = md5($A1.':'.$authvals['nonce'].':'.$authvals['nc'].':'.$authvals['cnonce'].':'.$authvals['qop'].':'.$A2);        }        if($authvals['response'] != $signature) {            return "bad signature";        }        $this->touchSession($nonce, $A1);        return "OK";    }    public function setAuthUser(string $username): void    {        $this->authParams['username'] = $username;    }    public function getNode(): string    {        return $this->node;    }    public function getArg(string $argName): ?string    {        if(isset($this->args[$argName])) {            return $this->args[$argName];        }        return null;    }    public function getAllArgs(): array    {        return $this->args;    }    public function getRawPostData(): string    {        return $this->rawPostData;    }    public function getJsonPostData(): ?array    {        return $this->jsonPostData;    }    public function isShortReq(): bool    {        return $this->shortReq;    }    public function putStatus(int $status): void    {        http_response_code($status);    }    public function putHeader(string $header): void    {        header($header);    }    public function requestAuthentication(string $realm, string $reason): void    {        if(isset($this->authParams['type']) && $this->authParams['type'] == 'x-yauth') {            // Our custom authentication that does not pop-up a dialog on browsers            $this->putStatus(204);        } else {            // Request standard digest authentication            $this->putStatus(401);            $this->putHeader('WWW-Authenticate: Digest realm="' . $realm .                '",qop="auth",nonce="' . $this->newNonce($reason) . '",opaque="' . md5($realm) . '"');        }        $this->putHeader('X-Auth-Error: ' . $reason);        // mark user as not authentified        $this->setAuthUser('');    }    // Send a string (internally stored in UTF-8) to the HTTP output, after converting it to iso-8859-1    // (as this is the default used by YoctoHubs, and we must stick to it)    public function putStr(string $message): void    {        $message = iconv("UTF-8", "ISO-8859-1", $message);        $this->dataSent .= $message;        Print($message);    }    // Send a binary buffer (or possibly an iso-8859-1 text) to the HTTP output    public function putBin(string $binstr): void    {        $this->dataSent .= $binstr;        Print($binstr);    }    public function getDataReceived(): int    {        $res = strlen($this->getFullClientRequest()) + strlen($this->rawPostData);        if(function_exists('apache_request_headers')) {            $headers = apache_request_headers();            foreach ($headers as $header => $value) {                $res += strlen($header) + strlen($value) + 4;            }        }        return $res;    }    public function getDataSent(): int    {        $res = strlen($this->dataSent);        if(function_exists('apache_response_headers')) {            flush();            $headers = apache_response_headers();            foreach ($headers as $header => $value) {                $res += strlen($header) + strlen($value) + 4;            }        }        return $res;    }    public function getRequestTrace(): string    {        $eventTime = date('Y-m-d H:i:s',time());        $clientIdent = $this->getClientIdent();        $serverIdent = $this->getRequestHostname();        $phpVersion = phpversion().' '.php_sapi_name();        $res = "{$eventTime}: from {$clientIdent} ({$this->clientIP}) to {$serverIdent} (PHP {$phpVersion})\r\n";        $res .= '--- HTTP Request: '.$this->getFullClientRequest()."\r\n";        if(function_exists('apache_request_headers')) {            $headers = apache_request_headers();            foreach ($headers as $header => $value) {                $res .= "{$header}: {$value}\r\n";            }        }        $res .= $this->rawPostData."\r\n";        $res .= '--- HTTP Reply: '."\r\n";        if(function_exists('apache_response_headers')) {            flush();            $headers = apache_response_headers();            foreach ($headers as $header => $value) {                $res .= "{$header}: {$value}\r\n";            }        }        return $res.$this->dataSent;    }}class PhpErrorException extends Exception{    public function __construct(int $errno, string $errstr, string $errfile, int $errline)    {        parent::__construct($errstr, $errno);        $this->file = $errfile;        $this->line = $errline;    }}class VHubServer{    // Static properties (globals)    public static array $DebugLevels = [ 'SOS - ', 'ERR - ', 'WRN - ', 'INF - ', 'NOT - ', 'DBG -' ];    public static array $DebugName = [        LOG_VHUBSERVER => "VSRV ",        LOG_HTTPCALLBACK => "HTCB ",        LOG_WSCALLBACK => "WSCB ",        LOG_CLIENTREQ => "CREQ ",        LOG_TARFILE => "TARF ",        LOG_DATALOGGER => "DLOG ",        LOG_FILESYNC => "FILE "    ];    // Navigable properties    public APIRootNode $apiroot;    // Device API cache    public NotifStream $notif;      // VHubServer output notification stream    public FileServer $files;       // File content server    // Regular internal properties    protected string $datadir;      // Data directory used by this instance, including trailing slash    protected array $fdcache;       // File descriptor cache to prevent open/close of TAR files within a single HTTP callback    // Freely accessible files:    protected array $safeFiles = [ 'iframe.html', 'webapp.html', 'ssdp.xml', 'index.html', 'info.json', 'favicon.svg', 'favicon.ico' ];    // Extra parameters that do not require admin rights:    protected array $safeParams = [ 'node', 'abs', 'ctx', 'dir', 'fw', 'hub', 'len', 'pos', 'rnd', 'scr', 'logUrl', 'id', 'run', 'utc', 'from', 'to' ];    // Sensitive files (require admin rights for reading):    protected array $sensitiveFiles = [ 'clientRequests.bin', 'debugTraces.bin' ];    protected static VHubServerHTTPRequest $CurrentHTTPRequest;    public static function ProcessHTTPRequest(): void    {        // Make sure PHP configuration is still OK to write logs, etc.        $err = check_php_conf(true);        if(sizeof($err) > 0) {            VHubServer::DisplayFriendlyErrors($err);        }        // Install global error and exception handlers        set_error_handler('VHubServer::ErrorHandler', E_ALL);        set_exception_handler('VHubServer::ExceptionHandler');        // Dispatch HTTP request        $request = new VHubServerHTTPRequest();        VHubServer::$CurrentHTTPRequest = $request;        $isHub = preg_match('/VirtualHub|YoctoHub/', $request->getUserAgent());        if(preg_match('~^HTTPCallback$~i', $request->getNode())) {            // Make sure this request does not come from a browser            if(!$isHub) {                VHubServer::DisplayFriendlyErrors([[                    'error' => 'UserAgent',                    'msg' => 'This service URL is not meant to be called by a web browser.',                    'cause' => 'The URL ending with <b>HTTPCallback</b> should only be used as HTTP callback URL by '.                        'VirtualHub or by a YoctoHub. In order to access VirtualHub-4web UI, remove HTTPCallback '.                        'from the browser address.'                ]]);            }            // Invoke HTTP callback support code            VHubServer::HTTPCallback($request);        } else {            // Make sure this request does not come from a YoctoHub/VirtualHub            if($isHub) {                $url = $request->getRequestHostname().$request->getRequestURL();                VHubServer::Abort($request, 'Hub configuration error: '.$url.' is not a correct HTTP Callback URL');            }            // Invoke Hub emulation support code            VHubServer::ClientRequest($request);        }    }    public static function DisplayFriendlyErrors(array $err): void    {        // Note: this function is used to report early configuration errors,        //       before even creating the VHubServerHTTPRequest object        Print("<style>\n");        Print("body{font-family:sans-serif;text-align:justify;background-color:lightyellow;}\n");        Print("a{font-size:small;}\n");        Print(".more{display:none;font-style:italic;padding:6px;width:600px;}\n");        Print("</style>\n");        Print("<h2>VirtualHub-4web fatal error</h2>\n");        Print("<script>\nfunction show(id) { document.getElementById(id).style.display='block'; }\n</script>\n");        if(sizeof($err) > 1) {            Print("<p>Oops, multiple problems have been found:</p>\n");        } else {            Print("<p>Oops, a serious problem has been detected:</p>\n");        }        Print("<ul>\n");        foreach($err as $error) {            Print("<li>{$error['msg']} <a href='javascript:show(\"{$error['error']}\")'>tell me more</a><div class='more' id='{$error['error']}'>{$error['cause']}</div></li>\n");        }        Print("</ul>\n");        die("</body>\n");    }    public static function Log(VHubServerHTTPRequest $httpReq, int $logType, int $logLevel, string $message): void    {        if ($logLevel <= $httpReq->getLogLavel($logType)) {            $logfile = VHUB4WEB_DATA.'/VHUB4WEB-logs.txt';            $fullmsg = date('Y-m-d H:i:s ',time()).                VHubServer::$DebugName[$logType].VHubServer::$DebugLevels[$logLevel].                $httpReq->getClientIdent().' '.$message;            file_put_contents($logfile, $fullmsg."\n", FILE_APPEND | LOCK_EX);            if(filesize($logfile) > SERVERLOGS_MAX_SIZE) {                rename($logfile, VHUB4WEB_DATA.'/VHUB4WEB-logs-older.txt');            }        }        $httpReq->incLogCount($logLevel);    }    public static function Abort(VHubServerHTTPRequest $httpReq, string $message, array $stackTrace = []): void    {        VHubServer::Log($httpReq, LOG_VHUBSERVER, 0, $message);        $httpReq->putStr(htmlspecialchars($message)."\n");        // If the fatal error is caused by a hub callback, keep the latest trace in a separate text file        $hubSerial = $httpReq->getClientSerial();        if(!$hubSerial) {            // when the serial number is unknown, use a default prefix            $hubSerial = 'UNKNOWN';        }        $tracefile = VHUB4WEB_DATA."/{$hubSerial}-fatal.trace";        $tracedata = $httpReq->getRequestTrace();        // append full debug information to trace file        $tracedata .= "--- Fatal Error:\r\n{$message}\r\n";        for($i = 0; $i < sizeof($stackTrace); $i++) {            $origin = basename($stackTrace[$i]['file']).':'.$stackTrace[$i]['line'];            if($i+1 < sizeof($stackTrace)) {                $nextLevel = $stackTrace[$i + 1];                $classPrefix = '';                if (isset($nextLevel['class']) && $nextLevel['class'] != '') {                    $classPrefix = $nextLevel['class'] . '::';                }                $origin = $classPrefix . $stackTrace[$i + 1]['function'] . " ({$origin})";            }            $tracedata .= "called from {$origin}\r\n";        }        file_put_contents($tracefile, $tracedata);        die("\nAbort.\n");    }    public static function ErrorHandler(int $errno, string $errstr, string $errfile, int $errline): void    {        throw new PhpErrorException($errno, $errstr, $errfile, $errline);    }    public static function ExceptionHandler(Throwable $ex): void    {        // We don't receive the context from the caller in case of exception,        // so we need to use the static variable. This works for PHP since        // there is only one request per process        $httpReq = VHubServer::$CurrentHTTPRequest;        if(is_null($httpReq)) {            $httpReq = new VHubServerHTTPRequest(true);        }        $origin = basename($ex->getFile()).':'.$ex->getLine();        $stackTrace = $ex->getTrace();        if(sizeof($stackTrace) > 0) {            $classPrefix = '';            if(isset($stackTrace[0]['class']) && $stackTrace[0]['class'] != '') {                $classPrefix = $stackTrace[0]['class'].'::';            }            $origin = $classPrefix.$stackTrace[0]['function']." ({$origin})";        }        VHubServer::Abort($httpReq, $ex->getMessage()." in ".$origin, $stackTrace);    }    public static function HTTPCallback(VHubServerHTTPRequest $httpReq): void    {        if($httpReq->getMethod() != "POST") {            VHubServer::Abort($httpReq, 'Invalid HTTP method, expected a Yocto-API POST Callback');        }        // The input stream was already consumed, we need to make it available to the YoctoLib API        $_SERVER['HTTP_RAW_POST_DATA'] = $httpReq->getRawPostData();        $_SERVER['HTTP_JSON_POST_DATA'] = $jsonPostData = $httpReq->getJsonPostData();        if(is_null($jsonPostData)) {            VHubServer::Abort($httpReq, 'Cannot parse Yocto-API POST data');        }        // Identify the network hub first        if(isset($jsonPostData['serial'])) {            $hubSerial = $jsonPostData['serial'];        } else {            $hubSerial = $jsonPostData['/api.json']['module']['serialNumber'];        }        // In PHP, we have to instantiate a new server for every connection (not persistent accross calls)        $server = new VHubServer($httpReq, VHUB4WEB_DATA);        $server->loadState($httpReq);        // enable HTTP callback Cache        if(!file_exists(VHUB4WEB_DATA . "/cache_dir")) {            mkdir(VHUB4WEB_DATA . "/cache_dir");        }        YAPI::SetHTTPCallbackCacheDir(VHUB4WEB_DATA . "/cache_dir");        // Try to RegisterHub - if it fails, we will catch the exception from caller        $errmsg = '';        if($server->apiroot->cloudConf->md5signPwd) {            $auth = base64_decode($server->apiroot->cloudConf->md5signPwd);            YAPI::RegisterHub("{$auth}@callback", $errmsg);        } else {            YAPI::RegisterHub("callback", $errmsg);        }        // Try to retrieve the network name        $network = YNetwork::FindNetwork($hubSerial.'.network');        if($network->isOnline()) {            $hubName = $network->get_logicalName();        } else {            $hubName = $hubSerial;        }        $httpReq->setClientIdent($hubSerial, $hubName);        VHubServer::Log($httpReq, LOG_HTTPCALLBACK, 5, 'Incoming HTTP Callback from ' . $hubName);        $server->prepareToNotify($httpReq);        $nReset = 0;        $willReconnect = false;        $nDevices = $server->discoverDevices($httpReq, $nReset, $willReconnect);        $server->transferDeviceFiles($httpReq);        if(isset($jsonPostData['tRepBuf'])) {            $tRepBufSize = $jsonPostData['tRepBuf'];            $tRepDataSize = $server->processTimedReports($httpReq, $hubSerial);            $tRepUsage = intVal(round(100 * $tRepDataSize / $tRepBufSize));            if($tRepDataSize < 0) {                // tRep not available yet, force immediate reconnect                if(!$willReconnect) {                    $server->sendCallbackApiCommand($httpReq, '%');                    $willReconnect = true;                }            }        } else {            $server->emulateTimedReports($httpReq);            $tRepUsage = -1;        }        if($server->executePendingQueries($httpReq, $network->get_serialNumber())) {            $willReconnect = true;        }        if(!$willReconnect && $server->apiroot->bySerial->hasSubnode($hubSerial)) {            $apinode = $server->apiroot->bySerial->subnode($hubSerial);            $devapi = $apinode->subnode('api');            if($apinode->cloudConf->sleepAfterCallback && $devapi->hasSubnode('wakeUpMonitor')) {                VHubServer::Log($httpReq, LOG_HTTPCALLBACK, 4, "Sending hub {$hubSerial} to sleep in 3 seconds");                $server->sendCallbackApiCommand($httpReq, 'GET /api/wakeUpMonitor/sleepCountdown?sleepCountdown=3&.');            }        }        $server->saveDeviceState($httpReq);        $server->saveState($httpReq);        $server->closeNotificationStream($httpReq);        $httpReq->putStr('VirtualHub-4web callback complete.');        // Save last request for trace purposes        if($httpReq->getErrorCount() > 0) {            $reqfile = 'lastError.trace';        } else if($httpReq->getWarningCount() > 0) {            $reqfile = 'lastWarning.trace';        } else {            $reqfile = 'lastCallback.trace';        }        $trace = $httpReq->getRequestTrace();        $server->files->saveDeviceFile($httpReq, $hubSerial, $reqfile, $trace);        // backup any previous fatal trace in the same place        $tracefile = VHUB4WEB_DATA."/{$hubSerial}-fatal.trace";        if(file_exists($tracefile)) {            $fataltrace = file_get_contents($tracefile);            $server->files->saveDeviceFile($httpReq, $hubSerial, 'lastFatal.trace', $fataltrace);            unlink($tracefile);        }        // Update hub stats at the very end        $hubNode = $server->apiroot->bySerial->subnode($hubSerial);        $hubStats = $hubNode->getDeviceStats();        if(!is_null($hubStats)) {            $hubStats->appendStats($httpReq, $tRepUsage, $nDevices, $nReset);            $statsObj = $hubStats->saveState();            $server->files->saveDeviceFile($httpReq, $hubSerial, 'stats.json', json_encode($statsObj, JSON_UNESCAPED_SLASHES));        }    }    public static function ClientRequest(VHubServerHTTPRequest $httpReq): void    {        $server = new VHubServer($httpReq, VHUB4WEB_DATA);        $server->loadState($httpReq);        // Allow cross-origin requests, including authentication        $httpReq->putHeader('Access-Control-Allow-Origin: '.$httpReq->getOrigin());        $httpReq->putHeader('Access-Control-Allow-Credentials: true');        $httpReq->putHeader('Access-Control-Allow-Headers: Authorization');        $httpReq->putHeader('Vary: Origin');        $httpReq->putHeader('X-DNS-Prefetch-Control: off');        // Parse requested node path        $reqpath = $httpReq->getNode();        if($reqpath == '') {            $defaultPage = $server->apiroot->api->network->getattr('defaultPage');            if($defaultPage == '') {                $defaultPage = 'index.html';            }            $rootUrl = parse_url($httpReq->getRequestURL(), PHP_URL_PATH);            if(!str_ends_with($rootUrl, '/')) {                $rootUrl .= '/';            }            $httpReq->putStatus(302);            $httpReq->putHeader('Location: '.$rootUrl.$defaultPage);            return;        }        $extension = '';        $nodepath = explode('/', $reqpath);        $filename = array_pop($nodepath);        if($filename == '') {            $filename = array_pop($nodepath);        }        $filepart = explode('.', $filename);        if(sizeof($filepart) > 1) {            // remove file extension            $extension = $filepart[sizeof($filepart)-1];            $nodepath[] = substr($filename, 0, -(strlen($extension)+1));        } else {            $nodepath[] = $filename;        }        // Determines if authentication is required        $userPwd = $server->apiroot->api->network->getattr('userPassword');        $adminPwd = $server->apiroot->api->network->getattr('adminPassword');        $requiresAdmin = false;        $requiresAuth = false;        if(sizeof($nodepath) > 1 || array_search($reqpath, $server->safeFiles) === false) {            if($userPwd != '') {                $requiresAuth = true;            }        }        if($adminPwd) {            if($httpReq->getMethod() != 'GET' || array_search($filename, $server->sensitiveFiles) !== false) {                $requiresAuth = true;                $requiresAdmin = true;            } else if($nodepath[0] != 'iframe') {                $allArgs = $httpReq->getAllArgs();                foreach($allArgs as $key => $value) {                    if(array_search($key, $server->safeParams) !== false) continue;                    if($key == 'a' && ($value == 'list' || $value == 'dir')) continue;                    if($key == 'f' && isset($allArgs['a']) && $allArgs['a'] == 'dir') continue;                    $requiresAuth = true;                    $requiresAdmin = true;                    break;                }                if($filename == 'not.byn' && $httpReq->getAuthUser()) {                    // make sure to touch session frequently (keep-alive)                    $requiresAuth = true;                }            }        }        if($requiresAuth) {            if(!$server->digestAuthenticate($httpReq)) {                die('Unauthorized user');            }            if($userPwd != '' && $adminPwd == '') {                // when only a user password is set, accept only 'user'                if($httpReq->getAuthUser() == 'admin') {                    die('Unauthorized user');                }            } else if($adminPwd != '') {                // if an admin password is set, make sure only 'admin' is logged in when required                if ($requiresAdmin) {                    if ($httpReq->getAuthUser() != 'admin') {                        $httpReq->requestAuthentication($server->apiroot->cloudConf->authRealm, 'Admin rights required');                        die('Admin rights required');                    }                }            }        }        if(!$adminPwd) {            // when no admin password is required, grant admin rights to logged user            $httpReq->setAuthUser('admin');        }        // Distinguish between API requests and simple file requests        if($nodepath[0] == 'api' ||            ($nodepath[0] == 'bySerial' && (sizeof($nodepath) < 3 || $nodepath[2] == 'api'))) {            $server->processAPI($httpReq, $nodepath, $extension);            return;        }        $logLevel = ($filename == 'not.byn' || $filename == 'flash.json' ? 5 : 4);        VHubServer::Log($httpReq, LOG_CLIENTREQ, $logLevel, "Sending file ".json_encode($nodepath)." ".$extension);        // Handle local file requests        if(sizeof($nodepath) == 1) {            switch($filename) {                case 'logs.txt':            // logs.txt?pos=...                    $pos = ($httpReq->getArg('pos') ?: '0');                    // Note: that serialNumber has not been reloaded from the config file,                    //       so it might not be the real one. But it is anyway the one against                    //       which the serveLogs function will compare, so that does not matter :-)                    $server->serveLogs($httpReq, $server->apiroot->cloudConf->serialNumber, intVal($pos));                    return;                case 'upload.html':         // upload.html?...                    $server->handleUpload($httpReq, '');                    return;                case 'not.byn':             // not.byn?len=...&abs=...                    $server->serveNotifications($httpReq);                    return;                case 'flash.json':          // flash.json?a=list - ignore for now                    $httpReq->putStr('{"total":0, "list":[]}');                    return;                case 'getInstaller.json':   // getInstaller.json?forVersion=...                    $server->serveInstaller($httpReq);                    return;                case 'testcb.txt':          // testcb.txt[?w=10]                    // FIXME: emulate callbacks to third party services ?                    return;                case 'cbdata.txt':          // cbdata.txt?n=                    return;                case 'info.json':           // info.json                    $server->serveInfo($httpReq);                    return;                case 'stats.json':                    $server->serveStats($httpReq);                    return;                case 'configure.json':                    $server->serveConf($httpReq);                    return;                case 'edithtml.js':         // edit.thml, generated file                    global $ApiAttrEdit;                    $server->files->sendFileContent($httpReq, $ApiAttrEdit, 'js');                    return;                case 'files.json':          // files.json?a=(dir|stat|del/format)&f=...                    $action = ($httpReq->getArg('a') ?: 'dir');                    $fname = ($httpReq->getArg('f') ?: '*');                    $server->files->filesCmd($httpReq, $action, $fname);                    $server->saveState($httpReq);                    return;                case 'Yv4wI.js':                    $server->serveYV4webInstaller($httpReq);                    return;                case 'clientRequests.bin':                    $server->serveClientRequests($httpReq);                    return;                case 'debugTraces.bin':                    $server->serveDebug($httpReq);                    return;                default:                    $server->files->sendFile($httpReq, $reqpath, $extension);                    return;            }        }        if(sizeof($nodepath) >= 3 && $nodepath[0] == 'bySerial') {            // Send special file or cached file from subdevice if available            switch($filename) {                case 'logger.json':         // logger.json[?id=...&utc=...]                case 'dataLogger.json':     // dataLogger.json[?id=...&utc=...]                    $fid = ($httpReq->getArg('id') ?: '');                    $run = ($httpReq->getArg('run') ?: '');                    $utc = ($httpReq->getArg('utc') ?: '');                    $fromUtc = ($httpReq->getArg('from') ?: '');                    $toUtc = ($httpReq->getArg('to') ?: '');                    $server->serveLogger($httpReq, $nodepath[1], $fid, $run, $utc, $fromUtc, $toUtc, ($filename != 'logger.json'));                    return;                case 'logs.txt':            // logs.txt?pos=...                    $pos = ($httpReq->getArg('pos') ?: '0');                    $server->serveLogs($httpReq, $nodepath[1], intVal($pos));                    return;                case 'upload.html':         // upload.html?...                    $server->handleUpload($httpReq, $nodepath[1]);                    return;                case 'files.json':          // files.json?a=(dir|stat|del/format)&f=...                    $action = ($httpReq->getArg('a') ?: 'dir');                    $fname = ($httpReq->getArg('f') ?: '*');                    $server->files->deviceFilesCmd($httpReq, $nodepath[1], $action, $fname);                    $server->saveState($httpReq);                    return;                case 'edithtml.js':         // edit.thml is the same for all devices (our own generated file)                    global $ApiAttrEdit;                    $server->files->sendFileContent($httpReq, $ApiAttrEdit, 'js');                    return;            }            $server->files->sendDeviceFile($httpReq, $nodepath[1], implode('/', array_slice($nodepath, 2)).'.'.$extension, $extension);            return;        }        $server->files->sendFile($httpReq, $reqpath, $extension);    }    public function __construct(VHubServerHTTPRequest $httpReq, string $datadir)    {        $this->datadir = $datadir.'/';        $this->apiroot = new APIRootNode($httpReq, $this, '');        $this->files = new FileServer($this);        $this->fdcache = [];    }    public function getDataDir(): string    {        return $this->datadir;    }    public function fexists(string $relativePath): bool    {        return file_exists($this->datadir.$relativePath);    }    public function filesize(string $relativePath): int    {        return filesize($this->datadir.$relativePath);    }    protected function fopen_cached(VHubServerHTTPRequest $httpReq, string $relativePath): mixed    {        if(str_ends_with($relativePath, '.tar')) {            if (!isset($this->fdcache[$relativePath])) {                $fp = fopen($this->datadir . $relativePath, "r+b");                VHubServer::Log($httpReq, LOG_VHUBSERVER, 5, "fopen({$relativePath}): fp={$fp}");                $this->fdcache[$relativePath] = $fp;            } else {                $fp = $this->fdcache[$relativePath];                fseek($fp, 0, SEEK_SET);            }        } else {            $fp = fopen($this->datadir . $relativePath, "r+b");            VHubServer::Log($httpReq, LOG_VHUBSERVER, 5, "fopen({$relativePath}): fp={$fp}");        }        return $fp;    }    public function fopen_ro(VHubServerHTTPRequest $httpReq, string $relativePath): mixed    {        $fp = $this->fopen_cached($httpReq, $relativePath);        if (!flock($fp, LOCK_SH)) { // acquire a shared lock for reading            VHubServer::Log($httpReq, LOG_VHUBSERVER, 2, "Could not get shared lock to read {$relativePath}");        }        return $fp;    }    public function fopen_rw(VHubServerHTTPRequest $httpReq, string $relativePath): mixed    {        $fp = $this->fopen_cached($httpReq, $relativePath);        if (!flock($fp, LOCK_EX)) { // acquire an exclusive lock for writing            VHubServer::Log($httpReq, LOG_VHUBSERVER, 2, "Could not get exclusive lock to write {$relativePath}");        }        return $fp;    }    public function frewrite(VHubServerHTTPRequest $httpReq, string $relativePath): mixed    {        if (isset($this->fdcache[$relativePath]) || file_exists($this->datadir . $relativePath)) {            $fp = $this->fopen_cached($httpReq, $relativePath);        } else {            $fp = fopen($this->datadir . $relativePath, "wb");        }        if (!flock($fp, LOCK_EX)) { // acquire an exclusive lock            VHubServer::Log($httpReq, LOG_VHUBSERVER, 2, "Fail to get exclusive lock to rewrite file {$relativePath}");        }        ftruncate($fp, 0);      // truncate file (needed despite fopen(w) because of flock)        return $fp;    }    public function fclose(VHubServerHTTPRequest $httpReq, mixed $fp, string $relativePath): void    {        fflush($fp);                    // flush output before releasing the lock        flock($fp, LOCK_UN);   // release the lock        // Keep descriptor open for optimizations if path is found in cache        if(!isset($this->fdcache[$relativePath])) {            VHubServer::Log($httpReq, LOG_VHUBSERVER, 5, "fclose({$relativePath}): fp={$fp}");            fclose($fp);        }    }    public function fappend(VHubServerHTTPRequest $httpReq, string $relativePath, $text): void    {        file_put_contents($this->datadir.$relativePath, $text, FILE_APPEND | LOCK_EX);    }    public function loadFile(VHubServerHTTPRequest $httpReq, string $relativePath, bool $getExclusiveLock = false, &$filedesc = null): string    {        if($getExclusiveLock) {            if(!$this->fexists($relativePath)) {                $filedesc = null;                return '{}';            }            $fp = $this->fopen_rw($httpReq, $relativePath);            $contents = stream_get_contents($fp);            fseek($fp, 0, SEEK_SET);            $filedesc = $fp;        } else {            $fp = $this->fopen_ro($httpReq, $relativePath);            $contents = stream_get_contents($fp);            $this->fclose($httpReq, $fp, $relativePath);        }        return $contents;    }    public function saveFile(VHubServerHTTPRequest $httpReq, string $relativePath, string $content, $fp = null): void    {        if(!$fp) {            $fp = $this->frewrite($httpReq, $relativePath);        } else {            fseek($fp, 0, SEEK_SET);            ftruncate($fp, 0);        }        fwrite($fp, $content);        $this->fclose($httpReq, $fp, $relativePath);    }    public function loadState(VHubServerHTTPRequest $httpReq): void    {        // load VirtualHub4web API state        if(file_exists($this->datadir.STATE_FILE)) {            // Load current state            $apiobj = json_decode($this->loadFile($httpReq, STATE_FILE), false, 99, JSON_THROW_ON_ERROR);            $this->apiroot->loadState($httpReq, $apiobj, false);            $this->apiroot->loadOwnServices($httpReq);        } else {            // Create initial state            VHubServer::Log($httpReq, LOG_VHUBSERVER, 3, "Config file does not yet exist, creating one");            $this->apiroot->loadOwnServices($httpReq);            $cloudapiobj = $this->apiroot->saveState();            $this->saveFile($httpReq, STATE_FILE, json_encode($cloudapiobj, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));        }        // load client hubs API state        foreach (glob($this->datadir.'????????-?*.tar') as $tarname) {            if(!preg_match('~/([A-Z0-9]+-[0-9a-fA-F]+).tar$~', $tarname, $matches)) {                continue;            }            $serial = $matches[1];            $apijson = $this->files->loadDeviceFile($httpReq, $serial, 'api.json');            if(is_null($apijson)) {                continue;            }            try {                $apiobj = json_decode($apijson, false, 99, JSON_THROW_ON_ERROR);            } catch(Throwable $err) {                VHubServer::Log($httpReq, LOG_VHUBSERVER, 2, "Error parsing client api file for {$serial}: ".$err->getMessage());                continue;            }            $apinode = new APIDeviceNode($httpReq, $this, $serial);            $this->apiroot->bySerial->addSubnode($serial, $apinode);            $apinode->loadState($httpReq, $apiobj, false);            if(sizeof($apiobj->services->whitePages) > 0 && isset($apiobj->VirtualHub4web)) {                $hubSerial = $apiobj->VirtualHub4web->parentHub;                $this->apiroot->loadServices($httpReq, $hubSerial, $apiobj->services, false);                // Load statistics for root nodes                if($serial == $hubSerial) {                    $apinode->initStats($httpReq);                    $statsjson = $this->files->loadDeviceFile($httpReq, $serial, 'stats.json');                    if(is_null($statsjson)) {                        continue;                    }                    try {                        $statsobj = json_decode($statsjson, false, 99, JSON_THROW_ON_ERROR);                    } catch(Throwable $err) {                        VHubServer::Log($httpReq, LOG_VHUBSERVER, 2, "Error parsing client stats file for {$serial}: ".$err->getMessage());                        continue;                    }                    $devStats = $apinode->getDeviceStats();                    $devStats->loadState($httpReq, $statsobj);                }            }        }        $this->apiroot->api->services->sortServices($httpReq);    }    public function updateCloudState(VHubServerHTTPRequest $httpReq): void    {        $stateChanges = $this->apiroot->getStateChanges($httpReq);        if(sizeof($stateChanges) > 0) {            // Reload state file while keeping an exclusive lock to update it            $cloudapiobj = json_decode($this->loadFile($httpReq, STATE_FILE, true, $fp), true, 99, JSON_THROW_ON_ERROR);            // Selectively update changed values            foreach($stateChanges as $key => $value) {                if (!str_ends_with($key, 'Password')) {                    // don't log password changes, to avoid security problems                    VHubServer::Log($httpReq, LOG_VHUBSERVER, 4, "Attribute change: $key = $value");                }                if ($key != 'persistentSettings') {                    $cloudapiobj['VirtualHub4web']['valuesCache'][$key] = $value;                }            }            // Handle persistentSettings change            if(isset($stateChanges['persistentSettings'])) {                switch($stateChanges['persistentSettings']) {                    case 0: // revert from last saved settings                        foreach ($cloudapiobj['VirtualHub4web']['savedSettings'] as $key => $savedValue) {                            $cloudapiobj['VirtualHub4web']['valuesCache'][$key] = $savedValue;                        }                        $cloudapiobj['VirtualHub4web']['valuesCache']['persistentSettings'] = 0;                        break;                    case 1: // save settings to persistent storage                        foreach ($this->apiroot->cloudConf->savedSettings as $key => $prevValue) {                            if(isset($cloudapiobj['VirtualHub4web']['valuesCache'][$key])) {                                $cloudapiobj['VirtualHub4web']['savedSettings'][$key] = $cloudapiobj['VirtualHub4web']['valuesCache'][$key];                            }                        }                        $cloudapiobj['VirtualHub4web']['valuesCache']['persistentSettings'] = 1;                        break;                }            } else {                foreach ($cloudapiobj['VirtualHub4web']['savedSettings'] as $key => $savedValue) {                    if($cloudapiobj['VirtualHub4web']['valuesCache'][$key] != $savedValue) {                        $cloudapiobj['VirtualHub4web']['valuesCache']['persistentSettings'] = 2;                        break;                    }                }            }            // Save file and release lock            $apitxt = json_encode($cloudapiobj, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);            $this->saveFile($httpReq, STATE_FILE, $apitxt, $fp);            // Reload updated state            $apiobj = json_decode($apitxt, false, 99, JSON_THROW_ON_ERROR);            $this->apiroot->loadState($httpReq, $apiobj, false);        }    }    public function saveState(VHubServerHTTPRequest $httpReq): void    {        $this->updateCloudState($httpReq);        foreach($this->apiroot->bySerial->subnodeNames() as $serial) {            $subnode = $this->apiroot->bySerial->subnode($serial);            if($subnode->hasChanged()) {                // Note: this code will change the state file so that next answers to client API                // stay coherent, but the propagation to the device itself is handled separately                // by the temporary "-changes.txt" file associated to the device hub                VHubServer::Log($httpReq, LOG_VHUBSERVER, 4, "Updating api.json for {$serial} after change");                $apiobj = $subnode->saveState();                $this->files->saveDeviceFile($httpReq, $serial, 'api.json', json_encode($apiobj, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES));            }        }    }    public function prepareToNotify(VHubServerHTTPRequest $httpReq): void    {        $this->notif = NotifStream::StreamAt($httpReq, $this, -1);        $this->notif->openForAppend($httpReq);    }    public function closeNotificationStream(VHubServerHTTPRequest $httpReq): void    {        $this->notif->close($httpReq);    }    public function _escapeAttr(string $attrval): string    {        $safecodes = [ '%21', '%23', '%24', '%27', '%28', '%29', '%2A', '%2C', '%2F', '%3A', '%3B', '%40', '%3F', '%5B', '%5D' ];        $safechars = [ '!', "#", "$", "'", "(", ")", '*', ",", "/", ":", ";", "@", "?", "[", "]" ];        return str_replace($safecodes, $safechars, urlencode(iconv("UTF-8", "ISO-8859-1", $attrval)));    }    public function digestAuthenticate(VHubServerHTTPRequest $httpReq): bool    {        $realm = $this->apiroot->cloudConf->authRealm;        $user = $httpReq->getAuthUser();        if(!$user) {            $httpReq->requestAuthentication($realm, 'Authentication required');            return false;        }        if($user != 'user' && $user != 'admin') {            $httpReq->requestAuthentication($realm, "Unknown user {$user}");            return false;        }        // check password        $pwd = $this->apiroot->api->network->getattr($user.'Password');        $pwdCheck = $httpReq->checkPassword($pwd);        if($pwdCheck != 'OK') {            VHubServer::Log($httpReq, LOG_VHUBSERVER, 4, "Authentication failure for user {$user} from IP ".$httpReq->getClientIP());            $httpReq->requestAuthentication($realm, "Invalid credentials for user {$user}");            return false;        }        // login successful        return true;    }    public function scheduleUploadOnDevice(VHubServerHTTPRequest $httpReq, string $targetSerial, string $str_path, string $bin_content): void    {        $body = "Content-Disposition: form-data; name=\"$str_path\"; filename=\"api\"\r\n" .            "Content-Type: application/octet-stream\r\n" .            "Content-Transfer-Encoding: binary\r\n\r\n" . $bin_content;        do {            $boundary = sprintf("Zz%06xzZ", mt_rand(0, 0xffffff));        } while (str_contains($body, $boundary));        $mimebody = "--{$boundary}\r\n{$body}\r\n--{$boundary}--\r\n";        $this->scheduleQueryOnDevice($httpReq, $targetSerial, 'POST', '/upload.html', $mimebody);    }    public function scheduleQueryOnDevice(VHubServerHTTPRequest $httpReq, string $targetSerial, string $reqType, string $url, string $body = ''): void    {        VHubServer::Log($httpReq, LOG_VHUBSERVER, 2, "Request for {$targetSerial}: {$reqType} {$url}");        $deviceNode = $this->apiroot->bySerial->subnode($targetSerial);        $rootHub = $deviceNode->cloudConf->parentHub;        if($rootHub == '') {            VHubServer::Log($httpReq, LOG_VHUBSERVER, 3, "Cannot apply change to {$targetSerial}, unknown parent hub");            return;        }        if($targetSerial != $rootHub) {            $url = '/bySerial/'.$targetSerial.$url;        }        $fullreq = date('Y-m-d_H:i:s ',time()).$reqType.' '.$url."\n";        if($body != '') {            $fullreq .= base64_encode($body)."\n";        }        $this->fappend($httpReq, $rootHub.'-pending.req', $fullreq);    }    public function sendCallbackApiCommand(VHubServerHTTPRequest $httpReq, string $command, ?string $extradata = null): void    {        VHubServer::Log($httpReq, LOG_HTTPCALLBACK, 5, "@YoctoAPI:".$command);        $httpReq->putStr("\n@YoctoAPI:{$command}\n");        if(!is_null($extradata)) {            $httpReq->putBin($extradata."\n");        }    }    public function executePendingQueries(VHubServerHTTPRequest $httpReq, string $rootHub): bool    {        // check if there are pending queries for the specified root hub        $pendingfile = $this->datadir.$rootHub.'-pending.req';        if(!file_exists($pendingfile)) {            return false;        }        // load and unlink (atomically) pending reqiests        $runningfile = str_replace('pending', 'running', $pendingfile);        rename($pendingfile, $runningfile);        $requests = preg_split('/\r\n|\r|\n/', file_get_contents($runningfile));        unlink($runningfile);        // prepare to keep trace of executed commands        $history = $this->files->loadDeviceFile($httpReq, $rootHub, 'lastQueries.req');        if(is_null($history)) {            $history = '';        }        $prefix = date('Y-m-d_H:i:s ',time()).'RUN ';        for($i = 0; $i < sizeof($requests); $i++) {            $req = explode(' ', $requests[$i]);            if(sizeof($req) < 3) {                continue;            }            $reqUrl = trim($req[2]);            if($req[1] == 'GET') {                VHubServer::Log($httpReq, LOG_HTTPCALLBACK, 4, "Execute GET ".json_encode($reqUrl));                $this->sendCallbackApiCommand($httpReq, 'GET '.$reqUrl);                $history .= $prefix.$requests[$i]."\n";            } else if($req[1] == 'POST') {                if($i+1 >= sizeof($requests)) {                    VHubServer::Log($httpReq, LOG_HTTPCALLBACK, 2, "Cannot execute POST request on {$reqUrl}, missing body");                    break;                }                $str_body = base64_decode($requests[++$i]);                $boundary = '???';                $endb = strpos($str_body, "\r");                if (str_starts_with($str_body, '--') && $endb > 2 && $endb < 20) {                    $boundary = substr($str_body, 2, $endb - 2);                }                $this->sendCallbackApiCommand($httpReq, 'POST '.$reqUrl.' '.strlen($str_body).':'.$boundary, $str_body);                $history .= $prefix.$requests[$i-1]."\n";            }        }        // save a trace of executed requests in yoctohub command history        $newlen = strlen($history);        if($newlen > LASTQUERIES_MAX_SIZE) {            $newstart = strpos($history, "\n", $newlen - LASTQUERIES_MAX_SIZE);            if($newstart === FALSE) {                $history = '';            } else {                $history = substr($history, $newstart+1);            }        }        $this->files->saveDeviceFile($httpReq, $rootHub, 'lastQueries.req', $history);        // requests have been executed, force next callback immediately to update API values        $this->sendCallbackApiCommand($httpReq, '%');        return true;    }    public function tryDownload(VHubServerHTTPRequest $httpReq, string $serial, string $fname, bool $requestAgain): ?string    {        VHubServer::Log($httpReq, LOG_VHUBSERVER, 5, "Try to load {$fname} from {$serial}");        $module = YModule::FindModule($serial.'.module');        try {            $fcontent = $module->_download($fname);            if(str_starts_with($fcontent, '64#')) {                $fcontent = substr($fcontent,3);                $fcontent = base64_decode($fcontent);            }            if($requestAgain) {                // request file for the next time anyway                $apinode = $this->apiroot->bySerial->subnode($serial);                $rootHub = $apinode->cloudConf->parentHub;                $rootUrl = ($rootHub != $serial ? '/bySerial/'.$serial : '');                $this->sendCallbackApiCommand($httpReq, "+{$rootUrl}/{$fname}");            }            return $fcontent;        } catch(Throwable $exception) {            // Most probably caused by the file content not being posted in the HTTP callback data            $serial = $module->get_serialNumber();            VHubServer::Log($httpReq, LOG_HTTPCALLBACK, 5, "Cannot load {$fname} from {$serial}: ".$exception->getMessage());        }        return null;    }    public function discoverDevices(VHubServerHTTPRequest $httpReq, &$nReset, &$willReconnect): int    {        // First create a list of modules with yoctohubs at the bottoms, and the virtualhubs at the very end        $clientIP = $httpReq->getClientIP();        $modules = [];        $virthubs = [];        $nReset = 0;        $module = YModule::FirstModule();        while($module) {            $apibin = $module->_download('api.json');            $apistr = iconv("ISO-8859-1", "UTF-8", $apibin);            $apiobj = new stdClass();            $apiobj->api = json_decode($apistr, false, 99, JSON_THROW_ON_ERROR);            $toadd = ['module' => $module, 'apiobj' => $apiobj];            if(isset($apiobj->api->services)) {                $prodId = $apiobj->api->module->productId;                if($prodId == 0xc10d) {                    // add any other virtualhub-4web very very last, even after virtualhubs                    $virthubs[] = $toadd;                } else if($prodId == 0) {                    // add virtualhub in a separate list                    array_unshift($virthubs, $toadd);                } else {                    // add yoctohubs at the end                    $modules[] = $toadd;                }            } else {                // add other module at the start                array_unshift($modules, $toadd);            }            $module = $module->nextModule();        }        foreach($virthubs as $toadd) {            $modules[] = $toadd;        }        // Then process the list in this order        for($mi = 0; $mi < sizeof($modules); $mi++) {            $module = $modules[$mi]['module'];            $apiobj = $modules[$mi]['apiobj'];            $serial = $module->get_serialNumber();            if($this->apiroot->bySerial->hasSubnode($serial)) {                $apinode = $this->apiroot->bySerial->subnode($serial);                $lastSeen = $apinode->api->module->getattr('lastSeen');                $prevUptime = $apinode->api->module->getattr('upTime');                $apinode->loadState($httpReq, $apiobj, true);                // detect device resets                $newUptime = $apinode->api->module->getattr('upTime');                $deltaUptime = ($newUptime - $prevUptime) & 0xffffffff; // take care of uptime wrap                if($deltaUptime >= 0x8000000) { // negative difference                    $deltaUptime = $newUptime;                }                $deltaUptimeSec = intdiv($deltaUptime, 1000);                // Ensure that uptime difference matches expectations with 2 % margin + 10 sec                $wasReset = abs($deltaUptimeSec - $lastSeen) > (0.02*$lastSeen + 10);                if($wasReset) {                    $apinode->cloudConf->deviceResetDetected();                    $nReset++;                }            } else {                $apinode = new APIDeviceNode($httpReq, $this, $serial);                $apinode->loadState($httpReq, $apiobj, true);                $this->apiroot->bySerial->addSubnode($serial, $apinode);            }            $apinode->cloudConf->lastSeen = time();            if($apinode->cloudConf->reconnect) {                VHubServer::Log($httpReq, LOG_HTTPCALLBACK, 3, "Fast reconnect requested for {$serial}");                $apinode->cloudConf->reconnect = 0;                $this->sendCallbackApiCommand($httpReq, '%');                $willReconnect = true;            }            $apinode->markAsChanged();            if(isset($apiobj->api->services) && substr($serial, 0, 7) != 'YHUBSHL') {                $devYdxExists = $this->apiroot->loadServices($httpReq, $serial, $apiobj->api->services, false);                if (!$devYdxExists) {                    // Reload state file while keeping an exclusive lock to update it                    $cloudapiobj = json_decode($this->loadFile($httpReq, STATE_FILE, true, $fp), false, 99, JSON_THROW_ON_ERROR);                    $this->apiroot->loadState($httpReq, $cloudapiobj, false);                    $this->apiroot->loadServices($httpReq, $serial, $apiobj->api->services, true);                    $cloudapiobj = $this->apiroot->saveState();                    $this->saveFile($httpReq, STATE_FILE, json_encode($cloudapiobj, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES), $fp);                }                // store link to parent hub and services in subdevice                $wpdef = $apiobj->api->services->whitePages;                foreach ($wpdef as $wpentry) {                    $subserial = $wpentry->serialNumber;                    if(!$this->apiroot->bySerial->hasSubnode($subserial)) {                        // device is supposed to have been loaded first                        VHubServer::Log($httpReq, LOG_HTTPCALLBACK, 4, "Dropping services for unknown serial {$subserial}; possibly a subdevice of a hub connected via USB?");                        continue;                    }                    $apisubnode = $this->apiroot->bySerial->subnode($subserial);                    if($apisubnode->cloudConf->parentHub != $serial || $apisubnode->cloudConf->parentIP != $clientIP) {                        $apisubnode->cloudConf->parentHub = $serial;                        $apisubnode->cloudConf->parentIP = $clientIP;                        $apisubnode->markAsChanged();                    }                    $subservices = $this->apiroot->saveServicesForSerial($subserial);                    $apisubnode->services->loadState($httpReq, $subservices, true);                }            }        }        return sizeof($modules);    }    public function transferDeviceFiles(VHubServerHTTPRequest $httpReq): void    {        $module = YModule::FirstModule();        while($module) {            $serial = $module->get_serialNumber();            $apinode = $this->apiroot->bySerial->subnode($serial);            $knownFirmware = $apinode->cloudConf->yfsVer;            $currentfirmware = $apinode->api->module->getattr('firmwareRelease');            // Download built-in files if needed            $yfsFiles = [];            if(!$this->files->isKnownDeviceFile($httpReq, $serial, 'yfs/icon2d.png')) {                $yfsFiles[] = 'icon2d.png';            }            if (!str_starts_with($serial, 'Y3DMK001')) { // Yocto-3D has no built-in UI                if ($knownFirmware != $currentfirmware ||                       (!$this->files->isKnownDeviceFile($httpReq, $serial, 'yfs/details.html') &&                        !$this->files->isKnownDeviceFile($httpReq, $serial, 'yfs/details.html.gz'))) {                    // Must download UI files                    if ((str_contains($currentfirmware, ':') || intVal($currentfirmware) >= 51000) &&                        !str_starts_with($serial, 'YHUB') &&                        !str_starts_with($serial, 'VIRTHUB') &&                        !str_starts_with($serial, 'VHUB4WEB')) {                        // Download _FS all at once                        try {                            $fscontent = $module->_download('_FS');                            if (str_starts_with($fscontent, '64#')) {                                $fscontent = substr($fscontent, 3);                                $fscontent = base64_decode($fscontent);                            }                            $this->files->saveAllDeviceFiles($httpReq, $serial, $fscontent);                            $apinode->cloudConf->yfsVer = $currentfirmware;                            $apinode->markAsChanged();                            VHubServer::Log($httpReq, LOG_FILESYNC, 3, "Downloaded all UI files for {$serial}");                        } catch (Throwable $exception) {                            $msg = $exception->getMessage();                            if (str_contains($msg, 'Network error')) {                                VHubServer::Log($httpReq, LOG_FILESYNC, 2, "Failed to open _FS file for {$serial}: " . $msg);                            }                        }                    } else {                        // Older firmware, try to download individual files                        $yfsFiles[] = 'details.html';                        $yfsFiles[] = 'configure.html';                    }                }            }            foreach ($yfsFiles as $fname) {                $fcontent = $this->tryDownload($httpReq, $serial, $fname, false);                if (!is_null($fcontent)) {                    if (strlen($fcontent) > 4 && ord($fcontent[0]) == 0x1f && ord($fcontent[1]) == 0x8b) {                        $fname .= '.gz';                    }                    $this->files->saveDeviceFile($httpReq, $serial, 'yfs/' . $fname, $fcontent);                    if(str_starts_with($fname, 'details.html')) {                        $apinode->cloudConf->yfsVer = $currentfirmware;                        $apinode->markAsChanged();                        VHubServer::Log($httpReq, LOG_FILESYNC, 3, "Downloaded individual UI files for {$serial}");                    }                }            }            // Check latest logs as well            $rootHub = $apinode->cloudConf->parentHub;            $rootUrl = ($rootHub != $serial ? '/bySerial/'.$serial : '');            try {                $logUrl = 'logs.txt';                if($apinode->cloudConf->logPos != 0) {                    $logUrl .= '?pos='.$apinode->cloudConf->logPos;                }                $logs = $module->_download($logUrl);                $endPos = strrpos($logs, "\n@");                if($endPos > 0) {                    $newLogPos = intVal(substr($logs, $endPos+2));                    $logs = date("[Y-m-d H:i:s]\n", time()).substr($logs, 0, $endPos);                    $prevLogs = $this->files->loadDeviceFile($httpReq, $serial, 'logs.txt');                    if(!is_null($prevLogs)) {                        $prevLogs = preg_replace('~ *$~', '', $prevLogs);                        $logs = $prevLogs.$logs;                    }                    $logsLen = strlen($logs);                    if($logsLen > DEVICELOGS_MAX_SIZE) {                        $logs = substr($logs, -DEVICELOGS_MAX_SIZE);                    } else if($logsLen < DEVICELOGS_MAX_SIZE) {                        $logs .= str_repeat(' ', DEVICELOGS_MAX_SIZE - $logsLen);                    }                    $this->files->saveDeviceFile($httpReq, $serial, 'logs.txt', $logs);                    $apinode->cloudConf->logPos = $newLogPos;                    $this->notif->appendConfigChangeNotification($httpReq, $serial);                    $apinode->markAsChanged();                    // request new logs.txt for the next time                    $logUrl = 'logs.txt?pos='.$apinode->cloudConf->logPos;                    $this->sendCallbackApiCommand($httpReq, "+{$rootUrl}/{$logUrl}");                } else {                    // no new log, request logs.txt next time nevertheless                    $this->sendCallbackApiCommand($httpReq, "+{$rootUrl}/{$logUrl}");                }            } catch(Throwable $exception) {                $msg = $exception->getMessage();                if(!str_contains($msg, 'Network error')) {                    VHubServer::Log($httpReq, LOG_HTTPCALLBACK, 2, "Failed to open logs.txt for {$serial}: ".$msg);                }                $httpReq->putStr('logs.txt not available: '.$exception->getMessage()."\r\n");            }            // Download extra files for specific modules/functions            if($apinode->api->hasSubnode('display')) {                $fname = 'display.gif';                $fcontent = $this->tryDownload($httpReq, $serial, $fname, true);                if(!is_null($fcontent)) {                    $this->files->saveDeviceFile($httpReq, $serial, $fname, $fcontent);                }            }            if($apinode->api->hasSubnode('files')) {                $fname = 'files.json';                $fcontent = $this->tryDownload($httpReq, $serial, $fname, true);                if(!is_null($fcontent)) {                    try {                        // process file records                        $filesRecs = json_decode($fcontent, false, 99, JSON_THROW_ON_ERROR);                        if($apinode->fileList->compareToDevice($httpReq, $filesRecs)) {                            $apinode->markAsChanged();                        }                    } catch(Throwable $exception) {                        VHubServer::Log($httpReq, LOG_VHUBSERVER, 2, "Failed to parse files.json for {$serial}: ".$exception->getMessage());                    }                }            }            $module = $module->nextModule();        }    }    public function processTimedReports(VHubServerHTTPRequest $httpReq, string $hubSerial): int    {        $hubModule = YModule::FindModule($hubSerial);        // Index white page records to decode devYdx        $hubAPI = json_decode($hubModule->_download('api.json'));        $serialByDevYdx = [];        foreach($hubAPI->services->whitePages as $wpRec) {            $serialByDevYdx[$wpRec->index] = $wpRec->serialNumber;        }        $apinode = $this->apiroot->bySerial->subnode($hubSerial);        $tRep = null;        try {            $tRepURL = 'tRep.bin';            if($apinode->cloudConf->tRepPos != 0) {                $tRepURL .= '?pos='.$apinode->cloudConf->tRepPos;            }            $tRep = $hubModule->_download($tRepURL);        } catch(Throwable $exception) {            $msg = $exception->getMessage();            if(!str_contains($msg, 'Network error')) {                VHubServer::Log($httpReq, LOG_HTTPCALLBACK, 2, "Failed to open tRep.bin file for {$hubSerial}: ".$msg);            }            $httpReq->putStr('tRep.bin not available: '.$exception->getMessage()."\r\n");        }        if(is_null($tRep)) {            VHubServer::Log($httpReq, LOG_HTTPCALLBACK, 4, "tRep not available for now");            return -1;        }        // process all available timed reports        $currDevYdx = -1;        $currDevReports = [];        $newTRepPos = 0;        $newReps = 0;        $endPos = strlen($tRep);        for($pos = 0; $pos+2 < $endPos; ) {            $devYdx = ord($tRep[$pos++]);            $head = ord($tRep[$pos++]);            $data0 = ord($tRep[$pos++]);            $funYdx = $head & 0xf;            $extraLen = $head >> 4;            if($currDevYdx != $devYdx || $funYdx == 15 || $pos + $extraLen > $endPos) {                // flush pending reports                if($currDevYdx >= 0) {                    if(isset($serialByDevYdx[$currDevYdx])) {                        $currDevSerial = $serialByDevYdx[$currDevYdx];                        $this->notif->handleTrueTimedReportNotification($httpReq, $currDevSerial, $currDevReports);                        $currDevReports = [];                    }                }            }            if($devYdx == 0xff && $head == 0xff) {                // end of file marker, parse end position                $newTRepPos = $data0 + 0x100 * ord($tRep[$pos]) + 0x10000 * ord($tRep[$pos+1]) + 0x1000000 * ord($tRep[$pos+2]);                break;            }            if($pos + $extraLen > $endPos) break;            if($currDevYdx != $devYdx) {                $currDevYdx = $devYdx;            }            $rawReport = [ $data0 ];            for($i = 0; $i < $extraLen; $i++) {                $rawReport[] = ord($tRep[$pos+$i]);            }            $currDevReports[$funYdx] = $rawReport;            $pos += $extraLen;        }        if($newTRepPos) {            $newReps = ($newTRepPos - $apinode->cloudConf->tRepPos) & 0xffffffff;            $apinode->cloudConf->tRepPos = $newTRepPos;            $apinode->markAsChanged();            // request new logs.txt for the next time            $tRepURL = 'tRep.bin?pos='.$apinode->cloudConf->tRepPos;            $this->sendCallbackApiCommand($httpReq, "+/{$tRepURL}");        } else {            // missing events or no timed report, request tRep.bin next time nevertheless            $this->sendCallbackApiCommand($httpReq, "+/{$tRepURL}");        }        return $newReps;    }    public function emulateTimedReports(VHubServerHTTPRequest $httpReq): void    {        // default UTC timestamp taken from server, if no dataLogger is found        $timestamp = time();        $module = YModule::FirstModule();        while($module) {            $serial = $module->get_serialNumber();            $deviceNode = $this->apiroot->bySerial->subnode($serial);            $deviceApiNode = $deviceNode->api;            $values = [];            $fcount = $module->functionCount();            for($i = 0; $i < $fcount; $i++) {                if($module->functionBaseType($i) == 'Sensor') {                    // Sensor found, check if a timed report is available                    $functionId = $module->functionId($i);                    $functionNode = $deviceApiNode->subnode($functionId);                    $avgVal = $functionNode->getSensorValue();                    if(!is_nan($avgVal)) {                        $values[$functionId] = $avgVal;                    }                } else if($module->functionId($i) == 'dataLogger') {                    $functionNode = $deviceApiNode->subnode('dataLogger');                    $devTimestamp = $functionNode->get_timeUTC();                    if($devTimestamp > $timestamp+2*86400) {                        // device timestamp more than a day in the future, this should never happen                        VHubServer::Log($httpReq, LOG_HTTPCALLBACK, 2, "Timestamp of {$serial} is more than a 48h in the future (".$devTimestamp."), using server time");                    } else if($devTimestamp < $timestamp-2*86400) {                        // device timestamp more than a day in the past, this should never happen                        VHubServer::Log($httpReq, LOG_HTTPCALLBACK, 2, "Timestamp of {$serial} is more than a 48h in the past (".$devTimestamp."), using server time");                    } else {                        $timestamp = $devTimestamp;                    }                }            }            if(sizeof($values) > 0) {                $parentSerial = $deviceNode->cloudConf->parentHub;                $parentNode = $this->apiroot->bySerial->subnode($parentSerial);                $parentNet = $parentNode->api->subnode('network');                $period = min(intval($parentNet->getattr('callbackMinDelay')), 3600);                $freq = new DataFrequency($period);                $endTime = $freq->alignTimestamp($timestamp);                $startTime = $endTime - $period;                $reports = [];                foreach($values as $functionid => $avgVal) {                    $sensor = YSensor::FindSensor("{$serial}.{$functionId}");                    $unit = $sensor->get_unit();                    $measure = new YMeasure($startTime, $endTime, $avgVal, $avgVal, $avgVal);                    $reports[$functionId] = [ 'sensor' => $sensor, 'measure' => $measure, 'unit' => $unit, 'freq' => $freq];                }                $this->notif->appendEmulatedTimedReportNotification($httpReq, $serial, $reports);                $logger = new DataLogger($this, $serial);                $logger->appendMeasures($httpReq, $reports);            }            $module = $module->nextModule();        }    }    public function saveDeviceState(VHubServerHTTPRequest $httpReq): void    {        $module = YModule::FirstModule();        while($module) {            $serial = $module->get_serialNumber();            $apinode = $this->apiroot->bySerial->subnode($serial);            if($apinode->hasChanged()) {                $apiobj = $apinode->saveState();                $this->files->saveDeviceFile($httpReq, $serial, 'api.json', json_encode($apiobj, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES));            }            $module = $module->nextModule();        }    }    public function processAPI(VHubServerHTTPRequest $httpReq, array $nodepath, string $disptype): void    {        // Search for requested node        $ctx = $httpReq->getArg('ctx');        if($ctx) {            $ctxpath = explode('/', $ctx);        } else {            $ctxpath = [];        }        [ $apinode, $ctxnode, $subkey ] = $this->apiroot->search($nodepath, $ctxpath);        if(is_null($apinode)) {            $httpReq->putStatus(404);            $httpReq->putStr("Sorry, the requested node ".htmlspecialchars(implode('/',$nodepath))." does not exist [vhub4web]\r\n");            return;        }        if(!is_null($ctxnode)) {            if($ctxnode->fclass == 'Module' && $subkey == 'lastSeen' && !is_null($httpReq->getArg('lastSeen'))) {                // special request to force immediate reconnects after next HTTP Callback                $serial = $ctxnode->getattr('serialNumber');                $deviceNode = $this->apiroot->bySerial->subnode($serial);                $deviceNode->cloudConf->reconnect = 1;                $deviceNode->markAsChanged();                $this->saveState($httpReq);                $httpReq->putStr("%OK");                return;            }            // Apply changes to API nodes            foreach($httpReq->getAllArgs() as $setattr => $setval) {                $isAscii = !preg_match('~[\x7f-\xff]~', $setval);                $isUtf8 = $isAscii || preg_match('~^([\x00-\x7f]|[\xC2-\xC3][\x80-\xBF])+$~', $setval);                if(!$isUtf8) {                    $setval = iconv("ISO-8859-1", "UTF-8", $setval);                }                if(array_search($setattr, ['node','fw','checkRW','rnd','ctx','scr','abs','dir','hub','len','pos','_','serialNumber','w']) !== FALSE) {                    // not real attributes change, shortcut                    continue;                }                if($setattr == 'persistentSettings' && $setval == '2') {                    // pseudo-change to trigger an immediate config change callback on client                    // no need to propagate this change to the client                    $this->notif->appendConfigChangeNotification($httpReq, $ctxnode->getattr('serialNumber'));                } else if($setattr != 'command') {                    // - special attribute command is never stored in the api                    VHubServer::Log($httpReq, LOG_VHUBSERVER, 4, "API requests attribute change: {$setattr} = {$setval} on ".json_encode($nodepath));                    $ctxnode->setattr($httpReq, $setattr, $setval);                }                if($nodepath[0] == 'bySerial' && $ctxnode->fclass != 'DataLogger') {                    // for remote devices, record change to perform next time the device becomes available                    $relpath = array_merge(array_slice($nodepath, 2), $ctxpath, [ $setattr ]);                    $changereq = '/'.implode('/', $relpath).'?'.$setattr.'='.$this->_escapeAttr($setval);                    $this->scheduleQueryOnDevice($httpReq, $nodepath[1], 'GET', $changereq);                }            }            $this->saveState($httpReq);        }        if(!$httpReq->isShortReq()) {            if (is_null($subkey)) {                // Display node                $this->files->sendContentHeader($httpReq, $disptype);                switch ($disptype) {                    case 'json':                        $apinode->printJSON($httpReq);                        break;                    case 'jzon':                        $apinode->printJZON($httpReq);                        break;                    case '':                    case 'html':                        $devicedir = '';                        for ($i = sizeof($nodepath) - 1; $i > 0 && $nodepath[$i] != 'api'; $i--) {                            $devicedir .= '../';                        }                        for ($basedir = $devicedir; $i > 0; $i--) {                            $basedir .= '../';                        }                        $baseHRef = ($basedir != '' ? "<BASE href='{$basedir}'/>" : '');                        $action = $httpReq->getNode();                        $httpReq->putStr("<!DOCTYPE html>{$baseHRef}" .                            "<link href='edithtml.css' rel=stylesheet type='text/css'/>" .                            "<SCRIPT src='edithtml.js'></SCRIPT><SCRIPT src='js/edit.js'></SCRIPT>" .                            "<BODY onload='rescroll()'><form method='get' action='{$action}'>" .                            "<INPUT type='hidden' name='scr'><INPUT type='hidden' name='ctx'>");                        $apinode->printHTML($httpReq, $apinode->name);                        $httpReq->putStr('</FORM>');                        break;                    case 'txt':                        $apinode->printTXT($httpReq, $apinode->name);                        break;                    case 'xml':                        $httpReq->putStr('<' . '?xml version=\"1.0\"?' . ">\r\n");                        $apinode->printXML($httpReq, $apinode->name);                        break;                }            } else {                // Display value                switch ($disptype) {                    case 'json':                    case 'jzon':                        $apinode->printJSONValue($httpReq, $subkey);                        break;                    case 'txt':                        $apinode->printTXTValue($httpReq, $subkey);                        break;                    case '':                    case 'html':                        $apinode->printHTMLValue($httpReq, $subkey);                        break;                    case 'xml':                        $apinode->printXMLValue($httpReq, $subkey);                        break;                }            }        }    }    public function serveInstaller(VHubServerHTTPRequest $httpReq): void    {        $res = [];        // Test command, to avoid timeouts        $testTimeout = $httpReq->getArg('testTimeout');        if(!is_null($testTimeout)) {            try {                $fp = fsockopen('www.yoctopuce.com', 80, $errorCode, $errorMsg, floatVal($testTimeout));                if($fp === FALSE) {                    $res['error'] = "{$errorMsg} (error {$errorCode})";                } else {                    $res['success'] = 1;                    fclose($fp);                }            } catch(Throwable $ex) {                $res['error'] = $ex->getMessage();            }            $this->files->sendContentHeader($httpReq, 'json');            $httpReq->putStr(json_encode($res, JSON_UNESCAPED_SLASHES));            return;        }        // Real command to prepare to run the installer        $version = $httpReq->getArg('forVersion');        $getVersionStr = @file_get_contents(GET_LAST_VERSION_URL);        if(!$version) {            // forVersion flag is enforce requirements for admin rights            $res['error'] = 'version specifier is MANDATORY';        } else if(!$getVersionStr) {            $res['error'] = 'unable to retrieve version information from www.yoctopuce.com';        } else if(!class_exists('ZipArchive')) {            $res['error'] = 'PHP zip extension is not enabled';        } else {            $getVersion = json_decode($getVersionStr);            if(is_null($getVersion)) {                $res['error'] = 'unable to retrieve version information from www.yoctopuce.com';            } else if($version == 'latest') {                $url = $getVersion->link;            } else {                $url = str_replace('.'.$getVersion->version.'.', '.'.urlencode($version).'.', $getVersion->link);            }            $res['installerURL'] = $url;            $installer = @file_get_contents($url);            if(!$installer) {                $res['error'] = "unable to retrieve installer from www.yoctopuce.com ({$url})";            } else {                $baseDir = dirname(dirname($_SERVER['SCRIPT_FILENAME']));                $tempFile = tempnam($baseDir, 'vhw');                $zip = new ZipArchive;                if (!@file_put_contents($tempFile, $installer)) {                    $res['error'] = 'unable to write ZIP file';                } else if($zip->open($tempFile) !== TRUE) {                    $res['error'] = 'unable to open ZIP file';                    @unlink($tempFile);                } else {                    $installer = $zip->getFromName('vhub4web-installer.php');                    $zip->close();                    @unlink($tempFile);                    if(!$installer) {                        $res['error'] = 'unable to read from ZIP file';                    } else {                        $installerName = 'vhub4web-installer.'.bin2hex(random_bytes(6)).'.php';                        $installerFile = $baseDir.'/'.$installerName;                        if(!@file_put_contents($installerFile, $installer)) {                            $res['error'] = 'unable to write installer file';                        } else {                            $baseUrl = dirname(dirname(parse_url($httpReq->getRequestURL(), PHP_URL_PATH)));                            $res['location'] = $baseUrl.'/'.$installerName;                        }                    }                }            }        }        $this->files->sendContentHeader($httpReq, 'json');        $httpReq->putStr(json_encode($res, JSON_UNESCAPED_SLASHES));    }    public function serveInfo(VHubServerHTTPRequest $httpReq): void    {        $uri = preg_replace('~(/info.json|\?).*~', '', $httpReq->getRequestURL());        if(str_starts_with($uri, '/')) {            $uri = substr($uri, 1);        }        $protocol = $httpReq->getProtocol();        $userPwd = $this->apiroot->api->network->getattr('userPassword');        $adminPwd = $this->apiroot->api->network->getattr('adminPassword');        $info = [            "productName" => $this->apiroot->api->module->getattr('productName'),            "serialNumber" => $this->apiroot->api->module->getattr('serialNumber'),            "firmwareRelease" => $this->apiroot->api->module->getattr('firmwareRelease'),            "dir" => "$uri",            "userPassword" => ($userPwd == '' ? "FALSE" : "TRUE"),            "adminPassword" => ($adminPwd == '' ? "FALSE" : "TRUE"),            "port" => [ $protocol.':'.$this->apiroot->api->network->getattr('httpPort') ],            "protocol" => "HTTP/1.1",            "realm" =>  $this->apiroot->cloudConf->authRealm,            "nonce" => $httpReq->newNonce("servInfo")        ];        $this->files->sendContentHeader($httpReq, 'json');        $httpReq->putStr(json_encode($info, JSON_UNESCAPED_SLASHES));    }    public function serveStats(VHubServerHTTPRequest $httpReq): void    {        $stats = [];        foreach($this->apiroot->bySerial->subnodeNames() as $serial) {            $devnode = $this->apiroot->bySerial->subnode($serial);            $devstats = $devnode->getDeviceStats();            if(!is_null($devstats)) {                $stats[$serial] = $devstats->saveState();                $stats[$serial]['lastCallbackAge'] = $httpReq->getRequestTimestamp() - $stats[$serial]['prevTimestamp'];                $stats[$serial]['lastCallbackIP'] = $devnode->cloudConf->parentIP;                $hubname = '';                if($devnode->api->hasSubnode('network')) {                    $netnode = $devnode->api->subnode('network');                    $hubname = $netnode->getattr('logicalName');                    $stats[$serial]['callbackMaxDelay'] = $netnode->getattr('callbackMaxDelay');                }                $stats[$serial]['hubName'] = ($hubname != '' ? $hubname : $serial);            }        }        $this->files->sendContentHeader($httpReq, 'json');        $httpReq->putStr(json_encode($stats, JSON_UNESCAPED_SLASHES));    }    public function serveClientRequests(VHubServerHTTPRequest $httpReq): void    {        $rootHub = $httpReq->getArg('rootHub');        $clearPending = $httpReq->getArg('clearPending');        $res = '';        if($rootHub) {            // load past requests            $history = $this->files->loadDeviceFile($httpReq, $rootHub, 'lastQueries.req');            if(!is_null($history)) {                $res .= $history;            }            // add get pending requests            $pendingfile = $this->datadir.$rootHub.'-pending.req';            if(file_exists($pendingfile)) {                if($clearPending) {                    unlink($pendingfile);                } else {                    $pending = file_get_contents($pendingfile);                    if(!is_null($pending)) {                        $res .= $pending;                    }                }            }        }        $this->files->sendContentHeader($httpReq, 'dbg');        $httpReq->putStr($res);    }    public function serveDebug(VHubServerHTTPRequest $httpReq): void    {        $rootHub = $httpReq->getArg('rootHub');        $this->files->sendContentHeader($httpReq, 'dbg');        if(!$rootHub) {            // dump server files            $httpReq->putStr("**********[ Server files ]**********\r\n\r\n");            $allfiles = glob(VHUB4WEB_DATA.'/'.'*.*', GLOB_NOESCAPE);            $fnameofs = strlen(VHUB4WEB_DATA)+1;            foreach($allfiles as $fpath) {                if(is_file($fpath)) {                    $fsize = filesize($fpath);                    $fname = substr($fpath, $fnameofs);                    $httpReq->putStr(sprintf("%-35s %9d bytes\r\n", $fname, $fsize));                }            }            $httpReq->putStr("\r\n\r\n");        }        // dump hub traces        if(!$rootHub) {            $tarfiles = glob(VHUB4WEB_DATA . '/????????-?*.tar', GLOB_NOESCAPE);        } else {            $tarfiles = glob(VHUB4WEB_DATA . '/' . $rootHub . '.tar', GLOB_NOESCAPE);        }        foreach($tarfiles as $tarname) {            if(!preg_match('~/([A-Z0-9]+-[0-9a-fA-F]+).tar$~', $tarname, $matches)) {                continue;            }            $serial = $matches[1];            $tarfile = $this->files->accessDeviceFiles($httpReq, $serial);            $objs = $tarfile->processTarFile($httpReq, '*.trace', TAROP_LIST_FILES);            usort($objs, function(TarObject $a, TarObject $b) { return strcmp($a->path, $b->path); });            foreach($objs as $objlistItem) {                $objname = $objlistItem->path;                $obj = $tarfile->searchTarFile($httpReq, $objname);                if(is_null($obj)) {                    continue;                }                $httpReq->putStr("**********[ $serial.tar/$objname ]**********\r\n\r\n");                $httpReq->putBin($obj->content);                $httpReq->putStr("\r\n\r\n");            }        }        // dump root traces        if(!$rootHub) {            $tracefiles = glob(VHUB4WEB_DATA . '/' . '*.trace', GLOB_NOESCAPE);        } else {            $tracefiles = glob(VHUB4WEB_DATA . '/' . $rootHub . '*.trace', GLOB_NOESCAPE);        }        foreach($tracefiles as $tracefile) {            $fname = substr($tracefile, $fnameofs);            $bin = file_get_contents($tracefile);            $httpReq->putStr("**********[ $fname ]**********\r\n\r\n");            $httpReq->putBin($bin);            $httpReq->putStr("\r\n\r\n");        }        $httpReq->putStr("**********[ END OF TRACE DUMP ]**********\r\n\r\n");    }    public function serveConf(VHubServerHTTPRequest $httpReq): void    {        $res = [];        $deleteDevice = $httpReq->getArg('deleteDevice');        if(!is_null($deleteDevice)) {            $serial = $deleteDevice;            $res['deleteDevice'] = [ 'target' => $serial, 'done' => 0 ];            $tarpath = VHUB4WEB_DATA.'/'.$deleteDevice.'.tar';            if(file_exists($tarpath)) {                unlink($tarpath);                // Reload the state file while keeping an exclusive lock to update it                $cloudapiobj = json_decode($this->loadFile($httpReq, STATE_FILE, true, $fp), false, 99, JSON_THROW_ON_ERROR);                $this->apiroot->loadState($httpReq, $cloudapiobj, false);                $this->apiroot->cloudConf->freeDevYdx($serial);                $cloudapiobj = $this->apiroot->saveState();                $this->saveFile($httpReq, STATE_FILE, json_encode($cloudapiobj, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES), $fp);                $cloudSerial = $this->apiroot->cloudConf->serialNumber;                $this->notif->appendModuleRemovalNotifications($httpReq, $cloudSerial, $serial);                $res['deleteDevice']['done'] = 1;            } else {                $res['deleteDevice']['errmsg'] = 'unknown device '.$serial;            }        }        $setCbMd5Pwd = $httpReq->getArg('callbackMD5Password');        if(!is_null($setCbMd5Pwd)) {            if($setCbMd5Pwd == '?') {                $res['callbackMD5Password'] = [ 'changed' => 0 ];            } else {                // Reload the state file while keeping an exclusive lock to update it                $cloudapiobj = json_decode($this->loadFile($httpReq, STATE_FILE, true, $fp), false, 99, JSON_THROW_ON_ERROR);                $this->apiroot->loadState($httpReq, $cloudapiobj, false);                $this->apiroot->cloudConf->md5signPwd = $setCbMd5Pwd;                $cloudapiobj = $this->apiroot->saveState();                $this->saveFile($httpReq, STATE_FILE, json_encode($cloudapiobj, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES), $fp);                $res['callbackMD5Password'] = [ 'changed' => 1 ];            }            $isSet = ($this->apiroot->cloudConf->md5signPwd ? 'YES' : 'NO');            $res['callbackMD5Password']['isSet'] = $isSet;        }        $this->files->sendContentHeader($httpReq, 'json');        $httpReq->putStr(json_encode($res, JSON_UNESCAPED_SLASHES));    }    public function serveYV4webInstaller(VHubServerHTTPRequest $httpReq): void    {        try {            $installer = @file_get_contents('http://www.yoctopuce.com/Yv4wI.js');            if(ord($installer[0]) == 0x1f && ord($installer[1]) == 0x8b) {                $httpReq->putHeader('Content-encoding: gzip');            }            $this->files->sendContentHeader($httpReq, 'js');            $httpReq->putBin($installer);        } catch(Throwable $e) {            $httpReq->putStatus(404);            $httpReq->putStr("Failed to fetch Yocto-Visualization-4web installer from www.yoctopuce.com: {$e->getMessage()}\r\n");        }    }    public function serveLogs(VHubServerHTTPRequest $httpReq, string $serial, int $pos): void    {        $logs = '';        if($serial == $this->apiroot->cloudConf->serialNumber) {            $fp = fopen(VHUB4WEB_DATA.'/VHUB4WEB-logs.txt', 'rb');            if($fp) {                $logs = stream_get_contents($fp);                fclose($fp);            }        } else {            $devlogs = $this->files->loadDeviceFile($httpReq, $serial, 'logs.txt');            if(!is_null($devlogs)) {                $logs = preg_replace('~ *$~', '', $devlogs);            }        }        // when the logs have wrapped, the first line indicates the start offset        $startPos = 0;        if(preg_match('~^@([0-9]+)\n~', $logs, $matches)) {            $startPos = intVal($matches[1]);            $logs = substr($logs, strlen($matches[0]));        }        $endPos = $startPos + strlen($logs);        $this->files->sendContentHeader($httpReq, 'txt');        if($pos <= $startPos) {            $httpReq->putStr($logs);        } else {            $httpReq->putStr(substr($logs, $pos - $startPos));        }        $httpReq->putStr("\n@$endPos");    }    public function serveNotifications(VHubServerHTTPRequest $httpReq): void    {        // default to unspecified position        if(!is_null($httpReq->getArg('abs'))) {            $position = intVal($httpReq->getArg('abs'));            $veryFirstCall = false;        } else {            $position = -1;            $veryFirstCall = true;        }        $this->notif = NotifStream::StreamAt($httpReq, $this, $position);        // For PHP must stay in "short notification" as it is the        // only reliable way to force Apache to flush ASAP        $position = $this->notif->openForRead($httpReq, 1);        $banner = "YN01@{$position}\n\n";        $httpReq->putHeader('Content-Type: text/plain; charset=x-user-defined');        $maxlength = $this->notif->predictSize();        $httpReq->putHeader('Content-length: '.(strlen($banner)+$maxlength));        $httpReq->putBin($banner);        $started = microtime(true);        while($maxlength != 0) {            $newNotif = $this->notif->readMore($httpReq, $maxlength);            if(strlen($newNotif) > 0) {                $httpReq->putBin($newNotif);                $maxlength -= strlen($newNotif);                // for PHP, close immediately to force a flush since Apache may be forcing cache                break;            }            // for PHP, flush every at every KEEPALIVE interval since Apache may be forcing cache            if(microtime(true) - $started > NOTIF_KEEPALIVE_DELAY) {                break;            }            // delay execution for up to 0,1 [s] before retrying            time_nanosleep(0, 100000);            // for PHP, we also flush quickly at the very first call to avoid any delay before            // connection is diagnosed as working            if($veryFirstCall) {                break;            }        }        if($maxlength > 0) {            $httpReq->putBin(str_repeat("\n", $maxlength));        }        $this->notif->close($httpReq);    }    public function serveLogger(VHubServerHTTPRequest $httpReq, string $serial, string $functionid, string $run, string $utc, string $fromUtc, string $toUtc, bool $verbose): void    {        $this->files->sendContentHeader($httpReq, 'json');        // Enumerate device sensors        $deviceNode = $this->apiroot->bySerial->subnode($serial);        $deviceApiNode = $deviceNode->api;        $sensorIds = [];        $functions = $deviceApiNode->subnodeNames();        foreach($functions as $funcid) {            if($deviceApiNode->subnode($funcid)->isSensor()) {                $sensorIds[] = $funcid;            }        }        if(sizeof($sensorIds) == 0) {            $httpReq->putStr('[]');            return;        }        if($functionid != '') {            if(!in_array($functionid, $sensorIds)) {                $functionid = '';            }        }        // Retrieve data from the datalogger        $logger = new DataLogger($this, $serial);        if($utc == '') {            // Dump summary            $fromStamp = ($fromUtc == '' ? 0 : intVal($fromUtc));            $toStamp = ($toUtc == '' ? 0xffff0000 : intVal($toUtc));            if($functionid == '') {                $sep = '[';                foreach($sensorIds as $funcid) {                    $httpReq->putStr($sep);                    $logger->printIndex($httpReq, $deviceApiNode->subnode($funcid), $funcid, $run, $fromStamp, $toStamp, $verbose);                    $sep = ',';                }                $httpReq->putStr(']');            } else {                $logger->printIndex($httpReq, $deviceApiNode->subnode($functionid), $functionid, $run, $fromStamp, $toStamp, $verbose);            }        } else if(str_contains($utc, ',')) {            // Dump multiple streams in details (bulk transfer)            $utcStamps = array_map(function($value) { return intval($value); }, explode(',', $utc));            $httpReq->putStr('[');            $logger->printRun($httpReq, $functionid, $run, $utcStamps, $verbose);            $httpReq->putStr(']');        } else {            // Dump a single stream in details            $utcStamp = intVal($utc);            $logger->printRun($httpReq, $functionid, $run, [ $utcStamp ], $verbose);        }    }    public function handleUpload(VHubServerHTTPRequest $httpReq, string $devserial = ''): void    {        $content = '';        $jsonData = $httpReq->getJsonPostData();        if($jsonData && isset($jsonData['body'])) {            // JSON-encoded POST data            $fname = $jsonData['body']['filename'];            $content = base64_decode($jsonData['body']['b64content']);        } else {            // Expect a Form-Encoded POST data            $postdata = $httpReq->getRawPostData();            if (strlen($postdata) == 0) {                die("upload.html: empty POST, make sure your Yoctopuce library is recent enough!\n");            }            $fnameMatches = [];            $boundaryMatches = [];            if (!preg_match('/Content-Disposition: form-data; name="([^"]*)";/i', $postdata, $fnameMatches)) {                die("upload.html: form-data disposition expected !\n");            }            if (!preg_match('/--\S*/', $postdata, $boundaryMatches)) {                die("upload.html: multipart boundary not found\n");            }            $boundary = $boundaryMatches[0];            $fname = $fnameMatches[1];            $startPos = strpos($postdata, "\r\n\r\n", strlen($boundary));            $endPos = strpos($postdata, "\r\n" . $boundary, $startPos);            if ($startPos >= 0 && $endPos >= 0) {                $startPos += 4;                $content = substr($postdata, $startPos, $endPos - $startPos);            }        }        if(!$fname) {            VHubServer::Log($httpReq, LOG_VHUBSERVER, 3, "Empty upload request");            return;        }        if($devserial == '') {            VHubServer::Log($httpReq, LOG_VHUBSERVER, 4, "Uploading {$fname} to VirtualHub4web files");            $this->files->filesUpload($httpReq, $fname, $content);        } else {            $csize = strlen($content);            VHubServer::Log($httpReq, LOG_VHUBSERVER, 4, "Scheduling upload of {$fname} to {$devserial} ({$csize} bytes)");            $this->files->deviceFilesUpload($httpReq, $devserial, $fname, $content);        }        $this->saveState($httpReq);    }}

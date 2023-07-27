@@ -99,7 +99,7 @@ class APINode
         return $this->values[$name];
     }
 
-    public function setattr(string $name, string $value): void
+    public function setattr(VHubServerHTTPRequest $httpReq, string $name, string $value): void
     {
         if(!isset($this->types[$name])) {
             // unknown attribute, assume read-only
@@ -161,6 +161,10 @@ class APINode
                             $moduleData = (isset($data->module) ? $data->module : $data['module']);
                             $this->subnodes[$name] = new APIDataLoggerNode($httpReq, $this->server, $name, $moduleData);
                             break;
+                        case 'wakeUpMonitor':
+                            $moduleData = (isset($data->module) ? $data->module : $data['module']);
+                            $this->subnodes[$name] = new APIWakeUpMonitorNode($httpReq, $this->server, $name, $moduleData);
+                            break;
                         case 'services':
                             $this->subnodes[$name] = new APIServicesNode($httpReq, $this->server, $name);
                             break;
@@ -220,21 +224,21 @@ class APINode
         if($isleaf) {
             foreach($this->values as $key => $value) {
                 $jsonval = ApiJsonEncodeAttribute($httpReq, $value, $this->types[$key]);
-                $httpReq->put("{$sep}\"{$key}\":".json_encode($jsonval, JSON_UNESCAPED_SLASHES));
+                $httpReq->putStr("{$sep}\"{$key}\":".json_encode($jsonval, JSON_UNESCAPED_SLASHES));
                 $sep = ',';
             }
         } else {
             if(sizeof($this->subnodes) == 0) {
-                $httpReq->put('{}');
+                $httpReq->putStr('{}');
                 return;
             }
             foreach($this->subnodes as $name => $subnode) {
-                $httpReq->put("{$sep}\"{$name}\":");
+                $httpReq->putStr("{$sep}\"{$name}\":");
                 $subnode->printJSON($httpReq);
                 $sep = ',';
             }
         }
-        $httpReq->put('}');
+        $httpReq->putStr('}');
     }
 
     public function printJZON(VHubServerHTTPRequest $httpReq): void
@@ -244,35 +248,35 @@ class APINode
         if($isleaf) {
             foreach($this->values as $key => $value) {
                 $jsonval = ApiJsonEncodeAttribute($httpReq, $value, $this->types[$key]);
-                $httpReq->put($sep.json_encode($jsonval, JSON_UNESCAPED_SLASHES ));
+                $httpReq->putStr($sep.json_encode($jsonval, JSON_UNESCAPED_SLASHES ));
                 $sep = ',';
             }
         } else {
             if(sizeof($this->subnodes) == 0) {
-                $httpReq->put('[]');
+                $httpReq->putStr('[]');
                 return;
             }
             foreach($this->subnodes as $subnode) {
-                $httpReq->put($sep);
+                $httpReq->putStr($sep);
                 $subnode->printJZON($httpReq);
                 $sep = ',';
             }
         }
-        $httpReq->put(']');
+        $httpReq->putStr(']');
     }
 
     public function printJSONValue(VHubServerHTTPRequest $httpReq, string $key): void
     {
         $value = $this->values[$key];
         $jsonval = ApiJsonEncodeAttribute($httpReq, $value, $this->types[$key]);
-        $httpReq->put(json_encode($jsonval, JSON_UNESCAPED_SLASHES));
+        $httpReq->putStr(json_encode($jsonval, JSON_UNESCAPED_SLASHES));
     }
 
     public function printHTML(VHubServerHTTPRequest $httpReq, string $label): void
     {
         $isleaf = sizeof($this->values) > 0;
         $cssclass = ($isleaf ? "interface" : "folder");
-        $httpReq->put("<dl name='{$label}' class='{$cssclass}'><h4>{$label} <a href='javascript:reload()'>refresh</a></h4>\n");
+        $httpReq->putStr("<dl name='{$label}' class='{$cssclass}'><h4>{$label} <a href='javascript:reload()'>refresh</a></h4>\n");
         if($isleaf) {
             foreach($this->values as $key => $value) {
                 $attrtype = $this->types[$key];
@@ -281,12 +285,12 @@ class APINode
                     $relUrl = substr($txtval, 1);
                     $txtval = "<a href='{$relUrl}'>Browse REST API</a>";
                 }
-                $httpReq->put("<div name='{$key}'><dt>{$key}:</dt><dd>{$txtval}</dd>");
+                $httpReq->putStr("<div name='{$key}'><dt>{$key}:</dt><dd>{$txtval}</dd>");
                 if($attrtype < 0) {
                     $attrtype = abs($attrtype);
-                    $httpReq->put("<a href='javascript:' onclick='edit(this,{$attrtype})'>edit</a></div>\n");
+                    $httpReq->putStr("<a href='javascript:' onclick='edit(this,{$attrtype})'>edit</a></div>\n");
                 } else {
-                    $httpReq->put('</div>');
+                    $httpReq->putStr('</div>');
                 }
             }
         } else {
@@ -294,7 +298,7 @@ class APINode
                 $subnode->printHTML($httpReq, $name);
             }
         }
-        $httpReq->put("</dl>");
+        $httpReq->putStr("</dl>");
     }
 
     public function printHTMLValue(VHubServerHTTPRequest $httpReq, string $key): void
@@ -302,13 +306,13 @@ class APINode
         $value = $this->values[$key];
         $attrtype = $this->types[$key];
         $txtval = ApiTxtEncodeAttribute($httpReq, $value, $attrtype);
-        $httpReq->put($txtval);
+        $httpReq->putStr($txtval);
     }
 
     public function printTXT(VHubServerHTTPRequest $httpReq, string $label): void
     {
         $isleaf = sizeof($this->values) > 0;
-        $httpReq->put("*** {$label}\r\n");
+        $httpReq->putStr("*** {$label}\r\n");
         if($isleaf) {
             foreach($this->values as $key => $value) {
                 $attrtype = $this->types[$key];
@@ -316,14 +320,14 @@ class APINode
                 if(is_string($value)) {
                     $txtval = "\"{$txtval}\"";
                 }
-                $httpReq->put("{$key}: {$txtval}\r\n");
+                $httpReq->putStr("{$key}: {$txtval}\r\n");
             }
         } else {
             foreach($this->subnodes as $name => $subnode) {
-                $httpReq->put("=> {$name}\r\n");
+                $httpReq->putStr("=> {$name}\r\n");
             }
             foreach($this->subnodes as $name => $subnode) {
-                $httpReq->put("\r\n");
+                $httpReq->putStr("\r\n");
                 $subnode->printTXT($httpReq, $name);
             }
         }
@@ -337,25 +341,25 @@ class APINode
         if(is_string($value)) {
             $txtval = "\"{$txtval}\"";
         }
-        $httpReq->put($txtval);
+        $httpReq->putStr($txtval);
     }
 
     public function printXML(VHubServerHTTPRequest $httpReq, string $label): void
     {
         $isleaf = sizeof($this->values) > 0;
-        $httpReq->put("<{$label}>\r\n");
+        $httpReq->putStr("<{$label}>\r\n");
         if($isleaf) {
             foreach($this->values as $key => $value) {
                 $attrtype = $this->types[$key];
                 $txtval = ApiTxtEncodeAttribute($httpReq, $value, $attrtype);
-                $httpReq->put("<{$key}>{$txtval}</{$key}>\r\n");
+                $httpReq->putStr("<{$key}>{$txtval}</{$key}>\r\n");
             }
         } else {
             foreach($this->subnodes as $name => $subnode) {
                 $subnode->printXML($httpReq, $name);
             }
         }
-        $httpReq->put("</{$label}>\r\n");
+        $httpReq->putStr("</{$label}>\r\n");
     }
 
     public function printXMLValue(VHubServerHTTPRequest $httpReq, string $key): void
@@ -363,7 +367,7 @@ class APINode
         $value = $this->values[$key];
         $attrtype = $this->types[$key];
         $txtval = ApiTxtEncodeAttribute($httpReq, $value, $attrtype);
-        $httpReq->put($txtval);
+        $httpReq->putStr($txtval);
     }
 
     public function isSensor(): bool
@@ -387,36 +391,36 @@ class APIArrayNode extends APINode
     public function printJSON(VHubServerHTTPRequest $httpReq): void
     {
         if(sizeof($this->subnodes) == 0) {
-            $httpReq->put('[]');
+            $httpReq->putStr('[]');
             return;
         }
         $sep = '[';
         foreach($this->subnodes as $subnode) {
-            $httpReq->put($sep);
+            $httpReq->putStr($sep);
             $subnode->printJSON($httpReq);
             $sep = ',';
         }
-        $httpReq->put(']');
+        $httpReq->putStr(']');
     }
 
     public function printJZON(VHubServerHTTPRequest $httpReq): void
     {
         if(sizeof($this->subnodes) == 0) {
-            $httpReq->put('[]');
+            $httpReq->putStr('[]');
             return;
         }
         $sep = '[';
         foreach($this->subnodes as $name => $subnode) {
-            $httpReq->put($sep);
+            $httpReq->putStr($sep);
             $subnode->printJZON($httpReq);
             $sep = ',';
         }
-        $httpReq->put(']');
+        $httpReq->putStr(']');
     }
 
     public function printHTML(VHubServerHTTPRequest $httpReq, string $label): void
     {
-        $httpReq->put("<dl name='{$label}' class='folder'><h4>{$label} <a href='javascript:reload()'>refresh</a></h4>\n");
+        $httpReq->putStr("<dl name='{$label}' class='folder'><h4>{$label} <a href='javascript:reload()'>refresh</a></h4>\n");
         foreach($this->subnodes as $index => $subnode) {
             $subnode->printHTML($httpReq, "entry #{$index}");
         }
@@ -436,11 +440,11 @@ class APIArrayNode extends APINode
         } else {
             $sublabel = 'ypEntry';
         }
-        $httpReq->put("<{$label}>\r\n");
+        $httpReq->putStr("<{$label}>\r\n");
         foreach($this->subnodes as $subnode) {
             $subnode->printXML($httpReq, $sublabel);
         }
-        $httpReq->put("</{$label}>\r\n");
+        $httpReq->putStr("</{$label}>\r\n");
     }
 }
 
@@ -637,7 +641,7 @@ class APICloudNetworkNode extends APINetworkNode
         }
     }
 
-    public function setattr(string $name, string $value): void
+    public function setattr(VHubServerHTTPRequest $httpReq, string $name, string $value): void
     {
         if(substr($name,-8) == 'Password') {
             $mustHash = (strlen($value) != 24);
@@ -656,7 +660,7 @@ class APICloudNetworkNode extends APINetworkNode
                 $value = base64_encode(chr(0).md5($user . ':' . $realm . ':' . $value, true));
             }
         }
-        parent::setattr($name, $value);
+        parent::setattr($httpReq, $name, $value);
     }
 }
 
@@ -776,6 +780,18 @@ class APIDataLoggerNode extends APIFunctionNode
         return $this->modified;
     }
 
+    // Handle magic commands for the datalogger
+    public function setattr(VHubServerHTTPRequest $httpReq, string $name, string $value): void
+    {
+        if($name == 'clearHistory' && $value == '1') {
+            // Get a pointer to the datalogger emulator
+            $logger = new DataLogger($this->server, $this->serial);
+            $logger->clearHistory($httpReq);
+        } else {
+            parent::setattr($httpReq, $name, $value);
+        }
+    }
+
     // We cache the device values for later use
     public function saveState(): array
     {
@@ -790,6 +806,34 @@ class APIDataLoggerNode extends APIFunctionNode
     }
 }
 
+class APIWakeUpMonitorNode extends APIFunctionNode
+{
+    protected string $serial;
+
+    public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $name, mixed $moduleData)
+    {
+        global $ApiDef;
+
+        parent::__construct($httpReq, $server, $name);
+        $this->serial = (isset($moduleData->serialNumber) ? $moduleData->serialNumber : $moduleData['serialNumber']);
+        $this->values['sleepAfterCallback'] = 0;
+        $this->types['sleepAfterCallback'] = $ApiDef['HubPort']['enabled'];
+        $this->setupTypes($httpReq);
+    }
+
+    // Handle magic commands for the setting sleep after callback
+    public function setattr(VHubServerHTTPRequest $httpReq, string $name, string $value): void
+    {
+        parent::setattr($httpReq, $name, $value);
+        if($name == 'sleepAfterCallback') {
+            // remember to send the device to sleep at the end of next callback !
+            $apinode = $this->server->apiroot->bySerial->subnode($this->serial);
+            $apinode->cloudConf->sleepAfterCallback = intVal($value);
+            $apinode->markAsChanged();
+        }
+    }
+}
+
 class APIWPRecordNode extends APINode
 {
     public function __construct(VHubServerHTTPRequest $httpReq, VHubServer $server, string $name, object $template)
@@ -799,10 +843,10 @@ class APIWPRecordNode extends APINode
         $this->values['serialNumber'] = $template->serialNumber;
         $this->values['logicalName'] = $template->logicalName;
         $this->values['productName'] = $template->productName;
-        $this->values['productId'] = $template->productId;
+        $this->values['productId'] = intVal($template->productId);
         $this->values['networkUrl'] = $template->networkUrl;
-        $this->values['beacon'] = $template->beacon;
-        $this->values['index'] = $template->index;
+        $this->values['beacon'] = intVal($template->beacon);
+        $this->values['index'] = intVal($template->index);
         $this->setupTypes($httpReq);
     }
 
@@ -893,11 +937,11 @@ class APIYPRecordNode extends APINode
     {
         parent::__construct($httpReq, $server, $hwId);
         $this->fclass = 'Provider';
-        $this->values['baseType'] = $template->baseType;
+        $this->values['baseType'] = intVal($template->baseType);
         $this->values['hardwareId'] = $template->hardwareId;
         $this->values['logicalName'] = $template->logicalName;
         $this->values['advertisedValue'] = $template->advertisedValue;
-        $this->values['index'] = $template->index;
+        $this->values['index'] = intVal($template->index);
         $this->setupTypes($httpReq);
         // Update global index of funydx by hwid
         $this->server->apiroot->funYdxByHwId[$template->hardwareId] = $template->index;
@@ -1313,6 +1357,10 @@ class APIDeviceNode extends APINode
                 $this->api->module->values['parentHub'] = $data->VirtualHub4web->parentHub;
                 $this->api->module->values['parentIP'] = $data->VirtualHub4web->parentIP;
             }
+            if (isset($data->VirtualHub4web->sleepAfterCallback) && isset($this->api->subnodes['wakeUpMonitor'])) {
+                $wakeUpMonitorNode = $this->api->subnode('wakeUpMonitor');
+                $wakeUpMonitorNode->values['sleepAfterCallback'] = $data->VirtualHub4web->sleepAfterCallback;
+            }
         }
         return $modified;
     }
@@ -1475,7 +1523,10 @@ class APIRootNode extends APINode
     // Return true if success or false if a devYdx needs to be allocated
     public function loadServices(VHubServerHTTPRequest $httpReq, string $hubSerial, object $servicesdef, bool $canUpdateDevYdx): bool
     {
-        $hubDevYdx = max($this->cloudConf->getDevYdx($hubSerial), 0);
+        $hubDevYdx = $this->cloudConf->getDevYdx($hubSerial);
+        if($canUpdateDevYdx && $hubDevYdx < 0) {
+            $hubDevYdx = 0;
+        }
         $wpdef = $servicesdef->whitePages;
         foreach($wpdef as &$wpentry) {
             $serial = $wpentry->serialNumber;
@@ -1486,6 +1537,7 @@ class APIRootNode extends APINode
             }
             $parentDevYdx = ($serial == $hubSerial ? 0 : $hubDevYdx);
             $devYdx = $this->cloudConf->getDevYdx($serial);
+            VHubServer::Log($httpReq, LOG_VHUBSERVER, 4, "LoadServices for {$serial}: devYdx={$devYdx}, parentDevYdx={$parentDevYdx} (hubSerial={$hubSerial})");
             if ($devYdx < 0) { // new device
                 if(!$canUpdateDevYdx) return false;
                 $devYdx = $this->cloudConf->allocDevYdx($serial, $parentDevYdx);

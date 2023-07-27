@@ -17,7 +17,7 @@ declare(strict_types=1);
 
 include_once('APISupport.php');
 
-$ApiAttrEdit = "function editHtml(n,v,t){e=editFreeText;switch(t){case 1:case 9:case 19:case 24:case 27:case 62:case 63:return e(n,v,20);case 3:return editSelect(n,v,['Revert','Save to flash']);case 4:return e(n,v.slice(0,-1),3);case 5:case 36:return editRadio(n,v,['OFF','ON']);case 8:case 11:case 14:case 28:return e(n,v,7);case 10:case 86:return (typeof eF=='undefined'?e:eF)(n,v,9);case 12:return editSelect(n,v,['IMMEDIATE','PERIOD_AVG','PERIOD_MIN','PERIOD_MAX']);case 16:case 25:case 32:case 18:case 49:case 51:case 60:case 67:case 6:case 74:case 81:case 83:case 88:case 89:return e(n,v,15);case 17:return editSelect(n,v,['ANALOG_FAST','DIGITAL4','ANALOG_SMOOTH']);case 15:return editRadio(n,v,['FALSE','TRUE']);case 26:return editSelect(n,v,['HOMENETWORK','ROAMING','NEVER','NEUTRALITY']);case 30:return editSelect(n,v,['RGB','RGBW','WS2811']);case 35:return editUTC(n,v);case 37:return e(n,v,10);case 39:return editSelect(n,v,['USB_5V','USB_3V','EXT_V']);case 40:return editSelect(n,v,['LEFT','UP','RIGHT','DOWN']);case 43:return editSelect(n,v,['AUTO','FROM_USB','FROM_EXT','OFF']);case 44:return editSelect(n,v,['HIGH_RATE','HIGH_RATE_FILTERED','LOW_NOISE','LOW_NOISE_FILTERED','HIGHEST_RATE','AC']);case 45:return editSelect(n,v,['GPS_DMS','GPS_DM','GPS_D']);case 46:return editSelect(n,v,['GNSS','GPS','GLONASS','GALILEO','GPS_GLONASS','GPS_GALILEO','GLONASS_GALILEO']);case 50:return editSelect(n,v,['OFF','3V3','1V8']);case 53:return editSelect(n,v,['STILL','RELAX','AWARE','RUN','CALL','PANIC']);case 54:return editSelect(n,v,['HUMAN_EYE','WIDE_SPECTRUM','INFRARED','HIGH_RATE','HIGH_ENERGY','HIGH_RESOLUTION']);case 57:return editSelect(n,v,['OFF','DC','AC']);case 58:return editSelect(n,v,['IDLE','BRAKE','FORWD','BACKWD','LOVOLT','HICURR','HIHEAT','FAILSF']);case 61:case 96:return e(n,v,33);case 64:return editSelect(n,v,['POST','GET','PUT']);case 65:return editSelect(n,v,['FORM','JSON','JSON_ARRAY','CSV','YOCTO_API','JSON_NUM','EMONCMS','AZURE','INFLUXDB','MQTT','YOCTO_API_JZON','PRTG','INFLUXDB_V2']);case 66:case 99:return e(n,v,50);case 68:return editSelect(n,v,['OFF','OUT3V3','OUT5V','OUT4V7','OUT1V8']);case 69:return editSelect(n,v,['INT','EXT']);case 70:return editSelect(n,v,['NUMERIC','PRESENCE','PULSECOUNT']);case 71:return editSelect(n,v,['PWM_DUTYCYCLE','PWM_FREQUENCY','PWM_PULSEDURATION','PWM_EDGECOUNT','PWM_PULSECOUNT','PWM_CPS','PWM_CPM','PWM_STATE','PWM_FREQ_CPS','PWM_FREQ_CPM','PWM_PERIODCOUNT']);case 72:return editSelect(n,v,['USB5V','USB3V','EXTV','OPNDRN']);case 73:return editSelect(n,v,['DEFAULT','LONG_RANGE','HIGH_ACCURACY','HIGH_SPEED']);case 75:return editSelect(n,v,['NDOF','NDOF_FMC_OFF','M4G','COMPASS','IMU','INCLIN_90DEG_1G8','INCLIN_90DEG_3G6','INCLIN_10DEG']);case 76:return editRadio(n,v,['A','B']);case 77:return editSelect(n,v,['UNCHANGED','A','B']);case 79:return editSelect(n,v,['DISCONNECTED','MANUAL','AUTO1','AUTO60']);case 80:return editSelect(n,v,['OFF','TTL3V','TTL3VR','TTL5V','TTL5VR','RS232','RS485','TTL1V8','SDI12']);case 82:return e(n,v.slice(0,-2),3);case 84:return editRadio(n,v,['ACTIVE_LOW','ACTIVE_HIGH']);case 87:return editRadio(n,v,['MICROSTEP16','MICROSTEP8','MICROSTEP4','HALFSTEP','FULLSTEP']);case 90:return editSelect(n,v,['DIGITAL','TYPE_K','TYPE_E','TYPE_J','TYPE_N','TYPE_R','TYPE_S','TYPE_T','PT100_4WIRES','PT100_3WIRES','PT100_2WIRES','RES_OHM','RES_NTC','RES_LINEAR','RES_INTERNAL','IR','RES_PT1000','CHANNEL_OFF']);case 92:return editSelect(n,v,['SLEEPING','AWAKE']);case 94:return e(n,v,26);case 95:return e(n,v,9);case 97:return e(n,v,14);}return e(n,v,32)}";
+$ApiAttrEdit = "function editHtml(n,v,t){e=editFreeText;switch(t){case 1:case 9:case 19:case 24:case 27:case 63:case 64:return e(n,v,20);case 3:return editSelect(n,v,['Revert','Save to flash']);case 4:return e(n,v.slice(0,-1),3);case 5:case 36:return editRadio(n,v,['OFF','ON']);case 8:case 11:case 14:case 28:return e(n,v,7);case 10:case 86:return (typeof eF=='undefined'?e:eF)(n,v,9);case 12:return editSelect(n,v,['IMMEDIATE','PERIOD_AVG','PERIOD_MIN','PERIOD_MAX']);case 16:case 25:case 32:case 18:case 49:case 51:case 61:case 68:case 6:case 74:case 81:case 83:case 88:case 89:return e(n,v,15);case 17:return editSelect(n,v,['ANALOG_FAST','DIGITAL4','ANALOG_SMOOTH']);case 15:return editRadio(n,v,['FALSE','TRUE']);case 26:return editSelect(n,v,['HOMENETWORK','ROAMING','NEVER','NEUTRALITY']);case 30:return editSelect(n,v,['RGB','RGBW','WS2811']);case 35:return editUTC(n,v);case 37:return e(n,v,10);case 39:return editSelect(n,v,['USB_5V','USB_3V','EXT_V']);case 40:return editSelect(n,v,['LEFT','UP','RIGHT','DOWN']);case 43:return editSelect(n,v,['AUTO','FROM_USB','FROM_EXT','OFF']);case 44:return editSelect(n,v,['HIGH_RATE','HIGH_RATE_FILTERED','LOW_NOISE','LOW_NOISE_FILTERED','HIGHEST_RATE','AC']);case 45:return editSelect(n,v,['GPS_DMS','GPS_DM','GPS_D']);case 46:return editSelect(n,v,['GNSS','GPS','GLONASS','GALILEO','GPS_GLONASS','GPS_GALILEO','GLONASS_GALILEO']);case 50:return editSelect(n,v,['OFF','3V3','1V8']);case 52:return editSelect(n,v,['NONE','TIMED','V_MAX','V_MIN','I_MAX','I_MIN','P_MAX','P_MIN','V_AVG_MAX','V_AVG_MIN','V_RMS_MAX','V_RMS_MIN','I_AVG_MAX','I_AVG_MIN','I_RMS_MAX','I_RMS_MIN','P_AVG_MAX','P_AVG_MIN','PF_MIN','DPF_MIN']);case 54:return editSelect(n,v,['STILL','RELAX','AWARE','RUN','CALL','PANIC']);case 55:return editSelect(n,v,['HUMAN_EYE','WIDE_SPECTRUM','INFRARED','HIGH_RATE','HIGH_ENERGY','HIGH_RESOLUTION']);case 58:return editSelect(n,v,['OFF','DC','AC']);case 59:return editSelect(n,v,['IDLE','BRAKE','FORWD','BACKWD','LOVOLT','HICURR','HIHEAT','FAILSF']);case 62:case 96:return e(n,v,33);case 65:return editSelect(n,v,['POST','GET','PUT']);case 66:return editSelect(n,v,['FORM','JSON','JSON_ARRAY','CSV','YOCTO_API','JSON_NUM','EMONCMS','AZURE','INFLUXDB','MQTT','YOCTO_API_JZON','PRTG','INFLUXDB_V2']);case 67:case 99:return e(n,v,50);case 69:return editSelect(n,v,['OFF','OUT3V3','OUT5V','OUT4V7','OUT1V8']);case 70:return editSelect(n,v,['NUMERIC','PRESENCE','PULSECOUNT']);case 71:return editSelect(n,v,['PWM_DUTYCYCLE','PWM_FREQUENCY','PWM_PULSEDURATION','PWM_EDGECOUNT','PWM_PULSECOUNT','PWM_CPS','PWM_CPM','PWM_STATE','PWM_FREQ_CPS','PWM_FREQ_CPM','PWM_PERIODCOUNT']);case 72:return editSelect(n,v,['USB5V','USB3V','EXTV','OPNDRN']);case 73:return editSelect(n,v,['DEFAULT','LONG_RANGE','HIGH_ACCURACY','HIGH_SPEED']);case 75:return editSelect(n,v,['NDOF','NDOF_FMC_OFF','M4G','COMPASS','IMU','INCLIN_90DEG_1G8','INCLIN_90DEG_3G6','INCLIN_10DEG']);case 76:return editRadio(n,v,['A','B']);case 77:return editSelect(n,v,['UNCHANGED','A','B']);case 79:return editSelect(n,v,['DISCONNECTED','MANUAL','AUTO1','AUTO60']);case 80:return editSelect(n,v,['OFF','TTL3V','TTL3VR','TTL5V','TTL5VR','RS232','RS485','TTL1V8','SDI12']);case 82:return e(n,v.slice(0,-2),3);case 84:return editRadio(n,v,['ACTIVE_LOW','ACTIVE_HIGH']);case 87:return editRadio(n,v,['MICROSTEP16','MICROSTEP8','MICROSTEP4','HALFSTEP','FULLSTEP']);case 90:return editSelect(n,v,['DIGITAL','TYPE_K','TYPE_E','TYPE_J','TYPE_N','TYPE_R','TYPE_S','TYPE_T','PT100_4WIRES','PT100_3WIRES','PT100_2WIRES','RES_OHM','RES_NTC','RES_LINEAR','RES_INTERNAL','IR','RES_PT1000','CHANNEL_OFF']);case 92:return editSelect(n,v,['SLEEPING','AWAKE']);case 94:return e(n,v,26);case 95:return e(n,v,9);case 97:return e(n,v,14);}return e(n,v,32)}";
 
 $ApiDef = [
     "DataLogger" => [
@@ -442,6 +442,18 @@ $ApiDef = [
         "i2cVoltageLevel"    => -50,
         "i2cMode"            => -51
     ],
+    "InputCapture" => [
+        "logicalName"        => -1,
+        "advertisedValue"    => -9,
+        "lastCaptureTime"    => 6,
+        "nSamples"           => -14,
+        "samplingRate"       => 14,
+        "captureType"        => -52,
+        "condValue"          => -10,
+        "condAlign"          => -4,
+        "captureTypeAtStartup" => -52,
+        "condValueAtStartup" => -10
+    ],
     "InputChain" => [
         "logicalName"        => -1,
         "advertisedValue"    => -9,
@@ -457,7 +469,7 @@ $ApiDef = [
         "bitChain6"          => 1,
         "bitChain7"          => 1,
         "watchdogPeriod"     => -14,
-        "chainDiags"         => 52
+        "chainDiags"         => 53
     ],
     "Latitude" => [
         "logicalName"        => -1,
@@ -494,7 +506,7 @@ $ApiDef = [
         "advertisedValue"    => -9,
         "power"              => -5,
         "luminosity"         => -4,
-        "blinking"           => -53
+        "blinking"           => -54
     ],
     "LightSensor" => [
         "logicalName"        => -1,
@@ -510,7 +522,7 @@ $ApiDef = [
         "calibrationParam"   => -13,
         "resolution"         => -10,
         "sensorState"        => 8,
-        "measureType"        => -54
+        "measureType"        => -55
     ],
     "Magnetometer" => [
         "logicalName"        => -1,
@@ -536,16 +548,17 @@ $ApiDef = [
         "advertisedValue"    => -9,
         "slotsInUse"         => 14,
         "slotsCount"         => 14,
-        "slotsBitmap"        => 55,
+        "slotsBitmap"        => 56,
         "pduSent"            => -14,
         "pduReceived"        => -14,
+        "obey"               => -1,
         "command"            => -1
     ],
     "MultiAxisController" => [
         "logicalName"        => -1,
         "advertisedValue"    => -9,
         "nAxis"              => -14,
-        "globalState"        => 56,
+        "globalState"        => 57,
         "command"            => -1
     ],
     "MultiCellWeighScale" => [
@@ -564,7 +577,7 @@ $ApiDef = [
         "sensorState"        => 8,
         "cellCount"          => -14,
         "externalSense"      => -15,
-        "excitation"         => -57,
+        "excitation"         => -58,
         "tempAvgAdaptRatio"  => -10,
         "tempChgAdaptRatio"  => -10,
         "compTempAvg"        => 10,
@@ -585,7 +598,7 @@ $ApiDef = [
     "Motor" => [
         "logicalName"        => -1,
         "advertisedValue"    => -9,
-        "motorStatus"        => -58,
+        "motorStatus"        => -59,
         "drivingForce"       => -10,
         "brakingForce"       => -10,
         "cutOffVoltage"      => -10,
@@ -598,28 +611,29 @@ $ApiDef = [
     "Network" => [
         "logicalName"        => -1,
         "advertisedValue"    => -9,
-        "readiness"          => 59,
+        "readiness"          => 60,
         "macAddress"         => 19,
-        "ipAddress"          => 60,
-        "subnetMask"         => 60,
-        "router"             => 60,
-        "currentDNS"         => 60,
-        "ipConfig"           => -61,
-        "primaryDNS"         => -60,
-        "secondaryDNS"       => -60,
-        "ntpServer"          => -60,
-        "userPassword"       => -62,
-        "adminPassword"      => -63,
+        "ipAddress"          => 61,
+        "subnetMask"         => 61,
+        "router"             => 61,
+        "currentDNS"         => 61,
+        "ipConfig"           => -62,
+        "primaryDNS"         => -61,
+        "secondaryDNS"       => -61,
+        "ntpServer"          => -61,
+        "userPassword"       => -63,
+        "adminPassword"      => -64,
         "httpPort"           => -14,
         "defaultPage"        => -1,
         "discoverable"       => -15,
         "wwwWatchdogDelay"   => -14,
         "callbackUrl"        => -1,
-        "callbackMethod"     => -64,
-        "callbackEncoding"   => -65,
-        "callbackCredentials" => -66,
+        "callbackMethod"     => -65,
+        "callbackEncoding"   => -66,
+        "callbackTemplate"   => -5,
+        "callbackCredentials" => -67,
         "callbackInitialDelay" => -14,
-        "callbackSchedule"   => -67,
+        "callbackSchedule"   => -68,
         "callbackMinDelay"   => -14,
         "callbackMaxDelay"   => -14,
         "poeCurrent"         => 7
@@ -643,6 +657,7 @@ $ApiDef = [
         "calibrationParam"   => -13,
         "resolution"         => -10,
         "sensorState"        => 8,
+        "powerFactor"        => 10,
         "cosPhi"             => 10,
         "meter"              => -10,
         "deliveredEnergyMeter" => 10,
@@ -667,23 +682,21 @@ $ApiDef = [
     "PowerOutput" => [
         "logicalName"        => -1,
         "advertisedValue"    => -9,
-        "voltage"            => -68
+        "voltage"            => -69
     ],
     "PowerSupply" => [
         "logicalName"        => -1,
         "advertisedValue"    => -9,
-        "voltageSetPoint"    => -10,
+        "voltageLimit"       => -10,
         "currentLimit"       => -10,
         "powerOutput"        => -5,
-        "voltageSense"       => -69,
         "measuredVoltage"    => 10,
         "measuredCurrent"    => 10,
         "inputVoltage"       => 10,
-        "vInt"               => 10,
-        "ldoTemperature"     => 10,
         "voltageTransition"  => -32,
-        "voltageAtStartUp"   => -10,
-        "currentAtStartUp"   => -10,
+        "voltageLimitAtStartUp" => -10,
+        "currentLimitAtStartUp" => -10,
+        "powerOutputAtStartUp" => -5,
         "command"            => -1
     ],
     "Proximity" => [
@@ -880,7 +893,7 @@ $ApiDef = [
     "StepperMotor" => [
         "logicalName"        => -1,
         "advertisedValue"    => -9,
-        "motorState"         => 56,
+        "motorState"         => 57,
         "diags"              => 85,
         "stepPos"            => -86,
         "speed"              => 10,
@@ -1037,7 +1050,7 @@ $ApiDef = [
         "calibrationParam"   => -13,
         "resolution"         => -10,
         "sensorState"        => 8,
-        "excitation"         => -57,
+        "excitation"         => -58,
         "tempAvgAdaptRatio"  => -10,
         "tempChgAdaptRatio"  => -10,
         "compTempAvg"        => 10,
@@ -1079,7 +1092,7 @@ $ApiDef = [
     ]
 ];
 
-$ApiTypes = ["","Text","XWord","enumFlashSettings","Percent","enumOnOff","Time","UsedCurrent","Int","PubText","MeasureVal","YFrequency","enumAdvertisingMode","CalibParams","UInt31","enumBool","UInt","enumInputType","ValueRange","MACAddress","enumBtState","enumCellType","IMSI","YFSText","PinPassword","RadioConfig","enumServiceScope","APNPassword","U24Color","Move","enumLedType","enumAxis","AnyFloatTransition","enumLoopPwrState","enumDaisyState","UTCTime","enumOffOnPending","BitByte","DigitalIODiags","enumIOVoltage","enumOrientation","enumDisplayType","enumDualPwrState","enumDualPwrControl","enumSignalSampling","enumGPSCoordinateSystem","enumGPSConstellation","enumPortState","BaudRate","Protocol","enumI2cVoltageLevel","I2cMode","InputChainDiags","enumBlink","enumLightSensorTypeAll","BinaryBuffer","enumStepperState","enumExcitationMode","enumMotorState","enumReadiness","IPAddress","IPConfig","UserPassword","AdminPassword","enumHTTPMethod","enumCallbackEncoding","Credentials","CallbackSchedule","enumPowerOuputVoltage","enumVoltageSense","enumProximityReportModeType","enumPwmReportModeType","enumPwmPwrState","enumRangeFinderMode","RangeFinderCalib","enumFusionModeTypeAll","enumToggle","enumToggleAtPowerOn","DelayedPulse","enumDisplayMode","enumSerialVoltageLevel","SerialMode","MicroSeconds","SpiMode","enumPolarity","StepperDiags","StepPos","enumSteppingMode","AlertMode","AuxMode","enumTempSensorTypeAll","enumWakeUpReason","enumWakeUpState","MinOfHalfHourBits","HoursOfDayBits","DaysOfWeekBits","DaysOfMonthBits","MonthsOfYearBits","enumWLANSec","WLANConfig","enumWLANState","HText","ApiURL","enumBaseType","HwId","PubStrText"];
+$ApiTypes = ["","Text","XWord","enumFlashSettings","Percent","enumOnOff","Time","UsedCurrent","Int","PubText","MeasureVal","YFrequency","enumAdvertisingMode","CalibParams","UInt31","enumBool","UInt","enumInputType","ValueRange","MACAddress","enumBtState","enumCellType","IMSI","YFSText","PinPassword","RadioConfig","enumServiceScope","APNPassword","U24Color","Move","enumLedType","enumAxis","AnyFloatTransition","enumLoopPwrState","enumDaisyState","UTCTime","enumOffOnPending","BitByte","DigitalIODiags","enumIOVoltage","enumOrientation","enumDisplayType","enumDualPwrState","enumDualPwrControl","enumSignalSampling","enumGPSCoordinateSystem","enumGPSConstellation","enumPortState","BaudRate","Protocol","enumI2cVoltageLevel","I2cMode","enumCaptureTypeAll","InputChainDiags","enumBlink","enumLightSensorTypeAll","BinaryBuffer","enumStepperState","enumExcitationMode","enumMotorState","enumReadiness","IPAddress","IPConfig","UserPassword","AdminPassword","enumHTTPMethod","enumCallbackEncoding","Credentials","CallbackSchedule","enumPowerOuputVoltage","enumProximityReportModeType","enumPwmReportModeType","enumPwmPwrState","enumRangeFinderMode","RangeFinderCalib","enumFusionModeTypeAll","enumToggle","enumToggleAtPowerOn","DelayedPulse","enumDisplayMode","enumSerialVoltageLevel","SerialMode","MicroSeconds","SpiMode","enumPolarity","StepperDiags","StepPos","enumSteppingMode","AlertMode","AuxMode","enumTempSensorTypeAll","enumWakeUpReason","enumWakeUpState","MinOfHalfHourBits","HoursOfDayBits","DaysOfWeekBits","DaysOfMonthBits","MonthsOfYearBits","enumWLANSec","WLANConfig","enumWLANState","HText","ApiURL","enumBaseType","HwId","PubStrText"];
 
 $ApiEnums = [
     "enumBool"           => ["FALSE","TRUE"],
@@ -1127,10 +1140,10 @@ $ApiEnums = [
     "enumDaisyState"     => ["READY","IS_CHILD","FIRMWARE_MISMATCH","CHILD_MISSING","CHILD_LOST"],
     "enumProximityReportModeType" => ["NUMERIC","PRESENCE","PULSECOUNT"],
     "enumExcitationMode" => ["OFF","DC","AC"],
-    "enumVoltageSense"   => ["INT","EXT"],
     "enumLedType"        => ["RGB","RGBW","WS2811"],
     "enumAdvertisingMode" => ["IMMEDIATE","PERIOD_AVG","PERIOD_MIN","PERIOD_MAX"],
     "enumInputType"      => ["ANALOG_FAST","DIGITAL4","ANALOG_SMOOTH"],
+    "enumCaptureTypeAll" => ["NONE","TIMED","V_MAX","V_MIN","I_MAX","I_MIN","P_MAX","P_MIN","V_AVG_MAX","V_AVG_MIN","V_RMS_MAX","V_RMS_MIN","I_AVG_MAX","I_AVG_MIN","I_RMS_MAX","I_RMS_MIN","P_AVG_MAX","P_AVG_MIN","PF_MIN","DPF_MIN"],
     "enumFlashSettings"  => ["LOADED","SAVED","MODIFIED"]
 ];
 
@@ -1208,9 +1221,9 @@ function ApiJsonEncodeAttribute(VHubServerHTTPRequest $httpReq, mixed $php_val, 
         return APIPassword($httpReq, $php_val);
     case 27:                            // APNPassword
         return APIPassword($httpReq, $php_val);
-    case 62:                            // UserPassword
+    case 63:                            // UserPassword
         return APIPassword($httpReq, $php_val);
-    case 63:                            // AdminPassword
+    case 64:                            // AdminPassword
         return APIPassword($httpReq, $php_val);
     case 86:                            // StepPos
         return round($php_val * 16.0);
@@ -1256,11 +1269,11 @@ function ApiTxtEncodeAttribute(VHubServerHTTPRequest $httpReq, mixed $val, int $
         return APIBitString("012345678TP", $val);
     case 48:                            // BaudRate
         return ($val).' [kbps]';
-    case 52:                            // InputChainDiags
+    case 53:                            // InputChainDiags
         return APIBitString("NW5CDLRT", $val);
-    case 62:                            // UserPassword
+    case 63:                            // UserPassword
         return APIPassword($httpReq, $val);
-    case 63:                            // AdminPassword
+    case 64:                            // AdminPassword
         return APIPassword($httpReq, $val);
     case 78:                            // DelayedPulse
         return ($val->moving ? "{$val->target} in {$val->ms} [ms]" : 'none');

@@ -420,7 +420,11 @@ class TarFile
             } else if($rewriteFrom >= 0) {
                 // about to move a file to the end, load remaining content
                 $obj->tarOffset = $tarOffset;
-                $obj->content = fread($fp, $obj->contentSize);
+                if($obj->contentSize) {
+                    $obj->content = fread($fp, $obj->contentSize);
+                } else {
+                    $obj->content = '';
+                }
                 if($obj->storageSize > $obj->contentSize) {
                     fseek($fp, $obj->storageSize - $obj->contentSize, SEEK_CUR);
                 }
@@ -761,11 +765,7 @@ class FileServer
     protected TarFile $ownFiles;
     protected array $deviceFiles;
 
-    public array $specialUploadFiles = [
-        'txdata', 'logs.txt', 'rgb:', 'hsl:', 'sendSMS',
-        'layer0', 'layer1', 'layer2', 'layer3', 'layer4', 'layer5'
-    ];
-
+    public string $specialUploadFiles = '~^(txdata|logs\.txt|sendSMS)|((rgb|hsl|(layer[0-9])):.*)$~';
     public array $specialDownloadFiles = [
         'display.gif', 'rgb.bin'
     ];
@@ -936,7 +936,7 @@ class FileServer
         }
         $this->server->apiroot->api->files->updateStats($httpReq, $this->ownFiles->knownFilesCount(), $this->ownFiles->tarSize());
         $this->sendContentHeader($httpReq, 'json');
-        $httpReq->put(json_encode($res));
+        $httpReq->putStr(json_encode($res));
     }
 
     public function deviceFilesCmd(VHubServerHTTPRequest $httpReq, string $serial, string $action, string $fname): void
@@ -969,7 +969,7 @@ class FileServer
             case 'del':
                 // schedule deletion on device
                 $apinode = $this->server->apiroot->bySerial->subnode($serial);
-                $apinode->fileList->deleteOnDevice($fname);
+                $apinode->fileList->deleteOnDevice($httpReq, $fname);
                 // remove from tarball
                 $tarfile->processTarFile($httpReq, 'files/'.$fname, TAROP_DELETE_FILE);
                 $res = ['res' => 'ok'];
@@ -987,7 +987,7 @@ class FileServer
                 break;
         }
         $this->sendContentHeader($httpReq, 'json');
-        $httpReq->put(json_encode($res));
+        $httpReq->putStr(json_encode($res));
     }
 
     public function filesUpload(VHubServerHTTPRequest $httpReq, string $path, string $content): void
@@ -999,7 +999,8 @@ class FileServer
     public function deviceFilesUpload(VHubServerHTTPRequest $httpReq, string $serial, string $path, string $content): void
     {
         // For other special upload files, put in -pending req only and exit
-        if(array_search($path, $this->specialUploadFiles) !== FALSE) {
+        if(preg_match($this->specialUploadFiles, $path) !== FALSE) {
+            VHubServer::Log($httpReq, LOG_VHUBSERVER, 2, "Upload to special file for {$serial}: {$path}");
             $this->server->scheduleUploadOnDevice($httpReq, $serial, $path, $content);
             return;
         }
@@ -1026,7 +1027,7 @@ class FileServer
         $httpReq->putHeader('Content-Length: '.strlen($content));
         $httpReq->putHeader('Cache-Control: no-cache');
         $httpReq->putHeader('ETag: '.dechex($crc));
-        $httpReq->put($content);
+        $httpReq->putBin($content);
     }
 
     public function sendFile(VHubServerHTTPRequest $httpReq, string $path, string $extension): void

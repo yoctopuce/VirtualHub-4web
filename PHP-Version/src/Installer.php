@@ -4,13 +4,11 @@ include_once("runtime-checks.php");
 const HTACCESS_REWRITE_RULES_SINGLE =
     "# Redirect all URLs to index.php for VirtualHub-4web processing\r\n" .
     "RewriteEngine on\r\n" .
-    "RewriteRule ^.*$ index.php [END]\r\n";
+    "RewriteRule ^.*$ index.php [PT]\r\n";
 
 const HTACCESS_PHP_VALUES =
     "# PHP settings for VirtualHub-4web\r\n" .
     "php_value post_max_size             \"8M\"\r\n" .
-    "php_value upload_max_filesize       \"8M\"\r\n" .
-    "php_value enable_post_data_reading  0\r\n" .
     "# this one is not supposed to work per-dir, but sometimes it does...\r\n" .
     "php_value allow_url_fopen           1\r\n";
 
@@ -21,15 +19,13 @@ const USER_INI_VALUES =
     ";       because it is harmless and may become useful one day if the server\r\n" .
     ";       configuration ever changes to (Fast)CGI\r\n" .
     "post_max_size=\"8M\"\r\n" .
-    "upload_max_filesize=\"8M\"\r\n" .
-    "enable_post_data_reading=\"0\"\r\n" .
     "; this one is not supposed to work per-dir, but sometimes it does...\r\n" .
     "allow_url_fopen=\"1\"\r\n";
 
 const HTACCESS_REWRITE_RULES_MULTI =
     "# Redirect all URLs to index.php for VirtualHub-4web processing\r\n" .
     "RewriteEngine on\r\n" .
-    "RewriteRule ^([^/]*)/.*$ $1/index.php [END]\r\n";
+    "RewriteRule ^([^/]*)/.*$ $1/index.php [PT]\r\n";
 
 // Note: in the constant below, quotes are replaced by back-quotes to avoid back-quoting!
 const ROOT_INDEX_PHP = '<?php // VirtualHub-4web pseudo-rewrite handler
@@ -64,14 +60,11 @@ inc'.'lude_once($nextHopAbsPath);
 
 const HTACCESS_TEST_INDEX_PHP = '<?php 
 $max_post_kb = str_replace(["K", "M", "G", "T"], ["", "000", "000000", "000000000"], ini_get("post_max_size"));
-$max_upload = str_replace(["K", "M", "G", "T"], ["", "000", "000000", "000000000"], ini_get("upload_max_filesize"));
 Print(json_encode([ "props" => [
     "request_uri" => $_SERVER["REQUEST_URI"],
     "script_name" => $_SERVER["SCRIPT_NAME"],
     "allowUrlFopen" => ini_get("allow_url_fopen"),
-    "enablePostDataReading" => ini_get("enable_post_data_reading"),
-    "postMaxSize" => $max_post_kb,
-    "uploadMaxFilesize" => $max_upload
+    "postMaxSize" => $max_post_kb
 ], "errors"=>[] ]));
 ';
 
@@ -101,7 +94,7 @@ function str_starts_with($haystack, $needle): bool
 function str_ends_with($haystack, $needle): bool
 { return $needle !== \'\' && substr($haystack, -strlen($needle)) === (string)$needle; }
 function str_contains($haystack, $needle): bool
-{ return $needle !== \'\' && mb_strpos($haystack, $needle) !== false; }
+{ return $needle !== \'\' && strpos($haystack, $needle) !== false; }
 ';
 
 const OR_INSTALL_MANUALLY = '<br>If this is not possible, follow the instructions to perform the install manually.';
@@ -141,7 +134,7 @@ if (!function_exists('str_ends_with')) {
 if (!function_exists('str_contains')) {
     function str_contains($haystack, $needle): bool
     {
-        return $needle !== '' && mb_strpos($haystack, $needle) !== false;
+        return $needle !== '' && strpos($haystack, $needle) !== false;
     }
 }
 
@@ -458,13 +451,9 @@ function processInstall(string $func): array
                 "<a href='?func=phpinfo' target='_blank' style='font-size: smaller;'>phpinfo</a>";
             $properties['phpIntBits'] = $bitSize;
             $properties['allowUrlFopen'] = ini_get('allow_url_fopen');
-            $properties['enablePostDataReading'] = ini_get('enable_post_data_reading');
             $max_post = ini_get('post_max_size');
             $max_post_kb = str_replace(['K', 'M', 'G', 'T'], ['', '000', '000000', '000000000'], $max_post);
             $properties['postMaxSize'] = $max_post_kb.' KB';
-            $max_upload = ini_get('upload_max_filesize');
-            $max_upload_kb = str_replace(['K', 'M', 'G', 'T'], ['', '000', '000000', '000000000'], $max_upload);
-            $properties['uploadMaxFilesize'] = $max_upload_kb.' KB';
             break;
         case 'phpinfo': // show standard phpinfo
             phpinfo();
@@ -1186,7 +1175,7 @@ if(isset($_GET['func'])) {
                     showError('caddyRewrite', 'Your Caddy server requires a specific URL rewriting configuration',
                         'You should add the following rewrite rule in the host configuration:<br><br>'+
                         '@vhub4web {<br>'+
-                        '&nbsp;&nbsp;&nbsp;&nbsp;path_regexp static ^(/VirtualHub-4web/[^/]*)/.*$<br>'+
+                        '&nbsp;&nbsp;&nbsp;&nbsp;path_regexp static ^('+testURL.props.accessURL+'/[^/]*)/.*$<br>'+
                         '}<br>'+
                         'rewrite @vhub4web {re.static.1}/index.php');
                 } else {
@@ -1200,11 +1189,9 @@ if(isset($_GET['func'])) {
             // try to fix php settings via .htaccess if needed
             let usePhpValueInHTAccess = false;
             let allowUrlFopen = String(testIndexPHP.props.allowUrlFopen).match(/1|On/i);
-            let postDataReading = String(testIndexPHP.props.enablePostDataReading).match(/1|On/i);
             let postMaxSize = parseInt(testIndexPHP.props.postMaxSize);
-            let uploadMaxFilesize = parseInt(testIndexPHP.props.uploadMaxFilesize);
-            let perDirSettingsNeeded = (postMaxSize < 4000 || uploadMaxFilesize < 4000 || postDataReading);
-            installLog('Settings: ', allowUrlFopen, postDataReading, postMaxSize, uploadMaxFilesize);
+            let perDirSettingsNeeded = postMaxSize < 4000;
+            installLog('Settings: ', allowUrlFopen, postMaxSize);
             if(!allowUrlFopen || perDirSettingsNeeded) {
                 if(String(testPHP.props.serverSoftware).match(/Apache/i) && useHTAccess) {
                     let createPhpValue = await tryFunc('?func=createPhpValue');
@@ -1217,7 +1204,7 @@ if(isset($_GET['func'])) {
                                 '<b>php_value</b> in the <b>.htaccess</b> file as a backup solution, but this '+
                                 'is causing a Server Error. You should therefore add the following line to your '+
                                 'global server configuration, for this directory tree:<br><br>'+
-                                'php_value enable_post_data_reading  0');
+                                'php_value post_max_size "8M"');
                         } else {
                             setErrorDetails(testPhpValue.errors[0].error, 'Your Apache server does not enable '+
                                 'PHP <b>allow_url_fopen</b> setting, as required by this software. '+
@@ -1239,9 +1226,9 @@ if(isset($_GET['func'])) {
                             'Your Web server does not appear to process per-dir PHP settings in <b>.user.ini</b>. '+
                             'You should therefore find another way to set in your server configuration the '+
                             'following PHP per-directory setting:<br><br>'+
-                            'enable_post_data_reading=0<br><br>'+
+                            'post_max_size=8M<br><br>'+
                             'For Apache, this would typically be done using the following host configuration:<br><br>'+
-                            'php_value enable_post_data_reading 0');
+                            'php_value post_max_size "8M"');
                     } else {
                         showError('unknownUrlFopen', 'This software requires PHP allow_url_fopen to be active',
                             'Your Web server does not enable PHP <b>allow_url_fopen</b> setting, '+
@@ -1428,14 +1415,14 @@ if(isset($_GET['func'])) {
     async function testInstall(hostPath, userpwd, adminpwd)
     {
         installLog('Testing '+hostPath);
-        let url = window.location.protocol + '//' + window.location.host + hostPath + '/api/network.json';
+        let url = window.location.protocol + '//' + window.location.host + hostPath + '/info.json';
         let response = await fetch(url);
         let responseText = await response.text()
-        let network = null;
+        let infojson = null;
         if(response.ok) try {
-            network = JSON.parse(responseText);
+            infojson = JSON.parse(responseText);
         } catch (e) {}
-        if(!response.ok || !network) {
+        if(!response.ok || !infojson) {
             let errmsg = 'New VirtualHub-4web instance appears not to work properly';
             let status = 'HTTP '+response.status+' '+response.statusText;
             let details = 'Full response was:<br>' + responseText;
@@ -1815,9 +1802,7 @@ if(isset($_GET['func'])) {
             <div class="th important">Type of Web server</div><div id="serverSoftware" class="td important"></div>
             <div class="th important">Current PHP version</div><div id="phpVersion" class="td important"></div>
             <div class="th phase1more">Allow URL fopen</div><div id="allowUrlFopen" class="td phase1more"></div>
-            <div class="th phase1more">Enable POST data reading</div><div id="enablePostDataReading" class="td phase1more"></div>
             <div class="th phase1more">POST max size</div><div id="postMaxSize" class="td phase1more"></div>
-            <div class="th phase1more">Upload max filesize</div><div id="uploadMaxFilesize" class="td phase1more"></div>
             <div class="th important">Installation file URL path:</div><div id="accessURL" class="td stt important"></div>
             <div class="th phase1more">Corresponding system path:</div><div id="systemPath" class="td stt phase1more"></div>
             <div class="th phase1more">File write access ?</div><div id="writeAccess" class="td phase1more"></div>

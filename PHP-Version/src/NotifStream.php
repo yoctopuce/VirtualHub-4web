@@ -195,7 +195,7 @@ class NotifStream
         }
         if($endpos > $this->curpos && !is_null($this->fd)) {
             fseek($this->fd, $this->curpos, SEEK_SET);
-            $this->avail = $endpos;
+            $this->avail = $endpos - $this->curpos;
         }
         return $this->abspos;
     }
@@ -387,14 +387,24 @@ class NotifStream
             $emulogger = new DataLogger($this->server, $serial);
             $datalogger->set_userData($emulogger);
         }
+        $serverTimestamp = time();
         $timestamp = 0;
         $duration = 0;
         $newReports = [];
         $module = YModule::FindModule($serial);
         foreach($rawReports as $funydx => $rawReport) {
             if($funydx == 15) {
-                $timestamp = $this->decodeTimestamp($rawReport, $duration);
-                VHubServer::Log($httpReq, LOG_DATALOGGER, 5, "TimedReport for {$serial}: stamp={$timestamp}, duration={$duration}");
+                $devTimestamp = $this->decodeTimestamp($rawReport, $duration);
+                if($devTimestamp > $serverTimestamp+2*86400) {
+                    // device timestamp more than a day in the future, this should never happen
+                    VHubServer::Log($httpReq, LOG_HTTPCALLBACK, 2, "Timestamp of {$serial} is more than a 48h in the future (".$devTimestamp."), ignoring timed report");
+                } else if($devTimestamp < $serverTimestamp-2*86400) {
+                    // device timestamp more than a day in the past, this should never happen
+                    VHubServer::Log($httpReq, LOG_HTTPCALLBACK, 2, "Timestamp of {$serial} is more than a 48h in the past (".$devTimestamp."), ignoring timed report");
+                } else {
+                    $timestamp = $devTimestamp;
+                    VHubServer::Log($httpReq, LOG_DATALOGGER, 5, "TimedReport for {$serial}: stamp={$timestamp}, duration={$duration}");
+                }
             } else if($timestamp) {
                 $functionId = $module->functionId($funydx);
                 $sensor = YSensor::FindSensor("{$serial}.{$functionId}");

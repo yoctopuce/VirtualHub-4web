@@ -475,17 +475,23 @@ class DataSeq
         }
     }
 
-    // Return the raw buffer representing header for current sequence
+    // Return the raw buffer representing header for current sequence,
+    // as returned to the API for processing (sequence summary)
     //
-    // For compatibility with devices, leave nRows to 0xffff as long
-    // as the sequence is not closed.
+    // For compatibility with devices, return a patched version
+    // with the current running avg/min/max
     //
     public function getRawHeader(): string
     {
         $res = $this->header;
         if(!$this->isClosed()) {
-            $res[14] = chr(255);
-            $res[15] = chr(255);
+            $avgMinMax = $this->getAvgMinMax();
+            $buff = encodeFloat($avgMinMax[0], true).
+                encodeFloat($avgMinMax[1], false).
+                encodeFloat($avgMinMax[2], false);
+            for($i = 0; $i < strlen($buff); $i++) {
+                $res[16+$i] = $buff[$i];
+            }
         }
         return $res;
     }
@@ -598,19 +604,19 @@ class DataLogger
     {
         $nwords = strlen($data) >> 1;
         $wbuff = [];
-        for($pos = 0; $pos < $nwords; $pos++) {
-            $wbuff[$pos] = ord($data[2*$pos])+256*ord($data[2*$pos+1]);
+        for ($pos = 0; $pos < $nwords; $pos++) {
+            $wbuff[$pos] = ord($data[2 * $pos]) + 256 * ord($data[2 * $pos + 1]);
         }
         $res = '';
-        for($pos = 0; $pos < $nwords; $pos++) {
+        for ($pos = 0; $pos < $nwords; $pos++) {
             $val = $wbuff[$pos];
-            if($val == 0) {
+            if ($val == 0) {
                 $res .= '*';
                 continue;
-            } else if($val == 0x7fff) {
+            } else if ($val == 0x7fff) {
                 $res .= 'Y';
                 continue;
-            } else if($val == 0xffff) {
+            } else if ($val == 0xffff) {
                 $res .= 'X';
                 continue;
             }
@@ -635,14 +641,24 @@ class DataLogger
         return $res;
     }
 
+    protected function cleanUnit(string $unit): string
+    {
+        return preg_replace('~[ /°_".\'\-]~', '', $unit);
+    }
+
     protected function accessData(VHubServerHTTPRequest $httpReq, string $fnpattern = '*'): array
     {
         $this->tarfile = $this->filesrv->accessDeviceFiles($httpReq, $this->serial);
         $tarObjects = $this->tarfile->processTarFile($httpReq, 'datalogger/'.$fnpattern, TAROP_WORKON_FILES);
         usort($tarObjects, function(TarObject $a, TarObject $b) { return strcmp($a->path, $b->path); });
         $res = [];
+        $serverStamp = time();
         foreach($tarObjects as $tarObj) {
             $df = new DataFile($tarObj);
+            if($df->startstamp > $serverStamp + 2*86400) {
+                // data file more than a 48h in the future, ignore it
+                continue;
+            }
             if(!isset($res[$df->functionid])) {
                 $res[$df->functionid] = [ $df ];
             } else {
@@ -683,6 +699,7 @@ class DataLogger
 
     public function appendMeasures(VHubServerHTTPRequest $httpReq, array $reports): void
     {
+        $serverStamp = time();
         $dataFiles = $this->accessData($httpReq);
         $lastSeqOfs = [];
         $mustCreate = [];
@@ -691,15 +708,16 @@ class DataLogger
             $hardwareid = "{$this->serial}.{$functionid}";
             $freq = $report['freq'];
             $measure = $report['measure'];
+            $cleanUnit = $this->cleanUnit($report['unit']);
             $startTime = $measure->get_startTimeUTC();
             $endTime = $measure->get_endTimeUTC();
             $value = $measure->get_averageValue();
             VHubServer::Log($httpReq, LOG_DATALOGGER, 5, "@{$startTime}-{$endTime}: {$hardwareid}: {$value} {$report['unit']}");
-            if($endTime < time()-(2*86400)) {
+            if($endTime < $serverStamp-2*86400) {
                 VHubServer::Log($httpReq, LOG_DATALOGGER, 3, "Timestamp {$endTime} for {$hardwareid} is more than a 48h in the past, dropping data");
                 continue;
             }
-            if($endTime > time()+(2*86400)) {
+            if($endTime > $serverStamp+2*86400) {
                 VHubServer::Log($httpReq, LOG_DATALOGGER, 3, "Timestamp {$endTime} for {$hardwareid} is more than a 48h in the future, dropping data");
                 continue;
             }
@@ -713,6 +731,11 @@ class DataLogger
                 VHubServer::Log($httpReq, LOG_DATALOGGER, 3, "Timestamp {$endTime} for {$hardwareid} is going back, dropping data");
                 continue;
             }
+            if($this->cleanUnit($lastFile->unit) != $cleanUnit) {
+                VHubServer::Log($httpReq, LOG_DATALOGGER, 3, "Measurement unit for {$hardwareid} has changed, must create a new datafile");
+                $mustCreate[$functionid] = $report;
+                continue;
+            }
             $lastSeqOfs[$functionid] = $this->tarfile->tarWorkReadUint($lastFile->tarObject, 0, 4);
             $dataSeq = $this->loadSeq($httpReq, $lastFile, $lastSeqOfs[$functionid], false);
             if($dataSeq->isClosed()) {
@@ -721,7 +744,12 @@ class DataLogger
                 continue;
             }
             if($startTime < $dataSeq->lastStamp()) {
-                VHubServer::Log($httpReq, LOG_DATALOGGER, 3, "Timestamp {$startTime} for {$hardwareid} is going back, dropping data");
+                if($dataSeq->lastStamp() > $serverStamp+2*86400) {
+                    VHubServer::Log($httpReq, LOG_DATALOGGER, 2, "Found unreasonable timestamp in the datalogger for {$hardwareid}, must create a new datafile");
+                    $mustCreate[$functionid] = $report;
+                } else {
+                    VHubServer::Log($httpReq, LOG_DATALOGGER, 3, "Timestamp {$startTime} for {$hardwareid} is going back, dropping data");
+                }
                 continue;
             }
             if(!$dataSeq->appendMeasure($httpReq, $freq, $measure)) {
@@ -764,7 +792,7 @@ class DataLogger
             $measure = $report['measure'];
             $utcstamp = intval(round($measure->get_startTimeUTC()));
             $prefix = 'datalogger/'.$utcstamp.'-';
-            $cleanUnit = str_replace('/', '_', $report['unit']);
+            $cleanUnit = $this->cleanUnit($report['unit']);
             $suffix = '-'.date('Y-m-d', $utcstamp).'.bin';
             $subfile = $prefix.$functionid.'-'.$cleanUnit.$suffix;
             $seqOfs = 4;
@@ -789,7 +817,8 @@ class DataLogger
     {
         $unit = $sensorNode->getattr('unit');
         $calib = $sensorNode->getattr('calibrationParam');
-        $httpReq->put('{"id":"'.$functionid.'","unit":"'.$unit.'","calib":"'.$calib.'","cal":"*","bulk":"128","streams":'."[\n");
+        $httpReq->putStr('{"id":"'.$functionid.'","unit":"'.$unit.'","calib":"'.$calib.'","cal":"*","bulk":"128","streams":'."[\n");
+        $cleanUnit = $this->cleanUnit($unit);
         $sep = '';
         $dataFiles = $this->accessData($httpReq, '*-'.$functionid.'-*');
         if(isset($dataFiles[$functionid])) {
@@ -802,8 +831,7 @@ class DataLogger
             // filter out files not relevant for the requested period and unit
             $dataFile = $functionFiles[$i];
             VHubServer::Log($httpReq, LOG_DATALOGGER, 5, "Check unit");
-            $cleanUnit = str_replace('/', '_', $unit);
-            if($dataFile->unit != $cleanUnit) continue;
+            if($this->cleanUnit($dataFile->unit) != $cleanUnit) continue;
             if($i+1 < sizeof($functionFiles)) {
                 VHubServer::Log($httpReq, LOG_DATALOGGER, 5, "Check start timestamp");
                 if($functionFiles[$i+1]->startstamp <= $fromStamp) continue;
@@ -833,10 +861,10 @@ class DataLogger
                         $avgVal = $avgMinMax[0];
                         $minVal = $avgMinMax[1];
                         $maxVal = $avgMinMax[2];
-                        $httpReq->put($sep . '{"run":' . $dataSeq->runIdx . ',"utc":' . $dataSeq->utcStamp . ',"dur":' . $duration .
+                        $httpReq->putStr($sep . '{"run":' . $dataSeq->runIdx . ',"utc":' . $dataSeq->utcStamp . ',"dur":' . $duration .
                             ',"freq":"' . $dataSeq->frequency->freqStr . '","val":[' . $minVal . ',' . $avgVal . ',' . $maxVal . ']}' . "\n");
                     } else {
-                        $httpReq->put($sep . '"' . $this->recorderEncode($dataSeq->getRawHeader()) . '"' . "\n");
+                        $httpReq->putStr($sep . '"' . $this->recorderEncode($dataSeq->getRawHeader()) . '"' . "\n");
                     }
                     $sep = ',';
                 }
@@ -844,7 +872,7 @@ class DataLogger
             }
         }
         $this->tarfile->tarWorkDone($httpReq);
-        $httpReq->put("]}");
+        $httpReq->putStr("]}");
     }
 
     public function printRun(VHubServerHTTPRequest $httpReq, string $functionid, string $runmatch, array $utcStamps, bool $verbose): void
@@ -877,23 +905,23 @@ class DataLogger
                     VHubServer::Log($httpReq, LOG_DATALOGGER, 5, "Using sequence starting at {$dataSeq->utcStamp}, {$dataSeq->nRows} rows, {$duration}s");
                     $dataSeq->loadSeq($httpReq, true);
                     if ($verbose) {
-                        $httpReq->put($isFirst ? '[' : ",\n[");
+                        $httpReq->putStr($isFirst ? '[' : ",\n[");
                         $sep = '';
                         $measures = $dataSeq->measures;
                         if($dataSeq->frequency->perSec) {
                             for($i = 0; $i < sizeof($measures); $i++) {
-                                $httpReq->put($sep.$measures[$i]."\n");
+                                $httpReq->putStr($sep.$measures[$i]."\n");
                                 $sep = ',';
                             }
                         } else {
                             for($i = 0; $i+2 < sizeof($measures); $i += 3) {
-                                $httpReq->put($sep."[".$measures[$i+1].','.$measures[$i].','.$measures[$i+2]."]\n");
+                                $httpReq->putStr($sep."[".$measures[$i+1].','.$measures[$i].','.$measures[$i+2]."]\n");
                                 $sep = ',';
                             }
                         }
-                        $httpReq->put(']');
+                        $httpReq->putStr(']');
                     } else {
-                        $httpReq->put(($isFirst ? '"' : "\n,\"") . $this->recorderEncode($dataSeq->getRawData()) . '"');
+                        $httpReq->putStr(($isFirst ? '"' : "\n,\"") . $this->recorderEncode($dataSeq->getRawData()) . '"');
                     }
                     $isFirst = false;
                     $stampIdx++;
@@ -907,5 +935,23 @@ class DataLogger
             }
         }
         $this->tarfile->tarWorkDone($httpReq);
+    }
+
+    public function clearHistory(VHubServerHTTPRequest $httpReq): void
+    {
+        // Create a list of files to delete, ordered by reverse position in tar file (to reduce rewrite)
+        $this->tarfile = $this->filesrv->accessDeviceFiles($httpReq, $this->serial);
+        $tarObjects = $this->tarfile->processTarFile($httpReq, 'datalogger/*', TAROP_WORKON_FILES);
+        usort($tarObjects, function(TarObject $a, TarObject $b) { return $b->tarOffset - $a->tarOffset; });
+        $removeList = [];
+        foreach($tarObjects as $tarObject) {
+            $removeList[] = $tarObject->path;
+        }
+        $this->tarfile->tarWorkDone($httpReq);
+
+        // Now delete data files
+        foreach($removeList as $path) {
+            $this->tarfile->processTarFile($httpReq, $path, TAROP_DELETE_FILE);
+        }
     }
 }

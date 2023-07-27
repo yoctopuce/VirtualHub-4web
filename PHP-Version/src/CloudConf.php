@@ -64,6 +64,7 @@ class DeviceCloudConf extends CloudConf
     public int $logPos;
     public int $tRepPos;
     public string $yfsVer;
+    public int $sleepAfterCallback;
 
     public function __construct()
     {
@@ -75,6 +76,7 @@ class DeviceCloudConf extends CloudConf
         $this->logPos = 0;
         $this->tRepPos = 0;
         $this->yfsVer = '';
+        $this->sleepAfterCallback = 0;
     }
 
     function loadState($httpReq, object $data): void
@@ -94,6 +96,9 @@ class DeviceCloudConf extends CloudConf
         }
         if(isset($data->yfsVer)) {
             $this->yfsVer = $data->yfsVer;
+        }
+        if(isset($data->sleepAfterCallback)) {
+            $this->sleepAfterCallback = $data->sleepAfterCallback;
         }
     }
 
@@ -115,6 +120,7 @@ class DeviceCloudConf extends CloudConf
             $res['tRepPos'] = $this->tRepPos;
         }
         $res['yfsVer'] = $this->yfsVer;
+        $res['sleepAfterCallback'] = $this->sleepAfterCallback;
         return $res;
     }
 }
@@ -383,12 +389,12 @@ class DeviceStats
             'sensorBufferUsage_percent' => new DailyStats(0, 0x7f007f),
             'errors_count' => new DailyStats(1, 0xdf0000),
             'warnings_count' => new DailyStats(1, 0xdf5f00),
-            'devices_count' => new DailyStats(1, 0x5f5f5f),
+            'devices_count' => new DailyStats(0, 0x2f2f2f),
             'resets_count' => new DailyStats(1, 0xe5b718),
-            'callbackIOReadTime_ms' => new DailyStats(0, 0x00006f),
-            'callbackProcessingTime_ms' => new DailyStats(0, 0x0000cf),
+            'callbackIOReadTime_ms' => new DailyStats(0, 0x0000cf),
+            'callbackProcessingTime_ms' => new DailyStats(0, 0x005f00),
             'dataReceived_bytes_kb' => new DailyStats(1024, 0x005f00),
-            'dataSent_bytes_kb' => new DailyStats(1024, 0x008f00)
+            'dataSent_bytes_kb' => new DailyStats(1024, 0x0000cf)
         ];
     }
 

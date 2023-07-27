@@ -67,6 +67,7 @@ class VHubServerHTTPRequest
     protected int $reqProcessTime;
     protected int $nErr;
     protected int $nWrn;
+    protected array $debugLevel;
     protected string $dataSent;
     protected string $clientIP;
     protected string $clientId;
@@ -86,6 +87,15 @@ class VHubServerHTTPRequest
         $this->reqProcessTime = $this->reqStartTime;
         $this->nErr = 0;
         $this->nWrn = 0;
+        $this->debugLevel = [
+            LOG_VHUBSERVER => DEFAULT_LOGLEVEL,
+            LOG_HTTPCALLBACK => DEFAULT_LOGLEVEL,
+            LOG_WSCALLBACK => DEFAULT_LOGLEVEL,
+            LOG_CLIENTREQ => DEFAULT_LOGLEVEL,
+            LOG_TARFILE => DEFAULT_LOGLEVEL,
+            LOG_DATALOGGER => DEFAULT_LOGLEVEL,
+            LOG_FILESYNC => DEFAULT_LOGLEVEL
+        ];
         $this->clientIP = $_SERVER['REMOTE_ADDR'];
         if(isset($_SERVER['HTTP_X_FORWARDED_FOR']) && $_SERVER['HTTP_X_FORWARDED_FOR']) {
             $this->clientIP = $_SERVER['HTTP_X_FORWARDED_FOR'];
@@ -118,6 +128,7 @@ class VHubServerHTTPRequest
                     $this->jsonPostData = json_decode($this->rawPostData, true);
                     //file_put_contents(VHUB4WEB_DATA.'/VHUB4WEB-postData.json', json_encode($this->jsonPostData, JSON_PRETTY_PRINT));
                 }
+
             }
             if($this->jsonPostData) {
                 if(isset($this->jsonPostData['x-yauth'])) {
@@ -166,7 +177,25 @@ class VHubServerHTTPRequest
             parse_str($query, $arguments);
             foreach($arguments as $name => $value) {
                 if(is_string($value)) {
-                    $this->args[$name] = $value;
+                    if(str_starts_with($name, 'vhub4web_dbg')) {
+                        // special handling to enable increasing specific log level per request
+                        $logType = substr($name, 12);
+                        $logLevel = max(min(intVal($value), 5), 3);
+                        if($logType == '') {
+                            foreach($this->debugLevel as $logTypeIdx => $level) {
+                                if($level < $logLevel) {
+                                    $this->debugLevel[$logTypeIdx] = $logLevel;
+                                }
+                            }
+                        } else {
+                            $logTypeIdx = intVal($logType);
+                            if($this->debugLevel[$logTypeIdx] < $logLevel) {
+                                $this->debugLevel[$logTypeIdx] = $logLevel;
+                            }
+                        }
+                    } else {
+                        $this->args[$name] = $value;
+                    }
                 }
             }
         }
@@ -195,6 +224,11 @@ class VHubServerHTTPRequest
     public function getWarningCount(): int
     {
         return $this->nWrn;
+    }
+
+    public function getLogLavel($logType): int
+    {
+        return $this->debugLevel[$logType];
     }
 
     public function incLogCount(int $logSeverity): void
@@ -282,7 +316,7 @@ class VHubServerHTTPRequest
         return '';
     }
 
-    public function newNonce(): string
+    public function newNonce(string $reason): string
     {
         $newSessions = [];
         if(!is_dir(VHUB4WEB_SESSIONS)) {
@@ -322,6 +356,8 @@ class VHubServerHTTPRequest
 
         // Create the new (empty) session file
         file_put_contents(VHUB4WEB_SESSIONS.'/'.$fname, '');
+        $sessionDesc = substr($fname, -9, 5);
+        VHubServer::Log($this, LOG_CLIENTREQ, 4, "Create new session $sessionDesc ($reason)");
 
         // If we have too many valid pending sessions, delay new allocations
         if(sizeof($newSessions) > SESSION_MAX_PENDING) {
@@ -331,22 +367,28 @@ class VHubServerHTTPRequest
         return $res;
     }
 
-    public function checkSession(string $nonce, &$A1 = null): bool
+    public function checkSession(string $nonce, &$A1 = null): string
     {
         if(!is_dir(VHUB4WEB_SESSIONS)) {
-            return false;
+            return "no sessions";
         }
         $actfile = VHUB4WEB_SESSIONS."/{$nonce}_act";
         if(!file_exists($actfile)) {
-            return false;
+            return "invalid session";
         }
         $data = explode(':', file_get_contents($actfile));
-        if(sizeof($data) < 2 || time()-hexdec($data[0]) > SESSION_MAX_INACTIVITY) {
+        if(sizeof($data) < 2) {
             try { @unlink($actfile); } catch(Throwable $e) {}
-            return false;
+            return "bad session";
+        }
+        if(time()-hexdec($data[0]) > SESSION_MAX_INACTIVITY) {
+            try { @unlink($actfile); } catch(Throwable $e) {}
+            $sessionDesc = substr($nonce, -5);
+            VHubServer::Log($this, LOG_CLIENTREQ, 4, "Session $sessionDesc expired for ".(time()-hexdec($data[0]))." seconds");
+            return "session expired";
         }
         $A1 = $data[1];
-        return true;
+        return "OK";
     }
 
     public function touchSession(string $nonce, string $A1)
@@ -356,32 +398,37 @@ class VHubServerHTTPRequest
         }
         $actfile = VHUB4WEB_SESSIONS."/{$nonce}_act";
         file_put_contents($actfile, dechex(time()).':'.$A1);
+        $sessionDesc = substr($nonce, -5);
+        VHubServer::Log($this, LOG_CLIENTREQ, 5, "Touch session $sessionDesc");
     }
 
-    public function checkPassword(string $password): bool
+    public function checkPassword(string $password): string
     {
         $authvals = $this->authParams;
         $reqkeys = [ 'uri', 'nonce', 'nc', 'cnonce', 'qop', 'response' ];
         foreach($reqkeys as $key) {
             if(!isset($authvals[$key]) || !is_string($authvals[$key])) {
                 VHubServer::Log($this, LOG_CLIENTREQ, 3, "Missing x-yauth parameter {$key}");
-                return false;
+                return "missing x-yauth";
             }
         }
         if(!is_dir(VHUB4WEB_SESSIONS)) {
-            return false;
+            return "no sessions";
         }
         $nonce = $authvals['nonce'];
         if(!preg_match('/^([0-9a-f]{20})$/', $nonce)) {
-            return false;
+            return "bad nonce";
         }
         $newSessionFile = VHUB4WEB_SESSIONS."/{$nonce}_new";
         if(file_exists($newSessionFile)) {
             // new session with a valid nonce, check signature against password
             try { @unlink($newSessionFile); } catch(Throwable $e) {}
             $A1 = bin2hex(substr(base64_decode($password),1));
-        } else if(!$this->checkSession($nonce, $A1)) {
-            return false; // invalid nonce (possibly expired)
+        } else {
+            $sessChk = $this->checkSession($nonce, $A1);
+            if($sessChk != "OK") {
+                return $sessChk; // invalid nonce (possibly expired)
+            }
         }
         if($authvals['type'] == 'x-yauth') {
             $A2 = sha1($this->method.':'.$authvals['uri']);
@@ -391,10 +438,10 @@ class VHubServerHTTPRequest
             $signature = md5($A1.':'.$authvals['nonce'].':'.$authvals['nc'].':'.$authvals['cnonce'].':'.$authvals['qop'].':'.$A2);
         }
         if($authvals['response'] != $signature) {
-            return false;
+            return "bad signature";
         }
         $this->touchSession($nonce, $A1);
-        return true;
+        return "OK";
     }
 
     public function setAuthUser(string $username): void
@@ -454,17 +501,27 @@ class VHubServerHTTPRequest
             // Request standard digest authentication
             $this->putStatus(401);
             $this->putHeader('WWW-Authenticate: Digest realm="' . $realm .
-                '",qop="auth",nonce="' . $this->newNonce() . '",opaque="' . md5($realm) . '"');
+                '",qop="auth",nonce="' . $this->newNonce($reason) . '",opaque="' . md5($realm) . '"');
         }
         $this->putHeader('X-Auth-Error: ' . $reason);
         // mark user as not authentified
         $this->setAuthUser('');
     }
 
-    public function put(string $message): void
+    // Send a string (internally stored in UTF-8) to the HTTP output, after converting it to iso-8859-1
+    // (as this is the default used by YoctoHubs, and we must stick to it)
+    public function putStr(string $message): void
     {
+        $message = iconv("UTF-8", "ISO-8859-1", $message);
         $this->dataSent .= $message;
         Print($message);
+    }
+
+    // Send a binary buffer (or possibly an iso-8859-1 text) to the HTTP output
+    public function putBin(string $binstr): void
+    {
+        $this->dataSent .= $binstr;
+        Print($binstr);
     }
 
     public function getDataReceived(): int
@@ -532,16 +589,6 @@ class PhpErrorException extends Exception
 class VHubServer
 {
     // Static properties (globals)
-    public static array $DebugLevel = [
-        LOG_VHUBSERVER => DEFAULT_LOGLEVEL,
-        LOG_HTTPCALLBACK => DEFAULT_LOGLEVEL,
-        LOG_WSCALLBACK => DEFAULT_LOGLEVEL,
-        LOG_CLIENTREQ => DEFAULT_LOGLEVEL,
-        LOG_TARFILE => DEFAULT_LOGLEVEL,
-        LOG_DATALOGGER => DEFAULT_LOGLEVEL,
-        LOG_FILESYNC => DEFAULT_LOGLEVEL
-    ];
-
     public static array $DebugLevels = [ 'SOS - ', 'ERR - ', 'WRN - ', 'INF - ', 'NOT - ', 'DBG -' ];
 
     public static array $DebugName = [
@@ -567,6 +614,8 @@ class VHubServer
     protected array $safeFiles = [ 'iframe.html', 'webapp.html', 'ssdp.xml', 'index.html', 'info.json', 'favicon.svg', 'favicon.ico' ];
     // Extra parameters that do not require admin rights:
     protected array $safeParams = [ 'node', 'abs', 'ctx', 'dir', 'fw', 'hub', 'len', 'pos', 'rnd', 'scr', 'logUrl', 'id', 'run', 'utc', 'from', 'to' ];
+    // Sensitive files (require admin rights for reading):
+    protected array $sensitiveFiles = [ 'clientRequests.bin', 'debugTraces.bin' ];
 
     protected static VHubServerHTTPRequest $CurrentHTTPRequest;
 
@@ -642,7 +691,7 @@ class VHubServer
      */
     public static function Log(VHubServerHTTPRequest $httpReq, int $logType, int $logLevel, string $message): void
     {
-        if ($logLevel <= VHubServer::$DebugLevel[$logType]) {
+        if ($logLevel <= $httpReq->getLogLavel($logType)) {
             $logfile = VHUB4WEB_DATA.'/VHUB4WEB-logs.txt';
             $fullmsg = date('Y-m-d H:i:s ',time()).
                 VHubServer::$DebugName[$logType].VHubServer::$DebugLevels[$logLevel].
@@ -661,28 +710,30 @@ class VHubServer
     public static function Abort(VHubServerHTTPRequest $httpReq, string $message, array $stackTrace = []): void
     {
         VHubServer::Log($httpReq, LOG_VHUBSERVER, 0, $message);
-        $httpReq->put(htmlspecialchars($message)."\n");
+        $httpReq->putStr(htmlspecialchars($message)."\n");
         // If the fatal error is caused by a hub callback, keep the latest trace in a separate text file
         $hubSerial = $httpReq->getClientSerial();
-        if($hubSerial) {
-            $tracefile = VHUB4WEB_DATA."/{$hubSerial}-fatal.trace";
-            $tracedata = $httpReq->getRequestTrace();
-            // append full debug information to trace file
-            $tracedata .= "--- Fatal Error:\r\n{$message}\r\n";
-            for($i = 0; $i < sizeof($stackTrace); $i++) {
-                $origin = basename($stackTrace[$i]['file']).':'.$stackTrace[$i]['line'];
-                if($i+1 < sizeof($stackTrace)) {
-                    $nextLevel = $stackTrace[$i + 1];
-                    $classPrefix = '';
-                    if (isset($nextLevel['class']) && $nextLevel['class'] != '') {
-                        $classPrefix = $nextLevel['class'] . '::';
-                    }
-                    $origin = $classPrefix . $stackTrace[$i + 1]['function'] . " ({$origin})";
-                }
-                $tracedata .= "called from {$origin}\r\n";
-            }
-            file_put_contents($tracefile, $tracedata);
+        if(!$hubSerial) {
+            // when the serial number is unknown, use a default prefix
+            $hubSerial = 'UNKNOWN';
         }
+        $tracefile = VHUB4WEB_DATA."/{$hubSerial}-fatal.trace";
+        $tracedata = $httpReq->getRequestTrace();
+        // append full debug information to trace file
+        $tracedata .= "--- Fatal Error:\r\n{$message}\r\n";
+        for($i = 0; $i < sizeof($stackTrace); $i++) {
+            $origin = basename($stackTrace[$i]['file']).':'.$stackTrace[$i]['line'];
+            if($i+1 < sizeof($stackTrace)) {
+                $nextLevel = $stackTrace[$i + 1];
+                $classPrefix = '';
+                if (isset($nextLevel['class']) && $nextLevel['class'] != '') {
+                    $classPrefix = $nextLevel['class'] . '::';
+                }
+                $origin = $classPrefix . $stackTrace[$i + 1]['function'] . " ({$origin})";
+            }
+            $tracedata .= "called from {$origin}\r\n";
+        }
+        file_put_contents($tracefile, $tracedata);
         die("\nAbort.\n");
     }
 
@@ -773,21 +824,39 @@ class VHubServer
 
         $server->prepareToNotify($httpReq);
         $nReset = 0;
-        $nDevices = $server->discoverDevices($httpReq, $nReset);
+        $willReconnect = false;
+        $nDevices = $server->discoverDevices($httpReq, $nReset, $willReconnect);
         $server->transferDeviceFiles($httpReq);
         if(isset($jsonPostData['tRepBuf'])) {
             $tRepBufSize = $jsonPostData['tRepBuf'];
             $tRepDataSize = $server->processTimedReports($httpReq, $hubSerial);
             $tRepUsage = intVal(round(100 * $tRepDataSize / $tRepBufSize));
+            if($tRepDataSize < 0) {
+                // tRep not available yet, force immediate reconnect
+                if(!$willReconnect) {
+                    $server->sendCallbackApiCommand($httpReq, '%');
+                    $willReconnect = true;
+                }
+            }
         } else {
             $server->emulateTimedReports($httpReq);
             $tRepUsage = -1;
         }
-        $server->executePendingQueries($httpReq, $network->get_serialNumber());
+        if($server->executePendingQueries($httpReq, $network->get_serialNumber())) {
+            $willReconnect = true;
+        }
+        if(!$willReconnect && $server->apiroot->bySerial->hasSubnode($hubSerial)) {
+            $apinode = $server->apiroot->bySerial->subnode($hubSerial);
+            $devapi = $apinode->subnode('api');
+            if($apinode->cloudConf->sleepAfterCallback && $devapi->hasSubnode('wakeUpMonitor')) {
+                VHubServer::Log($httpReq, LOG_HTTPCALLBACK, 4, "Sending hub {$hubSerial} to sleep in 3 seconds");
+                $server->sendCallbackApiCommand($httpReq, 'GET /api/wakeUpMonitor/sleepCountdown?sleepCountdown=3&.');
+            }
+        }
         $server->saveDeviceState($httpReq);
         $server->saveState($httpReq);
         $server->closeNotificationStream($httpReq);
-        $httpReq->put('VirtualHub-4web callback complete.');
+        $httpReq->putStr('VirtualHub-4web callback complete.');
         // Save last request for trace purposes
         if($httpReq->getErrorCount() > 0) {
             $reqfile = 'lastError.trace';
@@ -871,7 +940,7 @@ class VHubServer
             }
         }
         if($adminPwd) {
-            if($httpReq->getMethod() != 'GET') {
+            if($httpReq->getMethod() != 'GET' || array_search($filename, $server->sensitiveFiles) !== false) {
                 $requiresAuth = true;
                 $requiresAdmin = true;
             } else if($nodepath[0] != 'iframe') {
@@ -883,6 +952,10 @@ class VHubServer
                     $requiresAuth = true;
                     $requiresAdmin = true;
                     break;
+                }
+                if($filename == 'not.byn' && $httpReq->getAuthUser()) {
+                    // make sure to touch session frequently (keep-alive)
+                    $requiresAuth = true;
                 }
             }
         }
@@ -936,7 +1009,7 @@ class VHubServer
                     $server->serveNotifications($httpReq);
                     return;
                 case 'flash.json':          // flash.json?a=list - ignore for now
-                    $httpReq->put('{"total":0, "list":[]}');
+                    $httpReq->putStr('{"total":0, "list":[]}');
                     return;
                 case 'getInstaller.json':   // getInstaller.json?forVersion=...
                     $server->serveInstaller($httpReq);
@@ -967,6 +1040,12 @@ class VHubServer
                     return;
                 case 'Yv4wI.js':
                     $server->serveYV4webInstaller($httpReq);
+                    return;
+                case 'clientRequests.bin':
+                    $server->serveClientRequests($httpReq);
+                    return;
+                case 'debugTraces.bin':
+                    $server->serveDebug($httpReq);
                     return;
                 default:
                     $server->files->sendFile($httpReq, $reqpath, $extension);
@@ -1320,12 +1399,13 @@ class VHubServer
 
     /**
      * urlencode according to RFC 3986 instead of php default RFC 1738
+     * BUT use iso-8859-1 encoding since this is for Yoctopuce modules
      */
     public function _escapeAttr(string $attrval): string
     {
         $safecodes = [ '%21', '%23', '%24', '%27', '%28', '%29', '%2A', '%2C', '%2F', '%3A', '%3B', '%40', '%3F', '%5B', '%5D' ];
         $safechars = [ '!', "#", "$", "'", "(", ")", '*', ",", "/", ":", ";", "@", "?", "[", "]" ];
-        return str_replace($safecodes, $safechars, urlencode($attrval));
+        return str_replace($safecodes, $safechars, urlencode(iconv("UTF-8", "ISO-8859-1", $attrval)));
     }
 
     /**
@@ -1346,7 +1426,8 @@ class VHubServer
 
         // check password
         $pwd = $this->apiroot->api->network->getattr($user.'Password');
-        if(!$httpReq->checkPassword($pwd)) {
+        $pwdCheck = $httpReq->checkPassword($pwd);
+        if($pwdCheck != 'OK') {
             VHubServer::Log($httpReq, LOG_VHUBSERVER, 4, "Authentication failure for user {$user} from IP ".$httpReq->getClientIP());
             $httpReq->requestAuthentication($realm, "Invalid credentials for user {$user}");
             return false;
@@ -1376,6 +1457,7 @@ class VHubServer
      */
     public function scheduleQueryOnDevice(VHubServerHTTPRequest $httpReq, string $targetSerial, string $reqType, string $url, string $body = ''): void
     {
+        VHubServer::Log($httpReq, LOG_VHUBSERVER, 2, "Request for {$targetSerial}: {$reqType} {$url}");
         $deviceNode = $this->apiroot->bySerial->subnode($targetSerial);
         $rootHub = $deviceNode->cloudConf->parentHub;
         if($rootHub == '') {
@@ -1397,28 +1479,36 @@ class VHubServer
      */
     public function sendCallbackApiCommand(VHubServerHTTPRequest $httpReq, string $command, ?string $extradata = null): void
     {
-        VHubServer::Log($httpReq, LOG_VHUBSERVER, 5, "@YoctoAPI:".$command);
-        $httpReq->put("\n@YoctoAPI:{$command}\n");
+        VHubServer::Log($httpReq, LOG_HTTPCALLBACK, 5, "@YoctoAPI:".$command);
+        $httpReq->putStr("\n@YoctoAPI:{$command}\n");
         if(!is_null($extradata)) {
-            $httpReq->put($extradata."\n");
+            $httpReq->putBin($extradata."\n");
         }
     }
 
     /*
-     * Execute pending queries when a device is connected
+     * Execute pending queries when a device is connected.
+     * Return true if the device will reconnect after having applied requests
      */
-    public function executePendingQueries(VHubServerHTTPRequest $httpReq, string $rootHub): void
+    public function executePendingQueries(VHubServerHTTPRequest $httpReq, string $rootHub): bool
     {
         // check if there are pending queries for the specified root hub
         $pendingfile = $this->datadir.$rootHub.'-pending.req';
         if(!file_exists($pendingfile)) {
-            return;
+            return false;
         }
         // load and unlink (atomically) pending reqiests
         $runningfile = str_replace('pending', 'running', $pendingfile);
         rename($pendingfile, $runningfile);
         $requests = preg_split('/\r\n|\r|\n/', file_get_contents($runningfile));
         unlink($runningfile);
+
+        // prepare to keep trace of executed commands
+        $history = $this->files->loadDeviceFile($httpReq, $rootHub, 'lastQueries.req');
+        if(is_null($history)) {
+            $history = '';
+        }
+        $prefix = date('Y-m-d_H:i:s ',time()).'RUN ';
         for($i = 0; $i < sizeof($requests); $i++) {
             $req = explode(' ', $requests[$i]);
             if(sizeof($req) < 3) {
@@ -1426,12 +1516,13 @@ class VHubServer
             }
             $reqUrl = trim($req[2]);
             if($req[1] == 'GET') {
-                VHubServer::Log($httpReq, LOG_VHUBSERVER, 4, "Execute GET ".json_encode($reqUrl));
+                VHubServer::Log($httpReq, LOG_HTTPCALLBACK, 4, "Execute GET ".json_encode($reqUrl));
                 $this->sendCallbackApiCommand($httpReq, 'GET '.$reqUrl);
+                $history .= $prefix.$requests[$i]."\n";
             } else if($req[1] == 'POST') {
                 if($i+1 >= sizeof($requests)) {
-                    VHubServer::Log($httpReq, LOG_VHUBSERVER, 2, "Cannot execute POST request on {$reqUrl}, missing body");
-                    return;
+                    VHubServer::Log($httpReq, LOG_HTTPCALLBACK, 2, "Cannot execute POST request on {$reqUrl}, missing body");
+                    break;
                 }
                 $str_body = base64_decode($requests[++$i]);
                 $boundary = '???';
@@ -1440,10 +1531,24 @@ class VHubServer
                     $boundary = substr($str_body, 2, $endb - 2);
                 }
                 $this->sendCallbackApiCommand($httpReq, 'POST '.$reqUrl.' '.strlen($str_body).':'.$boundary, $str_body);
+                $history .= $prefix.$requests[$i-1]."\n";
             }
         }
-        // requests have been executed, force next callback immediately
+        // save a trace of executed requests in yoctohub command history
+        $newlen = strlen($history);
+        if($newlen > LASTQUERIES_MAX_SIZE) {
+            $newstart = strpos($history, "\n", $newlen - LASTQUERIES_MAX_SIZE);
+            if($newstart === FALSE) {
+                $history = '';
+            } else {
+                $history = substr($history, $newstart+1);
+            }
+        }
+        $this->files->saveDeviceFile($httpReq, $rootHub, 'lastQueries.req', $history);
+
+        // requests have been executed, force next callback immediately to update API values
         $this->sendCallbackApiCommand($httpReq, '%');
+        return true;
     }
 
     public function tryDownload(VHubServerHTTPRequest $httpReq, string $serial, string $fname, bool $requestAgain): ?string
@@ -1467,7 +1572,7 @@ class VHubServer
         } catch(Throwable $exception) {
             // Most probably caused by the file content not being posted in the HTTP callback data
             $serial = $module->get_serialNumber();
-            VHubServer::Log($httpReq, LOG_VHUBSERVER, 5, "Cannot load {$fname} from {$serial}: ".$exception->getMessage());
+            VHubServer::Log($httpReq, LOG_HTTPCALLBACK, 5, "Cannot load {$fname} from {$serial}: ".$exception->getMessage());
         }
         return null;
     }
@@ -1476,7 +1581,7 @@ class VHubServer
      * Discover connected devices (when Yocto-API is available, e.g. during HTTP Callback)
      * Return the number of discovered devices
      */
-    public function discoverDevices(VHubServerHTTPRequest $httpReq, &$nReset): int
+    public function discoverDevices(VHubServerHTTPRequest $httpReq, &$nReset, &$willReconnect): int
     {
         // First create a list of modules with yoctohubs at the bottoms, and the virtualhubs at the very end
         $clientIP = $httpReq->getClientIP();
@@ -1524,10 +1629,13 @@ class VHubServer
                 $apinode->loadState($httpReq, $apiobj, true);
                 // detect device resets
                 $newUptime = $apinode->api->module->getattr('upTime');
-                $deltaUptime = ($newUptime - $prevUptime) & 0xffffffff;
-                $safeUptimeSec = intdiv(max($newUptime, $deltaUptime), 1000);
+                $deltaUptime = ($newUptime - $prevUptime) & 0xffffffff; // take care of uptime wrap
+                if($deltaUptime >= 0x8000000) { // negative difference
+                    $deltaUptime = $newUptime;
+                }
+                $deltaUptimeSec = intdiv($deltaUptime, 1000);
                 // Ensure that uptime difference matches expectations with 2 % margin + 10 sec
-                $wasReset = abs($safeUptimeSec - $lastSeen) < (0.02*$lastSeen + 10);
+                $wasReset = abs($deltaUptimeSec - $lastSeen) > (0.02*$lastSeen + 10);
                 if($wasReset) {
                     $apinode->cloudConf->deviceResetDetected();
                     $nReset++;
@@ -1539,9 +1647,10 @@ class VHubServer
             }
             $apinode->cloudConf->lastSeen = time();
             if($apinode->cloudConf->reconnect) {
-                VHubServer::Log($httpReq, LOG_VHUBSERVER, 3, "Fast reconnect requested for {$serial}");
+                VHubServer::Log($httpReq, LOG_HTTPCALLBACK, 3, "Fast reconnect requested for {$serial}");
                 $apinode->cloudConf->reconnect = 0;
                 $this->sendCallbackApiCommand($httpReq, '%');
+                $willReconnect = true;
             }
             $apinode->markAsChanged();
             if(isset($apiobj->api->services) && substr($serial, 0, 7) != 'YHUBSHL') {
@@ -1560,7 +1669,7 @@ class VHubServer
                     $subserial = $wpentry->serialNumber;
                     if(!$this->apiroot->bySerial->hasSubnode($subserial)) {
                         // device is supposed to have been loaded first
-                        VHubServer::Log($httpReq, LOG_VHUBSERVER, 4, "Dropping services for unknown serial {$subserial}; possibly a subdevice of a hub connected via USB?");
+                        VHubServer::Log($httpReq, LOG_HTTPCALLBACK, 4, "Dropping services for unknown serial {$subserial}; possibly a subdevice of a hub connected via USB?");
                         continue;
                     }
                     $apisubnode = $this->apiroot->bySerial->subnode($subserial);
@@ -1680,9 +1789,9 @@ class VHubServer
             } catch(Throwable $exception) {
                 $msg = $exception->getMessage();
                 if(!str_contains($msg, 'Network error')) {
-                    VHubServer::Log($httpReq, LOG_VHUBSERVER, 2, "Failed to open logs.txt for {$serial}: ".$msg);
+                    VHubServer::Log($httpReq, LOG_HTTPCALLBACK, 2, "Failed to open logs.txt for {$serial}: ".$msg);
                 }
-                $httpReq->put('logs.txt not available: '.$exception->getMessage()."\r\n");
+                $httpReq->putStr('logs.txt not available: '.$exception->getMessage()."\r\n");
             }
 
             // Download extra files for specific modules/functions
@@ -1738,12 +1847,12 @@ class VHubServer
         } catch(Throwable $exception) {
             $msg = $exception->getMessage();
             if(!str_contains($msg, 'Network error')) {
-                VHubServer::Log($httpReq, LOG_VHUBSERVER, 2, "Failed to open tRep.bin file for {$hubSerial}: ".$msg);
+                VHubServer::Log($httpReq, LOG_HTTPCALLBACK, 2, "Failed to open tRep.bin file for {$hubSerial}: ".$msg);
             }
-            $httpReq->put('tRep.bin not available: '.$exception->getMessage()."\r\n");
+            $httpReq->putStr('tRep.bin not available: '.$exception->getMessage()."\r\n");
         }
         if(is_null($tRep)) {
-            VHubServer::Log($httpReq, LOG_VHUBSERVER, 4, "tRep not available for now");
+            VHubServer::Log($httpReq, LOG_HTTPCALLBACK, 4, "tRep not available for now");
             return -1;
         }
 
@@ -1825,7 +1934,16 @@ class VHubServer
                     }
                 } else if($module->functionId($i) == 'dataLogger') {
                     $functionNode = $deviceApiNode->subnode('dataLogger');
-                    $timestamp = $functionNode->get_timeUTC();
+                    $devTimestamp = $functionNode->get_timeUTC();
+                    if($devTimestamp > $timestamp+2*86400) {
+                        // device timestamp more than a day in the future, this should never happen
+                        VHubServer::Log($httpReq, LOG_HTTPCALLBACK, 2, "Timestamp of {$serial} is more than a 48h in the future (".$devTimestamp."), using server time");
+                    } else if($devTimestamp < $timestamp-2*86400) {
+                        // device timestamp more than a day in the past, this should never happen
+                        VHubServer::Log($httpReq, LOG_HTTPCALLBACK, 2, "Timestamp of {$serial} is more than a 48h in the past (".$devTimestamp."), using server time");
+                    } else {
+                        $timestamp = $devTimestamp;
+                    }
                 }
             }
             if(sizeof($values) > 0) {
@@ -1883,7 +2001,7 @@ class VHubServer
         [ $apinode, $ctxnode, $subkey ] = $this->apiroot->search($nodepath, $ctxpath);
         if(is_null($apinode)) {
             $httpReq->putStatus(404);
-            $httpReq->put("Sorry, the requested node ".htmlspecialchars(implode('/',$nodepath))." does not exist [vhub4web]\r\n");
+            $httpReq->putStr("Sorry, the requested node ".htmlspecialchars(implode('/',$nodepath))." does not exist [vhub4web]\r\n");
             return;
         }
         if(!is_null($ctxnode)) {
@@ -1894,17 +2012,18 @@ class VHubServer
                 $deviceNode->cloudConf->reconnect = 1;
                 $deviceNode->markAsChanged();
                 $this->saveState($httpReq);
-                $httpReq->put("%OK");
+                $httpReq->putStr("%OK");
                 return;
             }
             // Apply changes to API nodes
             foreach($httpReq->getAllArgs() as $setattr => $setval) {
+                $isAscii = !preg_match('~[\x7f-\xff]~', $setval);
+                $isUtf8 = $isAscii || preg_match('~^([\x00-\x7f]|[\xC2-\xC3][\x80-\xBF])+$~', $setval);
+                if(!$isUtf8) {
+                    $setval = iconv("ISO-8859-1", "UTF-8", $setval);
+                }
                 if(array_search($setattr, ['node','fw','checkRW','rnd','ctx','scr','abs','dir','hub','len','pos','_','serialNumber','w']) !== FALSE) {
                     // not real attributes change, shortcut
-                    continue;
-                }
-                if($ctxnode->fclass == 'DataLogger') {
-                    // Do not forward any datalogger requests for now
                     continue;
                 }
                 if($setattr == 'persistentSettings' && $setval == '2') {
@@ -1914,9 +2033,9 @@ class VHubServer
                 } else if($setattr != 'command') {
                     // - special attribute command is never stored in the api
                     VHubServer::Log($httpReq, LOG_VHUBSERVER, 4, "API requests attribute change: {$setattr} = {$setval} on ".json_encode($nodepath));
-                    $ctxnode->setattr($setattr, $setval);
+                    $ctxnode->setattr($httpReq, $setattr, $setval);
                 }
-                if($nodepath[0] == 'bySerial') {
+                if($nodepath[0] == 'bySerial' && $ctxnode->fclass != 'DataLogger') {
                     // for remote devices, record change to perform next time the device becomes available
                     $relpath = array_merge(array_slice($nodepath, 2), $ctxpath, [ $setattr ]);
                     $changereq = '/'.implode('/', $relpath).'?'.$setattr.'='.$this->_escapeAttr($setval);
@@ -1925,60 +2044,62 @@ class VHubServer
             }
             $this->saveState($httpReq);
         }
-        if(is_null($subkey)) {
-            // Display node
-            $this->files->sendContentHeader($httpReq, $disptype);
-            switch($disptype) {
-                case 'json':
-                    $apinode->printJSON($httpReq);
-                    break;
-                case 'jzon':
-                    $apinode->printJZON($httpReq);
-                    break;
-                case '':
-                case 'html':
-                    $devicedir = '';
-                    for($i = sizeof($nodepath)-1; $i > 0 && $nodepath[$i] != 'api'; $i--) {
-                        $devicedir .= '../';
-                    }
-                    for($basedir = $devicedir; $i > 0; $i--) {
-                        $basedir .= '../';
-                    }
-                    $baseHRef = ($basedir != '' ? "<BASE href='{$basedir}'/>" : '');
-                    $action = $httpReq->getNode();
-                    $httpReq->put("<!DOCTYPE html>{$baseHRef}".
-                        "<link href='edithtml.css' rel=stylesheet type='text/css'/>".
-                        "<SCRIPT src='edithtml.js'></SCRIPT><SCRIPT src='js/edit.js'></SCRIPT>".
-                        "<BODY onload='rescroll()'><form method='get' action='{$action}'>".
-                        "<INPUT type='hidden' name='scr'><INPUT type='hidden' name='ctx'>");
-                    $apinode->printHTML($httpReq, $apinode->name);
-                    $httpReq->put('</FORM>');
-                    break;
-                case 'txt':
-                    $apinode->printTXT($httpReq, $apinode->name);
-                    break;
-                case 'xml':
-                    $httpReq->put('<'.'?xml version=\"1.0\"?'.">\r\n");
-                    $apinode->printXML($httpReq, $apinode->name);
-                    break;
-            }
-        } else if(!$httpReq->isShortReq()) {
-            // Display value
-            switch($disptype) {
-                case 'json':
-                case 'jzon':
-                    $apinode->printJSONValue($httpReq, $subkey);
-                    break;
-                case 'txt':
-                    $apinode->printTXTValue($httpReq, $subkey);
-                    break;
-                case '':
-                case 'html':
-                    $apinode->printHTMLValue($httpReq, $subkey);
-                    break;
-                case 'xml':
-                    $apinode->printXMLValue($httpReq, $subkey);
-                    break;
+        if(!$httpReq->isShortReq()) {
+            if (is_null($subkey)) {
+                // Display node
+                $this->files->sendContentHeader($httpReq, $disptype);
+                switch ($disptype) {
+                    case 'json':
+                        $apinode->printJSON($httpReq);
+                        break;
+                    case 'jzon':
+                        $apinode->printJZON($httpReq);
+                        break;
+                    case '':
+                    case 'html':
+                        $devicedir = '';
+                        for ($i = sizeof($nodepath) - 1; $i > 0 && $nodepath[$i] != 'api'; $i--) {
+                            $devicedir .= '../';
+                        }
+                        for ($basedir = $devicedir; $i > 0; $i--) {
+                            $basedir .= '../';
+                        }
+                        $baseHRef = ($basedir != '' ? "<BASE href='{$basedir}'/>" : '');
+                        $action = $httpReq->getNode();
+                        $httpReq->putStr("<!DOCTYPE html>{$baseHRef}" .
+                            "<link href='edithtml.css' rel=stylesheet type='text/css'/>" .
+                            "<SCRIPT src='edithtml.js'></SCRIPT><SCRIPT src='js/edit.js'></SCRIPT>" .
+                            "<BODY onload='rescroll()'><form method='get' action='{$action}'>" .
+                            "<INPUT type='hidden' name='scr'><INPUT type='hidden' name='ctx'>");
+                        $apinode->printHTML($httpReq, $apinode->name);
+                        $httpReq->putStr('</FORM>');
+                        break;
+                    case 'txt':
+                        $apinode->printTXT($httpReq, $apinode->name);
+                        break;
+                    case 'xml':
+                        $httpReq->putStr('<' . '?xml version=\"1.0\"?' . ">\r\n");
+                        $apinode->printXML($httpReq, $apinode->name);
+                        break;
+                }
+            } else {
+                // Display value
+                switch ($disptype) {
+                    case 'json':
+                    case 'jzon':
+                        $apinode->printJSONValue($httpReq, $subkey);
+                        break;
+                    case 'txt':
+                        $apinode->printTXTValue($httpReq, $subkey);
+                        break;
+                    case '':
+                    case 'html':
+                        $apinode->printHTMLValue($httpReq, $subkey);
+                        break;
+                    case 'xml':
+                        $apinode->printXMLValue($httpReq, $subkey);
+                        break;
+                }
             }
         }
     }
@@ -2005,7 +2126,7 @@ class VHubServer
                 $res['error'] = $ex->getMessage();
             }
             $this->files->sendContentHeader($httpReq, 'json');
-            $httpReq->put(json_encode($res, JSON_UNESCAPED_SLASHES));
+            $httpReq->putStr(json_encode($res, JSON_UNESCAPED_SLASHES));
             return;
         }
 
@@ -2061,7 +2182,7 @@ class VHubServer
             }
         }
         $this->files->sendContentHeader($httpReq, 'json');
-        $httpReq->put(json_encode($res, JSON_UNESCAPED_SLASHES));
+        $httpReq->putStr(json_encode($res, JSON_UNESCAPED_SLASHES));
     }
 
     /**
@@ -2086,10 +2207,10 @@ class VHubServer
             "port" => [ $protocol.':'.$this->apiroot->api->network->getattr('httpPort') ],
             "protocol" => "HTTP/1.1",
             "realm" =>  $this->apiroot->cloudConf->authRealm,
-            "nonce" => $httpReq->newNonce()
+            "nonce" => $httpReq->newNonce("servInfo")
         ];
         $this->files->sendContentHeader($httpReq, 'json');
-        $httpReq->put(json_encode($info, JSON_UNESCAPED_SLASHES));
+        $httpReq->putStr(json_encode($info, JSON_UNESCAPED_SLASHES));
     }
 
     /**
@@ -2115,7 +2236,101 @@ class VHubServer
             }
         }
         $this->files->sendContentHeader($httpReq, 'json');
-        $httpReq->put(json_encode($stats, JSON_UNESCAPED_SLASHES));
+        $httpReq->putStr(json_encode($stats, JSON_UNESCAPED_SLASHES));
+    }
+
+    public function serveClientRequests(VHubServerHTTPRequest $httpReq): void
+    {
+        $rootHub = $httpReq->getArg('rootHub');
+        $clearPending = $httpReq->getArg('clearPending');
+        $res = '';
+        if($rootHub) {
+            // load past requests
+            $history = $this->files->loadDeviceFile($httpReq, $rootHub, 'lastQueries.req');
+            if(!is_null($history)) {
+                $res .= $history;
+            }
+            // add get pending requests
+            $pendingfile = $this->datadir.$rootHub.'-pending.req';
+            if(file_exists($pendingfile)) {
+                if($clearPending) {
+                    unlink($pendingfile);
+                } else {
+                    $pending = file_get_contents($pendingfile);
+                    if(!is_null($pending)) {
+                        $res .= $pending;
+                    }
+                }
+            }
+        }
+        $this->files->sendContentHeader($httpReq, 'dbg');
+        $httpReq->putStr($res);
+    }
+
+    /**
+     * Send internal debug files for diagnosis purposes - requires admin privileges
+     */
+    public function serveDebug(VHubServerHTTPRequest $httpReq): void
+    {
+        $rootHub = $httpReq->getArg('rootHub');
+        $this->files->sendContentHeader($httpReq, 'dbg');
+
+        if(!$rootHub) {
+            // dump server files
+            $httpReq->putStr("**********[ Server files ]**********\r\n\r\n");
+            $allfiles = glob(VHUB4WEB_DATA.'/'.'*.*', GLOB_NOESCAPE);
+            $fnameofs = strlen(VHUB4WEB_DATA)+1;
+            foreach($allfiles as $fpath) {
+                if(is_file($fpath)) {
+                    $fsize = filesize($fpath);
+                    $fname = substr($fpath, $fnameofs);
+                    $httpReq->putStr(sprintf("%-35s %9d bytes\r\n", $fname, $fsize));
+                }
+            }
+            $httpReq->putStr("\r\n\r\n");
+        }
+
+        // dump hub traces
+        if(!$rootHub) {
+            $tarfiles = glob(VHUB4WEB_DATA . '/????????-?*.tar', GLOB_NOESCAPE);
+        } else {
+            $tarfiles = glob(VHUB4WEB_DATA . '/' . $rootHub . '.tar', GLOB_NOESCAPE);
+        }
+        foreach($tarfiles as $tarname) {
+            if(!preg_match('~/([A-Z0-9]+-[0-9a-fA-F]+).tar$~', $tarname, $matches)) {
+                continue;
+            }
+            $serial = $matches[1];
+            $tarfile = $this->files->accessDeviceFiles($httpReq, $serial);
+            $objs = $tarfile->processTarFile($httpReq, '*.trace', TAROP_LIST_FILES);
+            usort($objs, function(TarObject $a, TarObject $b) { return strcmp($a->path, $b->path); });
+            foreach($objs as $objlistItem) {
+                $objname = $objlistItem->path;
+                $obj = $tarfile->searchTarFile($httpReq, $objname);
+                if(is_null($obj)) {
+                    continue;
+                }
+                $httpReq->putStr("**********[ $serial.tar/$objname ]**********\r\n\r\n");
+                $httpReq->putBin($obj->content);
+                $httpReq->putStr("\r\n\r\n");
+            }
+        }
+
+        // dump root traces
+        if(!$rootHub) {
+            $tracefiles = glob(VHUB4WEB_DATA . '/' . '*.trace', GLOB_NOESCAPE);
+        } else {
+            $tracefiles = glob(VHUB4WEB_DATA . '/' . $rootHub . '*.trace', GLOB_NOESCAPE);
+        }
+        foreach($tracefiles as $tracefile) {
+            $fname = substr($tracefile, $fnameofs);
+            $bin = file_get_contents($tracefile);
+            $httpReq->putStr("**********[ $fname ]**********\r\n\r\n");
+            $httpReq->putBin($bin);
+            $httpReq->putStr("\r\n\r\n");
+        }
+
+        $httpReq->putStr("**********[ END OF TRACE DUMP ]**********\r\n\r\n");
     }
 
     /**
@@ -2137,7 +2352,7 @@ class VHubServer
                 $this->apiroot->cloudConf->freeDevYdx($serial);
                 $cloudapiobj = $this->apiroot->saveState();
                 $this->saveFile($httpReq, STATE_FILE, json_encode($cloudapiobj, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES), $fp);
-                $cloudSerial = $this->server->apiroot->cloudConf->serialNumber;
+                $cloudSerial = $this->apiroot->cloudConf->serialNumber;
                 $this->notif->appendModuleRemovalNotifications($httpReq, $cloudSerial, $serial);
                 $res['deleteDevice']['done'] = 1;
             } else {
@@ -2161,7 +2376,7 @@ class VHubServer
             $res['callbackMD5Password']['isSet'] = $isSet;
         }
         $this->files->sendContentHeader($httpReq, 'json');
-        $httpReq->put(json_encode($res, JSON_UNESCAPED_SLASHES));
+        $httpReq->putStr(json_encode($res, JSON_UNESCAPED_SLASHES));
     }
 
     /**
@@ -2175,10 +2390,10 @@ class VHubServer
                 $httpReq->putHeader('Content-encoding: gzip');
             }
             $this->files->sendContentHeader($httpReq, 'js');
-            $httpReq->put($installer);
+            $httpReq->putBin($installer);
         } catch(Throwable $e) {
             $httpReq->putStatus(404);
-            $httpReq->put("Failed to fetch Yocto-Visualization-4web installer from www.yoctopuce.com: {$e->getMessage()}\r\n");
+            $httpReq->putStr("Failed to fetch Yocto-Visualization-4web installer from www.yoctopuce.com: {$e->getMessage()}\r\n");
         }
     }
 
@@ -2209,11 +2424,11 @@ class VHubServer
         $endPos = $startPos + strlen($logs);
         $this->files->sendContentHeader($httpReq, 'txt');
         if($pos <= $startPos) {
-            $httpReq->put($logs);
+            $httpReq->putStr($logs);
         } else {
-            $httpReq->put(substr($logs, $pos - $startPos));
+            $httpReq->putStr(substr($logs, $pos - $startPos));
         }
-        $httpReq->put("\n@$endPos");
+        $httpReq->putStr("\n@$endPos");
     }
 
     /**
@@ -2237,12 +2452,12 @@ class VHubServer
         $httpReq->putHeader('Content-Type: text/plain; charset=x-user-defined');
         $maxlength = $this->notif->predictSize();
         $httpReq->putHeader('Content-length: '.(strlen($banner)+$maxlength));
-        $httpReq->put($banner);
+        $httpReq->putBin($banner);
         $started = microtime(true);
         while($maxlength != 0) {
             $newNotif = $this->notif->readMore($httpReq, $maxlength);
             if(strlen($newNotif) > 0) {
-                $httpReq->put($newNotif);
+                $httpReq->putBin($newNotif);
                 $maxlength -= strlen($newNotif);
                 // for PHP, close immediately to force a flush since Apache may be forcing cache
                 break;
@@ -2260,7 +2475,7 @@ class VHubServer
             }
         }
         if($maxlength > 0) {
-            $httpReq->put(str_repeat("\n", $maxlength));
+            $httpReq->putBin(str_repeat("\n", $maxlength));
         }
         $this->notif->close($httpReq);
     }
@@ -2283,7 +2498,7 @@ class VHubServer
             }
         }
         if(sizeof($sensorIds) == 0) {
-            $httpReq->put('[]');
+            $httpReq->putStr('[]');
             return;
         }
         if($functionid != '') {
@@ -2301,20 +2516,20 @@ class VHubServer
             if($functionid == '') {
                 $sep = '[';
                 foreach($sensorIds as $funcid) {
-                    $httpReq->put($sep);
+                    $httpReq->putStr($sep);
                     $logger->printIndex($httpReq, $deviceApiNode->subnode($funcid), $funcid, $run, $fromStamp, $toStamp, $verbose);
                     $sep = ',';
                 }
-                $httpReq->put(']');
+                $httpReq->putStr(']');
             } else {
                 $logger->printIndex($httpReq, $deviceApiNode->subnode($functionid), $functionid, $run, $fromStamp, $toStamp, $verbose);
             }
         } else if(str_contains($utc, ',')) {
             // Dump multiple streams in details (bulk transfer)
             $utcStamps = array_map(function($value) { return intval($value); }, explode(',', $utc));
-            $httpReq->put('[');
+            $httpReq->putStr('[');
             $logger->printRun($httpReq, $functionid, $run, $utcStamps, $verbose);
-            $httpReq->put(']');
+            $httpReq->putStr(']');
         } else {
             // Dump a single stream in details
             $utcStamp = intVal($utc);
@@ -2327,7 +2542,6 @@ class VHubServer
      */
     public function handleUpload(VHubServerHTTPRequest $httpReq, string $devserial = ''): void
     {
-        $fname = '';
         $content = '';
         $jsonData = $httpReq->getJsonPostData();
         if($jsonData && isset($jsonData['body'])) {
@@ -2335,38 +2549,30 @@ class VHubServer
             $fname = $jsonData['body']['filename'];
             $content = base64_decode($jsonData['body']['b64content']);
         } else {
+            // Expect a Form-Encoded POST data
             $postdata = $httpReq->getRawPostData();
-            if (strlen($postdata) > 0) {
-                // Form-Encoded POST data
-                $fnameMatches = [];
-                $boundaryMatches = [];
-                if (!preg_match('/Content-Disposition: form-data; name="([^"]*)";/i', $postdata, $fnameMatches)) {
-                    die("upload.html: multipart/form-data encoding expected !\n");
-                }
-                if (!preg_match('/--\S*/', $postdata, $boundaryMatches)) {
-                    die("upload.html: multipart boundary not found\n");
-                }
-                $boundary = $boundaryMatches[0];
-                $fname = $fnameMatches[1];
-                $startPos = strpos($postdata, "\r\n\r\n", strlen($boundary));
-                $endPos = strpos($postdata, "\r\n" . $boundary, $startPos);
-                if ($startPos >= 0 && $endPos >= 0) {
-                    $startPos += 4;
-                    $content = substr($postdata, $startPos, $endPos - $startPos);
-                }
-            } else {
-                // PHP-Specific: Bug in many recent version (7.x), enable_post_data_reading does not work with .user.ini
-                // => we need to fallback to tentative processing based on PHP $_FILES variable
-                VHubServer::Log($httpReq, LOG_VHUBSERVER, 4, "Upload detected without proper enable_post_data_reading=0");
-                foreach ($_FILES as $fname => $filedef) {
-                    // problem: PHP replaces dots by underscores in the filename, we need to revert that
-                    $fname = preg_replace('~_(html|txt|xml|js|ts|bin|min|byn|gz|zip)~i', '.$1', $fname);
-                    $content = file_get_contents($filedef['tmp_name']);
-                }
+            if (strlen($postdata) == 0) {
+                die("upload.html: empty POST, make sure your Yoctopuce library is recent enough!\n");
+            }
+            $fnameMatches = [];
+            $boundaryMatches = [];
+            if (!preg_match('/Content-Disposition: form-data; name="([^"]*)";/i', $postdata, $fnameMatches)) {
+                die("upload.html: form-data disposition expected !\n");
+            }
+            if (!preg_match('/--\S*/', $postdata, $boundaryMatches)) {
+                die("upload.html: multipart boundary not found\n");
+            }
+            $boundary = $boundaryMatches[0];
+            $fname = $fnameMatches[1];
+            $startPos = strpos($postdata, "\r\n\r\n", strlen($boundary));
+            $endPos = strpos($postdata, "\r\n" . $boundary, $startPos);
+            if ($startPos >= 0 && $endPos >= 0) {
+                $startPos += 4;
+                $content = substr($postdata, $startPos, $endPos - $startPos);
             }
         }
         if(!$fname) {
-            VHubServer::Log($httpReq, LOG_VHUBSERVER, 4, "Empty upload request");
+            VHubServer::Log($httpReq, LOG_VHUBSERVER, 3, "Empty upload request");
             return;
         }
         if($devserial == '') {
@@ -2374,7 +2580,7 @@ class VHubServer
             $this->files->filesUpload($httpReq, $fname, $content);
         } else {
             $csize = strlen($content);
-            VHubServer::Log($httpReq, LOG_VHUBSERVER, 4, "Scheduling upload of {$fname} to ${$devserial} ({$csize} bytes)");
+            VHubServer::Log($httpReq, LOG_VHUBSERVER, 4, "Scheduling upload of {$fname} to {$devserial} ({$csize} bytes)");
             $this->files->deviceFilesUpload($httpReq, $devserial, $fname, $content);
         }
         $this->saveState($httpReq);

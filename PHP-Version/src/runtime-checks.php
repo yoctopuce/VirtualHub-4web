@@ -75,44 +75,17 @@ function check_php_conf(bool $checkDataFolder = false): array
         ];
     }
 
-    $post_reading = ini_get('enable_post_data_reading');
-    if ($post_reading !== '0') {
-        $res[] = [
-            'error' => 'enable_post_data_reading',
-            'msg' => 'This software requires <b>enable_post_data_reading</b> to be set to 0.',
-            'cause' => '<b>enable_post_data_reading</b> is currenlty set to '.$post_reading.'. '.
-                'Depending on your server setup, this can be fixed by adding a line in the directory-specific '.
-                'configuration files .user.ini or .htaccess, or might require a change to the global server configuration.',
-            '.user.ini' => 'enable_post_data_reading="0"',
-            '.htaccess' => 'php_value enable_post_data_reading 0'
-        ];
-    }
-
     $max_post = ini_get('post_max_size');
     $max_post_kb = intval(str_replace(['K', 'M', 'G'], ['', '000', '000000'], $max_post));
-    if ($max_post_kb < 2000) {
+    if ($max_post_kb < 4000) {
         $res[] = [
             'error' => 'post_max_size',
-            'msg' => 'This software requires <b>post_max_size</b> to be at least 2 MB (ideally at least 4 MB).',
+            'msg' => 'This software requires <b>post_max_size</b> to be at least 4 MB (ideally at least 8 MB).',
             'cause' => '<b>post_max_size</b> is currenlty set to '.$max_post.'. '.
                 'Depending on your server setup, this can be fixed by adding a line in the directory-specific '.
                 'configuration files .user.ini or .htaccess, or might require a change to the global server configuration.',
-            '.user.ini' => 'post_max_size="4M"',
-            '.htaccess' => 'php_value post_max_size 4M'
-        ];
-    }
-
-    $max_upload = ini_get('upload_max_filesize');
-    $max_upload_kb = intval(str_replace(['K', 'M', 'G'], ['', '000', '000000'], $max_upload));
-    if ($max_upload_kb < 2000) {
-        $res[] = [
-            'error' => 'upload_max_filesize',
-            'msg' => 'This software requires <b>upload_max_filesize</b> to be at least 2 MB (ideally at least 4 MB).',
-            'cause' => '<b>upload_max_filesize</b> is currenlty set to '.$max_upload.'. '.
-                'Depending on your server setup, this can be fixed by adding a line in the directory-specific '.
-                'configuration files .user.ini or .htaccess, or might require a change to the global server configuration.',
-            '.user.ini' => 'upload_max_filesize="4M"',
-            '.htaccess' => 'php_value upload_max_filesize 4M'
+            '.user.ini' => 'post_max_size="8M"',
+            '.htaccess' => 'php_value post_max_size 8M'
         ];
     }
 
