@@ -1,9 +1,3 @@
-VirtualHub-4web v1.10.55677
+VirtualHub-4web v1.10.57208
 
-- Fix handling of iso-latin-1 characters in sensor units
-- Fix session handling when there is only an admin password
-- Improve Web UI
-- Add Web UI for YoctoHub GSM 4G SMS control
-- Add panels to helps debugging HTTP callbacks
-- Add support for sending calling hub to deep sleep after callback
-- Remove dependency on PHP multibyte string package
+- Update built-in interface files

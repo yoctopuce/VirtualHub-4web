@@ -1,7 +1,7 @@
 <?php
 /*********************************************************************
  *
- *  $Id: yocto_network.php 53886 2023-04-05 08:06:39Z mvuilleu $
+ *  $Id: yocto_network.php 56082 2023-08-15 14:57:14Z mvuilleu $
  *
  *  Implements YNetwork, the high-level API for Network functions
  *
@@ -1964,3 +1964,4 @@ function yFirstNetwork(): ?YNetwork
 }
 
 //--- (end of YNetwork functions)
+

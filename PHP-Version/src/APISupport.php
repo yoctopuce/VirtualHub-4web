@@ -76,7 +76,7 @@ function parseMove(string $ystr): object
         return (object)[
             'moving' => 1,
             'target' => $matches['target'],
-            'ms' => $matches['ms']
+            'ms' => $matches['msval']
         ];
     }
     return (object)[
